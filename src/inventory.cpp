@@ -27,6 +27,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "debug.h"
 #include <sstream>
 #include "main.h"
+#include "serverobject.h"
 
 /*
 	InventoryItem
@@ -90,23 +91,142 @@ InventoryItem* InventoryItem::deSerialize(std::istream &is)
 	}
 }
 
+ServerActiveObject* InventoryItem::createSAO(ServerEnvironment *env, u16 id, v3f pos)
+{
+	/*
+		Create an ItemSAO
+	*/
+	// Get item string
+	std::ostringstream os(std::ios_base::binary);
+	serialize(os);
+	// Create object
+	ServerActiveObject *obj = new ItemSAO(env, 0, pos, os.str());
+	return obj;
+}
+
+/*
+	MaterialItem
+*/
+
+bool MaterialItem::isCookable()
+{
+	if(m_content == CONTENT_TREE)
+	{
+		return true;
+	}
+	else if(m_content == CONTENT_COBBLE)
+	{
+		return true;
+	}
+	else if(m_content == CONTENT_SAND)
+	{
+		return true;
+	}
+	return false;
+}
+
+InventoryItem *MaterialItem::createCookResult()
+{
+	if(m_content == CONTENT_TREE)
+	{
+		return new CraftItem("lump_of_coal", 1);
+	}
+	else if(m_content == CONTENT_COBBLE)
+	{
+		return new MaterialItem(CONTENT_STONE, 1);
+	}
+	else if(m_content == CONTENT_SAND)
+	{
+		return new MaterialItem(CONTENT_GLASS, 1);
+	}
+	return NULL;
+}
+
+/*
+	CraftItem
+*/
+
+#ifndef SERVER
+video::ITexture * CraftItem::getImage()
+{
+	if(g_texturesource == NULL)
+		return NULL;
+	
+	std::string name;
+
+	if(m_subname == "Stick")
+		name = "stick.png";
+	else if(m_subname == "lump_of_coal")
+		name = "lump_of_coal.png";
+	else if(m_subname == "lump_of_iron")
+		name = "lump_of_iron.png";
+	else if(m_subname == "steel_ingot")
+		name = "steel_ingot.png";
+	else if(m_subname == "rat")
+		name = "rat.png";
+	else
+		name = "cloud.png";
+	
+	// Get such a texture
+	return g_texturesource->getTextureRaw(name);
+}
+#endif
+
+ServerActiveObject* CraftItem::createSAO(ServerEnvironment *env, u16 id, v3f pos)
+{
+	// Special cases
+	if(m_subname == "rat")
+	{
+		ServerActiveObject *obj = new RatSAO(env, id, pos);
+		return obj;
+	}
+	// Default
+	else
+	{
+		return InventoryItem::createSAO(env, id, pos);
+	}
+}
+
+u16 CraftItem::getDropCount()
+{
+	// Special cases
+	if(m_subname == "rat")
+		return 1;
+	// Default
+	else
+		return InventoryItem::getDropCount();
+}
+
+bool CraftItem::isCookable()
+{
+	if(m_subname == "lump_of_iron")
+	{
+		return true;
+	}
+	return false;
+}
+
+InventoryItem *CraftItem::createCookResult()
+{
+	if(m_subname == "lump_of_iron")
+	{
+		return new CraftItem("steel_ingot", 1);
+	}
+	return NULL;
+}
+
 /*
 	MapBlockObjectItem
+	TODO: Remove
 */
 #ifndef SERVER
 video::ITexture * MapBlockObjectItem::getImage()
 {
-	//TODO
-	
 	if(m_inventorystring.substr(0,3) == "Rat")
-		//return g_device->getVideoDriver()->getTexture(porting::getDataPath("rat.png").c_str());
-		//return g_irrlicht->getTexture("rat.png");
-		return NULL;
+		return g_texturesource->getTextureRaw("rat.png");
 	
 	if(m_inventorystring.substr(0,4) == "Sign")
-		//return g_device->getVideoDriver()->getTexture(porting::getDataPath("sign.png").c_str());
-		//return g_irrlicht->getTexture("sign.png");
-		return NULL;
+		return g_texturesource->getTextureRaw("sign.png");
 
 	return NULL;
 }
@@ -175,6 +295,7 @@ InventoryList::InventoryList(std::string name, u32 size)
 	m_name = name;
 	m_size = size;
 	clearItems();
+	//m_dirty = false;
 }
 
 InventoryList::~InventoryList()
@@ -200,6 +321,8 @@ void InventoryList::clearItems()
 	{
 		m_items.push_back(NULL);
 	}
+
+	//setDirty(true);
 }
 
 void InventoryList::serialize(std::ostream &os)
@@ -293,6 +416,7 @@ InventoryList & InventoryList::operator = (const InventoryList &other)
 			m_items[i] = item->clone();
 		}
 	}
+	//setDirty(true);
 
 	return *this;
 }
@@ -319,6 +443,11 @@ u32 InventoryList::getUsedSlots()
 	return num;
 }
 
+u32 InventoryList::getFreeSlots()
+{
+	return getSize() - getUsedSlots();
+}
+
 InventoryItem * InventoryList::getItem(u32 i)
 {
 	if(i > m_items.size() - 1)
@@ -332,6 +461,7 @@ InventoryItem * InventoryList::changeItem(u32 i, InventoryItem *newitem)
 
 	InventoryItem *olditem = m_items[i];
 	m_items[i] = newitem;
+	//setDirty(true);
 	return olditem;
 }
 
@@ -345,6 +475,9 @@ void InventoryList::deleteItem(u32 i)
 
 InventoryItem * InventoryList::addItem(InventoryItem *newitem)
 {
+	if(newitem == NULL)
+		return NULL;
+	
 	/*
 		First try to find if it could be added to some existing items
 	*/
@@ -379,6 +512,11 @@ InventoryItem * InventoryList::addItem(InventoryItem *newitem)
 
 InventoryItem * InventoryList::addItem(u32 i, InventoryItem *newitem)
 {
+	if(newitem == NULL)
+		return NULL;
+	
+	//setDirty(true);
+	
 	// If it is an empty position, it's an easy job.
 	InventoryItem *to_item = m_items[i];
 	if(to_item == NULL)
@@ -409,10 +547,34 @@ InventoryItem * InventoryList::addItem(u32 i, InventoryItem *newitem)
 	}
 }
 
+bool InventoryList::itemFits(u32 i, InventoryItem *newitem)
+{
+	// If it is an empty position, it's an easy job.
+	InventoryItem *to_item = m_items[i];
+	if(to_item == NULL)
+	{
+		return true;
+	}
+	
+	// If not addable, return the item
+	if(newitem->addableTo(to_item) == false)
+		return false;
+	
+	// If the item fits fully in the slot, add counter and delete it
+	if(newitem->getCount() <= to_item->freeSpace())
+	{
+		return true;
+	}
+
+	return false;
+}
+
 InventoryItem * InventoryList::takeItem(u32 i, u32 count)
 {
 	if(count == 0)
 		return NULL;
+	
+	//setDirty(true);
 
 	InventoryItem *item = m_items[i];
 	// If it is an empty position, return NULL
@@ -608,12 +770,27 @@ InventoryAction * InventoryAction::deSerialize(std::istream &is)
 	return a;
 }
 
-void IMoveAction::apply(Inventory *inventory)
+void IMoveAction::apply(InventoryContext *c, InventoryManager *mgr)
 {
-	/*dstream<<"from_name="<<from_name<<" to_name="<<to_name<<std::endl;
+#if 1
+
+	/*dstream<<"from_inv="<<from_inv<<" to_inv="<<to_inv<<std::endl;
+	dstream<<"from_list="<<from_list<<" to_list="<<to_list<<std::endl;
 	dstream<<"from_i="<<from_i<<" to_i="<<to_i<<std::endl;*/
-	InventoryList *list_from = inventory->getList(from_name);
-	InventoryList *list_to = inventory->getList(to_name);
+
+	Inventory *inv_from = mgr->getInventory(c, from_inv);
+	Inventory *inv_to = mgr->getInventory(c, to_inv);
+
+	if(!inv_from || !inv_to)
+	{
+		dstream<<__FUNCTION_NAME<<": Operation not allowed "
+				<<"(inventories not found)"<<std::endl;
+		return;
+	}
+
+	InventoryList *list_from = inv_from->getList(from_list);
+	InventoryList *list_to = inv_to->getList(to_list);
+
 	/*dstream<<"list_from="<<list_from<<" list_to="<<list_to
 			<<std::endl;*/
 	/*if(list_from)
@@ -625,12 +802,28 @@ void IMoveAction::apply(Inventory *inventory)
 	
 	/*
 		If a list doesn't exist or the source item doesn't exist
-		or the source and the destination slots are the same
 	*/
-	if(!list_from || !list_to || list_from->getItem(from_i) == NULL
-			|| (list_from == list_to && from_i == to_i))
+	if(!list_from || !list_to)
 	{
-		dstream<<__FUNCTION_NAME<<": Operation not allowed"<<std::endl;
+		dstream<<__FUNCTION_NAME<<": Operation not allowed "
+				<<"(a list doesn't exist)"
+				<<std::endl;
+		return;
+	}
+	if(list_from->getItem(from_i) == NULL)
+	{
+		dstream<<__FUNCTION_NAME<<": Operation not allowed "
+				<<"(the source item doesn't exist)"
+				<<std::endl;
+		return;
+	}
+	/*
+		If the source and the destination slots are the same
+	*/
+	if(inv_from == inv_to && list_from == list_to && from_i == to_i)
+	{
+		dstream<<__FUNCTION_NAME<<": Operation not allowed "
+				<<"(source and the destination slots are the same)"<<std::endl;
 		return;
 	}
 	
@@ -645,29 +838,160 @@ void IMoveAction::apply(Inventory *inventory)
 	InventoryItem *olditem = item1;
 	item1 = list_to->addItem(to_i, item1);
 
-	// If nothing is returned, the item was fully added
-	if(item1 == NULL)
-		return;
-	
-	// If olditem is returned, nothing was added.
-	bool nothing_added = (item1 == olditem);
-	
-	// If something else is returned, part of the item was left unadded.
-	// Add the other part back to the source item
-	list_from->addItem(from_i, item1);
-
-	// If olditem is returned, nothing was added.
-	// Swap the items
-	if(nothing_added)
+	// If something is returned, the item was not fully added
+	if(item1 != NULL)
 	{
-		// Take item from source list
-		item1 = list_from->changeItem(from_i, NULL);
-		// Adding was not possible, swap the items.
-		InventoryItem *item2 = list_to->changeItem(to_i, item1);
-		// Put item from destination list to the source list
-		list_from->changeItem(from_i, item2);
-		return;
+		// If olditem is returned, nothing was added.
+		bool nothing_added = (item1 == olditem);
+		
+		// If something else is returned, part of the item was left unadded.
+		// Add the other part back to the source item
+		list_from->addItem(from_i, item1);
+
+		// If olditem is returned, nothing was added.
+		// Swap the items
+		if(nothing_added)
+		{
+			// Take item from source list
+			item1 = list_from->changeItem(from_i, NULL);
+			// Adding was not possible, swap the items.
+			InventoryItem *item2 = list_to->changeItem(to_i, item1);
+			// Put item from destination list to the source list
+			list_from->changeItem(from_i, item2);
+		}
 	}
+
+	mgr->inventoryModified(c, from_inv);
+	if(from_inv != to_inv)
+		mgr->inventoryModified(c, to_inv);
+#endif
+}
+
+/*
+	Craft checking system
+*/
+
+bool ItemSpec::checkItem(InventoryItem *item)
+{
+	if(type == ITEM_NONE)
+	{
+		// Has to be no item
+		if(item != NULL)
+			return false;
+		return true;
+	}
+	
+	// There should be an item
+	if(item == NULL)
+		return false;
+
+	std::string itemname = item->getName();
+
+	if(type == ITEM_MATERIAL)
+	{
+		if(itemname != "MaterialItem")
+			return false;
+		MaterialItem *mitem = (MaterialItem*)item;
+		if(mitem->getMaterial() != num)
+			return false;
+	}
+	else if(type == ITEM_CRAFT)
+	{
+		if(itemname != "CraftItem")
+			return false;
+		CraftItem *mitem = (CraftItem*)item;
+		if(mitem->getSubName() != name)
+			return false;
+	}
+	else if(type == ITEM_TOOL)
+	{
+		// Not supported yet
+		assert(0);
+	}
+	else if(type == ITEM_MBO)
+	{
+		// Not supported yet
+		assert(0);
+	}
+	else
+	{
+		// Not supported yet
+		assert(0);
+	}
+	return true;
+}
+
+bool checkItemCombination(InventoryItem **items, ItemSpec *specs)
+{
+	u16 items_min_x = 100;
+	u16 items_max_x = 100;
+	u16 items_min_y = 100;
+	u16 items_max_y = 100;
+	for(u16 y=0; y<3; y++)
+	for(u16 x=0; x<3; x++)
+	{
+		if(items[y*3 + x] == NULL)
+			continue;
+		if(items_min_x == 100 || x < items_min_x)
+			items_min_x = x;
+		if(items_min_y == 100 || y < items_min_y)
+			items_min_y = y;
+		if(items_max_x == 100 || x > items_max_x)
+			items_max_x = x;
+		if(items_max_y == 100 || y > items_max_y)
+			items_max_y = y;
+	}
+	// No items at all, just return false
+	if(items_min_x == 100)
+		return false;
+	
+	u16 items_w = items_max_x - items_min_x + 1;
+	u16 items_h = items_max_y - items_min_y + 1;
+
+	u16 specs_min_x = 100;
+	u16 specs_max_x = 100;
+	u16 specs_min_y = 100;
+	u16 specs_max_y = 100;
+	for(u16 y=0; y<3; y++)
+	for(u16 x=0; x<3; x++)
+	{
+		if(specs[y*3 + x].type == ITEM_NONE)
+			continue;
+		if(specs_min_x == 100 || x < specs_min_x)
+			specs_min_x = x;
+		if(specs_min_y == 100 || y < specs_min_y)
+			specs_min_y = y;
+		if(specs_max_x == 100 || x > specs_max_x)
+			specs_max_x = x;
+		if(specs_max_y == 100 || y > specs_max_y)
+			specs_max_y = y;
+	}
+	// No specs at all, just return false
+	if(specs_min_x == 100)
+		return false;
+
+	u16 specs_w = specs_max_x - specs_min_x + 1;
+	u16 specs_h = specs_max_y - specs_min_y + 1;
+
+	// Different sizes
+	if(items_w != specs_w || items_h != specs_h)
+		return false;
+
+	for(u16 y=0; y<specs_h; y++)
+	for(u16 x=0; x<specs_w; x++)
+	{
+		u16 items_x = items_min_x + x;
+		u16 items_y = items_min_y + y;
+		u16 specs_x = specs_min_x + x;
+		u16 specs_y = specs_min_y + y;
+		InventoryItem *item = items[items_y * 3 + items_x];
+		ItemSpec &spec = specs[specs_y * 3 + specs_x];
+
+		if(spec.checkItem(item) == false)
+			return false;
+	}
+
+	return true;
 }
 	
 //END

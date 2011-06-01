@@ -20,11 +20,18 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "serverobject.h"
 #include <fstream>
 #include "environment.h"
+#include "inventory.h"
+#include "collision.h"
+
+core::map<u16, ServerActiveObject::Factory> ServerActiveObject::m_types;
 
 ServerActiveObject::ServerActiveObject(ServerEnvironment *env, u16 id, v3f pos):
 	ActiveObject(id),
 	m_known_by_count(0),
 	m_removed(false),
+	m_pending_deactivation(false),
+	m_static_exists(false),
+	m_static_block(1337,1337,1337),
 	m_env(env),
 	m_base_position(pos)
 {
@@ -34,18 +41,59 @@ ServerActiveObject::~ServerActiveObject()
 {
 }
 
+ServerActiveObject* ServerActiveObject::create(u8 type,
+		ServerEnvironment *env, u16 id, v3f pos,
+		const std::string &data)
+{
+	// Find factory function
+	core::map<u16, Factory>::Node *n;
+	n = m_types.find(type);
+	if(n == NULL)
+	{
+		// If factory is not found, just return.
+		dstream<<"WARNING: ServerActiveObject: No factory for type="
+				<<type<<std::endl;
+		return NULL;
+	}
+
+	Factory f = n->getValue();
+	ServerActiveObject *object = (*f)(env, id, pos, data);
+	return object;
+}
+
+void ServerActiveObject::registerType(u16 type, Factory f)
+{
+	core::map<u16, Factory>::Node *n;
+	n = m_types.find(type);
+	if(n)
+		return;
+	m_types.insert(type, f);
+}
+
+
 /*
 	TestSAO
 */
+
+// Prototype
+TestSAO proto_TestSAO(NULL, 0, v3f(0,0,0));
 
 TestSAO::TestSAO(ServerEnvironment *env, u16 id, v3f pos):
 	ServerActiveObject(env, id, pos),
 	m_timer1(0),
 	m_age(0)
 {
+	ServerActiveObject::registerType(getType(), create);
 }
 
-void TestSAO::step(float dtime, Queue<ActiveObjectMessage> &messages)
+ServerActiveObject* TestSAO::create(ServerEnvironment *env, u16 id, v3f pos,
+		const std::string &data)
+{
+	return new TestSAO(env, id, pos);
+}
+
+void TestSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
+		bool send_recommended)
 {
 	m_age += dtime;
 	if(m_age > 10)
@@ -57,6 +105,9 @@ void TestSAO::step(float dtime, Queue<ActiveObjectMessage> &messages)
 	m_base_position.Y += dtime * BS * 2;
 	if(m_base_position.Y > 8*BS)
 		m_base_position.Y = 2*BS;
+
+	if(send_recommended == false)
+		return;
 
 	m_timer1 -= dtime;
 	if(m_timer1 < 0.0)
@@ -79,727 +130,541 @@ void TestSAO::step(float dtime, Queue<ActiveObjectMessage> &messages)
 	}
 }
 
-/*
-	LuaSAO
-*/
-
-extern "C"{
-#include "lstring.h"
-}
 
 /*
-	Callbacks in script:
-	
-	on_step(self, dtime)
-	on_get_client_init_data(self)
-	on_get_server_init_data(self)
-	on_initialize(self, data)
+	ItemSAO
 */
 
-/*
-	object_remove(x,y,z)
-*/
-static int lf_object_remove(lua_State *L)
-{
-	// 1: self
-	LuaSAO *self = (LuaSAO*)lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	
-	assert(self);
+// Prototype
+ItemSAO proto_ItemSAO(NULL, 0, v3f(0,0,0), "");
 
-	self->m_removed = true;
-
-	return 0;
-}
-
-/*
-	ServerEnvironment object_get_environment(self)
-*/
-static int lf_object_get_environment(lua_State *L)
-{
-	// 1: self
-	LuaSAO *self = (LuaSAO*)lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	
-	assert(self);
-	
-	lua_pushlightuserdata(L, self->getEnv());
-	return 1;
-}
-
-/*
-	object_set_base_position(self, {X=,Y=,Z=})
-*/
-static int lf_object_set_base_position(lua_State *L)
-{
-	// 2: position
-	assert(lua_istable(L, -1));
-	lua_pushstring(L, "X");
-	lua_gettable(L, -2);
-	lua_Number x = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pushstring(L, "Y");
-	lua_gettable(L, -2);
-	lua_Number y = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pushstring(L, "Z");
-	lua_gettable(L, -2);
-	lua_Number z = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pop(L, 1);
-	// 1: self
-	LuaSAO *self = (LuaSAO*)lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	
-	assert(self);
-	
-	self->setBasePosition(v3f(x*BS,y*BS,z*BS));
-	
-	return 0; // Number of return values
-}
-
-/*
-	{X=,Y=,Z=} object_get_base_position(self)
-*/
-static int lf_object_get_base_position(lua_State *L)
-{
-	// 1: self
-	LuaSAO *self = (LuaSAO*)lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	
-	assert(self);
-	
-	v3f pos = self->getBasePosition();
-
-	lua_newtable(L);
-
-	lua_pushstring(L, "X");
-	lua_pushnumber(L, pos.X/BS);
-	lua_settable(L, -3);
-
-	lua_pushstring(L, "Y");
-	lua_pushnumber(L, pos.Y/BS);
-	lua_settable(L, -3);
-
-	lua_pushstring(L, "Z");
-	lua_pushnumber(L, pos.Z/BS);
-	lua_settable(L, -3);
-
-	return 1; // Number of return values
-}
-
-/*
-	object_add_message(self, string data)
-	lf = luafunc
-*/
-static int lf_object_add_message(lua_State *L)
-{
-	// 2: data
-	size_t datalen = 0;
-	const char *data_c = lua_tolstring(L, -1, &datalen);
-	lua_pop(L, 1);
-	// 1: self
-	LuaSAO *self = (LuaSAO*)lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	
-	assert(self);
-	assert(data_c);
-	
-	std::string data(data_c, datalen);
-	//dstream<<"object_add_message: data="<<data<<std::endl;
-	
-	// Create message and add to queue
-	ActiveObjectMessage aom(self->getId());
-	aom.reliable = true;
-	aom.datastring = data;
-	self->m_message_queue.push_back(aom);
-
-	return 0; // Number of return values
-}
-
-/*
-	env_get_node(env, {X=,Y=,Z=})
-*/
-static int lf_env_get_node(lua_State *L)
-{
-	// 2: position
-	assert(lua_istable(L, -1));
-	lua_pushstring(L, "X");
-	lua_gettable(L, -2);
-	lua_Number x = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pushstring(L, "Y");
-	lua_gettable(L, -2);
-	lua_Number y = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pushstring(L, "Z");
-	lua_gettable(L, -2);
-	lua_Number z = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pop(L, 1);
-	// 1: env
-	ServerEnvironment *env = (ServerEnvironment*)lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	
-	assert(env);
-
-	v3s16 pos = floatToInt(v3f(x,y,z), 1.0);
-
-	/*dstream<<"Checking node from pos=("<<pos.X<<","<<pos.Y<<","<<pos.Z
-			<<")"<<std::endl;*/
-	
-	// Get the node
-	MapNode n(CONTENT_IGNORE);
-	n = env->getMap().getNodeNoEx(pos);
-
-	// Create a table with some data about the node
-	lua_newtable(L);
-	lua_pushstring(L, "content");
-	lua_pushinteger(L, n.d);
-	lua_settable(L, -3);
-	lua_pushstring(L, "param1");
-	lua_pushinteger(L, n.param);
-	lua_settable(L, -3);
-	lua_pushstring(L, "param2");
-	lua_pushinteger(L, n.param2);
-	lua_settable(L, -3);
-	
-	// Return the table
-	return 1;
-}
-
-/*
-	get_content_features(content)
-*/
-static int lf_get_content_features(lua_State *L)
-{
-	MapNode n;
-	
-	// 1: content
-	n.d = lua_tointeger(L, -1);
-	lua_pop(L, 1);
-	
-	// Get and return information
-	ContentFeatures &f = content_features(n.d);
-	
-	lua_newtable(L);
-	lua_pushstring(L, "walkable");
-	lua_pushboolean(L, f.walkable);
-	lua_settable(L, -3);
-	lua_pushstring(L, "diggable");
-	lua_pushboolean(L, f.diggable);
-	lua_settable(L, -3);
-	lua_pushstring(L, "buildable_to");
-	lua_pushboolean(L, f.buildable_to);
-	lua_settable(L, -3);
-	
-	return 1;
-}
-
-/*
-	bool env_dig_node(env, {X=,Y=,Z=})
-	Return true on success
-*/
-static int lf_env_dig_node(lua_State *L)
-{
-	// 2: position
-	assert(lua_istable(L, -1));
-	lua_pushstring(L, "X");
-	lua_gettable(L, -2);
-	lua_Number x = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pushstring(L, "Y");
-	lua_gettable(L, -2);
-	lua_Number y = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pushstring(L, "Z");
-	lua_gettable(L, -2);
-	lua_Number z = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pop(L, 1);
-	// 1: env
-	ServerEnvironment *env = (ServerEnvironment*)lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	assert(env);
-
-	v3s16 pos = floatToInt(v3f(x,y,z), 1.0);
-	
-	/*
-		Do stuff.
-		This gets sent to the server by the map through the edit
-		event system.
-	*/
-	bool succeeded = env->getMap().removeNodeWithEvent(pos);
-	
-	lua_pushboolean(L, succeeded);
-	return 1;
-}
-
-/*
-	bool env_place_node(env, {X=,Y=,Z=}, node)
-	node={content=,param1=,param2=}
-	param1 and param2 are optional
-	Return true on success
-*/
-static int lf_env_place_node(lua_State *L)
-{
-	// 3: node
-	MapNode n(CONTENT_STONE);
-	assert(lua_istable(L, -1));
-	{
-		lua_pushstring(L, "content");
-		lua_gettable(L, -2);
-		if(lua_isnumber(L, -1))
-			n.d = lua_tonumber(L, -1);
-		lua_pop(L, 1);
-		lua_pushstring(L, "param1");
-		lua_gettable(L, -2);
-		if(lua_isnumber(L, -1))
-			n.param = lua_tonumber(L, -1);
-		lua_pop(L, 1);
-		lua_pushstring(L, "param2");
-		lua_gettable(L, -2);
-		if(lua_isnumber(L, -1))
-			n.param2 = lua_tonumber(L, -1);
-		lua_pop(L, 1);
-	}
-	lua_pop(L, 1);
-	// 2: position
-	assert(lua_istable(L, -1));
-	lua_pushstring(L, "X");
-	lua_gettable(L, -2);
-	lua_Number x = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pushstring(L, "Y");
-	lua_gettable(L, -2);
-	lua_Number y = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pushstring(L, "Z");
-	lua_gettable(L, -2);
-	lua_Number z = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pop(L, 1);
-	// 1: env
-	ServerEnvironment *env = (ServerEnvironment*)lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	assert(env);
-
-	v3s16 pos = floatToInt(v3f(x,y,z), 1.0);
-	
-	/*
-		Do stuff.
-		This gets sent to the server by the map through the edit
-		event system.
-	*/
-	bool succeeded = env->getMap().addNodeWithEvent(pos, n);
-
-	lua_pushboolean(L, succeeded);
-	return 1;
-}
-
-/*
-	string env_get_nearest_player_name(env, {X=,Y=,Z=})
-*/
-static int lf_env_get_nearest_player_name(lua_State *L)
-{
-	// 2: position
-	assert(lua_istable(L, -1));
-	lua_pushstring(L, "X");
-	lua_gettable(L, -2);
-	lua_Number x = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pushstring(L, "Y");
-	lua_gettable(L, -2);
-	lua_Number y = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pushstring(L, "Z");
-	lua_gettable(L, -2);
-	lua_Number z = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	lua_pop(L, 1);
-	// 1: env
-	ServerEnvironment *env = (ServerEnvironment*)lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	assert(env);
-	
-	v3f pos_f = v3f(x,y,z)*BS;
-	
-	Player *player = env->getNearestConnectedPlayer(pos_f);
-	
-	if(player)
-		lua_pushstring(L, player->getName());
-	else
-		lua_pushstring(L, "");
-	
-	return 1; // Number of return values
-}
-
-/*
-	{exists=, pos={X=,Y=,Z=}, connected=} env_get_player_info(env, name)
-*/
-static int lf_env_get_player_info(lua_State *L)
-{
-	// 2: name
-	const char *name = lua_tostring(L, -1);
-	lua_pop(L, 1);
-	// 1: env
-	ServerEnvironment *env = (ServerEnvironment*)lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	assert(env);
-	
-	Player *player = env->getPlayer(name);
-	v3f pos(0,0,0);
-	if(player)
-		pos = player->getPosition();
-
-	lua_newtable(L);
-
-	lua_pushstring(L, "exists");
-	lua_pushboolean(L, (player != NULL));
-	lua_settable(L, -3);
-	
-	if(player != NULL)
-	{
-		lua_pushstring(L, "pos");
-		{
-			lua_newtable(L);
-			
-			lua_pushstring(L, "X");
-			lua_pushnumber(L, pos.X/BS);
-			lua_settable(L, -3);
-
-			lua_pushstring(L, "Y");
-			lua_pushnumber(L, pos.Y/BS);
-			lua_settable(L, -3);
-
-			lua_pushstring(L, "Z");
-			lua_pushnumber(L, pos.Z/BS);
-			lua_settable(L, -3);
-		}
-		lua_settable(L, -3);
-
-		lua_pushstring(L, "connected");
-		lua_pushboolean(L, (player->peer_id != 0));
-		lua_settable(L, -3);
-	}
-
-	return 1; // Number of return values
-}
-
-LuaSAO::LuaSAO(ServerEnvironment *env, u16 id, v3f pos):
+ItemSAO::ItemSAO(ServerEnvironment *env, u16 id, v3f pos,
+		const std::string inventorystring):
 	ServerActiveObject(env, id, pos),
-	L(NULL)
+	m_inventorystring(inventorystring),
+	m_speed_f(0,0,0),
+	m_last_sent_position(0,0,0)
 {
-	dstream<<"LuaSAO::LuaSAO(): id="<<id<<std::endl;
-	L = lua_open();
-	assert(L);
-	
-	// Load libraries
-	luaopen_base(L);
-	luaopen_table(L);
-	luaopen_string(L);
-	luaopen_math(L);
-	
-	// Add globals
-	//lua_pushlightuserdata(L, this);
-	//lua_setglobal(L, "self");
-	
-	// Register functions
-#define LUA_REGISTER_FUNC(L, x) lua_register(L, #x, lf_ ## x)
-	LUA_REGISTER_FUNC(L, object_remove);
-	LUA_REGISTER_FUNC(L, object_get_environment);
-	LUA_REGISTER_FUNC(L, object_set_base_position);
-	LUA_REGISTER_FUNC(L, object_get_base_position);
-	LUA_REGISTER_FUNC(L, object_add_message);
-	LUA_REGISTER_FUNC(L, env_get_node);
-	LUA_REGISTER_FUNC(L, get_content_features);
-	LUA_REGISTER_FUNC(L, env_dig_node);
-	LUA_REGISTER_FUNC(L, env_place_node);
-	LUA_REGISTER_FUNC(L, env_get_nearest_player_name);
-	LUA_REGISTER_FUNC(L, env_get_player_info);
+	ServerActiveObject::registerType(getType(), create);
 }
 
-LuaSAO::~LuaSAO()
-{
-	lua_close(L);
-}
-
-std::string LuaSAO::getClientInitializationData()
-{
-	/*
-		Read client-side script from file
-	*/
-	
-	std::string relative_path;
-	relative_path += "scripts/objects/";
-	relative_path += m_script_name;
-	relative_path += "/client.lua";
-	std::string full_path = porting::getDataPath(relative_path.c_str());
-	std::string script;
-	std::ifstream file(full_path.c_str(), std::ios::binary | std::ios::ate);
-	int size = file.tellg();
-	SharedBuffer<char> buf(size);
-	file.seekg(0, std::ios::beg);
-	file.read(&buf[0], size);
-	file.close();
-	
-	/*
-		Create data string
-	*/
-	std::string data;
-
-	// Append script
-	std::string script_string(&buf[0], buf.getSize());
-	data += serializeLongString(script_string);
-
-	/*
-		Get data from server-side script for inclusion
-	*/
-	std::string other_data;
-	
-	do{
-
-		const char *funcname = "on_get_client_init_data";
-		lua_getglobal(L, funcname);
-		if(!lua_isfunction(L,-1))
-		{
-			lua_pop(L,1);
-			dstream<<"WARNING: LuaSAO: Function not found: "
-					<<funcname<<std::endl;
-			break;
-		}
-		
-		// Parameters:
-		// 1: self
-		lua_pushlightuserdata(L, this);
-		
-		// Call (1 parameters, 1 result)
-		if(lua_pcall(L, 1, 1, 0))
-		{
-			dstream<<"WARNING: LuaSAO: Error running function "
-					<<funcname<<": "
-					<<lua_tostring(L,-1)<<std::endl;
-			break;
-		}
-
-		// Retrieve result
-		if(!lua_isstring(L,-1))
-		{
-			dstream<<"WARNING: LuaSAO: Function "<<funcname
-					<<" didn't return a string"<<std::endl;
-			break;
-		}
-		
-		size_t cs_len = 0;
-		const char *cs = lua_tolstring(L, -1, &cs_len);
-		lua_pop(L,1);
-
-		other_data = std::string(cs, cs_len);
-
-	}while(0);
-	
-	data += serializeLongString(other_data);
-
-	return data;
-}
-
-std::string LuaSAO::getServerInitializationData()
-{
-	std::string data;
-	
-	// Script name
-	data.append(serializeString(m_script_name));
-
-	/*
-		Get data from server-side script for inclusion
-	*/
-	std::string other_data;
-	
-	do{
-
-		const char *funcname = "on_get_server_init_data";
-		lua_getglobal(L, funcname);
-		if(!lua_isfunction(L,-1))
-		{
-			lua_pop(L,1);
-			dstream<<"WARNING: LuaSAO: Function not found: "
-					<<funcname<<std::endl;
-			break;
-		}
-		
-		// Parameters:
-		// 1: self
-		lua_pushlightuserdata(L, this);
-		
-		// Call (1 parameters, 1 result)
-		if(lua_pcall(L, 1, 1, 0))
-		{
-			dstream<<"WARNING: LuaSAO: Error running function "
-					<<funcname<<": "
-					<<lua_tostring(L,-1)<<std::endl;
-			break;
-		}
-
-		// Retrieve result
-		if(!lua_isstring(L,-1))
-		{
-			dstream<<"WARNING: LuaSAO: Function "<<funcname
-					<<" didn't return a string"<<std::endl;
-			break;
-		}
-		
-		size_t cs_len = 0;
-		const char *cs = lua_tolstring(L, -1, &cs_len);
-		lua_pop(L,1);
-
-		other_data = std::string(cs, cs_len);
-
-	}while(0);
-	
-	data += serializeLongString(other_data);
-
-	return data;
-}
-
-void LuaSAO::initializeFromNothing(const std::string &script_name)
-{
-	loadScripts(script_name);
-
-	/*
-		Call on_initialize(self, data) in the script
-	*/
-	
-	const char *funcname = "on_initialize";
-	lua_getglobal(L, funcname);
-	if(!lua_isfunction(L,-1))
-	{
-		lua_pop(L,1);
-		dstream<<"WARNING: LuaSAO: Function not found: "
-				<<funcname<<std::endl;
-		return;
-	}
-	
-	// Parameters:
-	// 1: self
-	lua_pushlightuserdata(L, this);
-	// 2: data (other)
-	lua_pushstring(L, "");
-	
-	// Call (2 parameters, 0 result)
-	if(lua_pcall(L, 2, 0, 0))
-	{
-		dstream<<"WARNING: LuaSAO: Error running function "
-				<<funcname<<": "
-				<<lua_tostring(L,-1)<<std::endl;
-		return;
-	}
-}
-
-void LuaSAO::initializeFromSave(const std::string &data)
+ServerActiveObject* ItemSAO::create(ServerEnvironment *env, u16 id, v3f pos,
+		const std::string &data)
 {
 	std::istringstream is(data, std::ios::binary);
-	std::string script_name = deSerializeString(is);
-	std::string other = deSerializeLongString(is);
+	char buf[1];
+	// read version
+	is.read(buf, 1);
+	u8 version = buf[0];
+	// check if version is supported
+	if(version != 0)
+		return NULL;
+	std::string inventorystring = deSerializeString(is);
+	dstream<<"ItemSAO::create(): Creating item \""
+			<<inventorystring<<"\""<<std::endl;
+	return new ItemSAO(env, id, pos, inventorystring);
+}
 
-	loadScripts(script_name);
+void ItemSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
+		bool send_recommended)
+{
+	assert(m_env);
+
+	const float interval = 0.2;
+	if(m_move_interval.step(dtime, interval)==false)
+		return;
+	dtime = interval;
+	
+	core::aabbox3d<f32> box(-BS/3.,0.0,-BS/3., BS/3.,BS*2./3.,BS/3.);
+	collisionMoveResult moveresult;
+	// Apply gravity
+	m_speed_f += v3f(0, -dtime*9.81*BS, 0);
+	// Maximum movement without glitches
+	f32 pos_max_d = BS*0.25;
+	// Limit speed
+	if(m_speed_f.getLength()*dtime > pos_max_d)
+		m_speed_f *= pos_max_d / (m_speed_f.getLength()*dtime);
+	v3f pos_f = getBasePosition();
+	v3f pos_f_old = pos_f;
+	moveresult = collisionMoveSimple(&m_env->getMap(), pos_max_d,
+			box, dtime, pos_f, m_speed_f);
+	
+	if(send_recommended == false)
+		return;
+
+	if(pos_f.getDistanceFrom(m_last_sent_position) > 0.05*BS)
+	{
+		setBasePosition(pos_f);
+		m_last_sent_position = pos_f;
+
+		std::ostringstream os(std::ios::binary);
+		char buf[6];
+		// command (0 = update position)
+		buf[0] = 0;
+		os.write(buf, 1);
+		// pos
+		writeS32((u8*)buf, m_base_position.X*1000);
+		os.write(buf, 4);
+		writeS32((u8*)buf, m_base_position.Y*1000);
+		os.write(buf, 4);
+		writeS32((u8*)buf, m_base_position.Z*1000);
+		os.write(buf, 4);
+		// create message and add to list
+		ActiveObjectMessage aom(getId(), false, os.str());
+		messages.push_back(aom);
+	}
+}
+
+std::string ItemSAO::getClientInitializationData()
+{
+	std::ostringstream os(std::ios::binary);
+	char buf[6];
+	// version
+	buf[0] = 0;
+	os.write(buf, 1);
+	// pos
+	writeS32((u8*)buf, m_base_position.X*1000);
+	os.write(buf, 4);
+	writeS32((u8*)buf, m_base_position.Y*1000);
+	os.write(buf, 4);
+	writeS32((u8*)buf, m_base_position.Z*1000);
+	os.write(buf, 4);
+	// inventorystring
+	os<<serializeString(m_inventorystring);
+	return os.str();
+}
+
+std::string ItemSAO::getStaticData()
+{
+	dstream<<__FUNCTION_NAME<<std::endl;
+	std::ostringstream os(std::ios::binary);
+	char buf[1];
+	// version
+	buf[0] = 0;
+	os.write(buf, 1);
+	// inventorystring
+	os<<serializeString(m_inventorystring);
+	return os.str();
+}
+
+InventoryItem * ItemSAO::createInventoryItem()
+{
+	try{
+		std::istringstream is(m_inventorystring, std::ios_base::binary);
+		InventoryItem *item = InventoryItem::deSerialize(is);
+		dstream<<__FUNCTION_NAME<<": m_inventorystring=\""
+				<<m_inventorystring<<"\" -> item="<<item
+				<<std::endl;
+		return item;
+	}
+	catch(SerializationError &e)
+	{
+		dstream<<__FUNCTION_NAME<<": serialization error: "
+				<<"m_inventorystring=\""<<m_inventorystring<<"\""<<std::endl;
+		return NULL;
+	}
+}
+
+
+/*
+	RatSAO
+*/
+
+// Prototype
+RatSAO proto_RatSAO(NULL, 0, v3f(0,0,0));
+
+RatSAO::RatSAO(ServerEnvironment *env, u16 id, v3f pos):
+	ServerActiveObject(env, id, pos),
+	m_is_active(false),
+	m_speed_f(0,0,0)
+{
+	ServerActiveObject::registerType(getType(), create);
+
+	m_oldpos = v3f(0,0,0);
+	m_last_sent_position = v3f(0,0,0);
+	m_yaw = 0;
+	m_counter1 = 0;
+	m_counter2 = 0;
+	m_age = 0;
+	m_touching_ground = false;
+}
+
+ServerActiveObject* RatSAO::create(ServerEnvironment *env, u16 id, v3f pos,
+		const std::string &data)
+{
+	std::istringstream is(data, std::ios::binary);
+	char buf[1];
+	// read version
+	is.read(buf, 1);
+	u8 version = buf[0];
+	// check if version is supported
+	if(version != 0)
+		return NULL;
+	return new RatSAO(env, id, pos);
+}
+
+void RatSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
+		bool send_recommended)
+{
+	assert(m_env);
+
+	if(m_is_active == false)
+	{
+		if(m_inactive_interval.step(dtime, 0.5)==false)
+			return;
+	}
 
 	/*
-		Call on_initialize(self, data) in the script
+		The AI
 	*/
-	
-	const char *funcname = "on_initialize";
-	lua_getglobal(L, funcname);
-	if(!lua_isfunction(L,-1))
+
+	/*m_age += dtime;
+	if(m_age > 60)
 	{
-		lua_pop(L,1);
-		dstream<<"WARNING: LuaSAO: Function not found: "
-				<<funcname<<std::endl;
+		// Die
+		m_removed = true;
 		return;
+	}*/
+
+	// Apply gravity
+	m_speed_f.Y -= dtime*9.81*BS;
+
+	/*
+		Move around if some player is close
+	*/
+	bool player_is_close = false;
+	// Check connected players
+	core::list<Player*> players = m_env->getPlayers(true);
+	core::list<Player*>::Iterator i;
+	for(i = players.begin();
+			i != players.end(); i++)
+	{
+		Player *player = *i;
+		v3f playerpos = player->getPosition();
+		if(m_base_position.getDistanceFrom(playerpos) < BS*10.0)
+		{
+			player_is_close = true;
+			break;
+		}
+	}
+
+	m_is_active = player_is_close;
+	
+	if(player_is_close == false)
+	{
+		m_speed_f.X = 0;
+		m_speed_f.Z = 0;
+	}
+	else
+	{
+		// Move around
+		v3f dir(cos(m_yaw/180*PI),0,sin(m_yaw/180*PI));
+		f32 speed = 2*BS;
+		m_speed_f.X = speed * dir.X;
+		m_speed_f.Z = speed * dir.Z;
+
+		if(m_touching_ground && (m_oldpos - m_base_position).getLength()
+				< dtime*speed/2)
+		{
+			m_counter1 -= dtime;
+			if(m_counter1 < 0.0)
+			{
+				m_counter1 += 1.0;
+				m_speed_f.Y = 5.0*BS;
+			}
+		}
+
+		{
+			m_counter2 -= dtime;
+			if(m_counter2 < 0.0)
+			{
+				m_counter2 += (float)(myrand()%100)/100*3.0;
+				m_yaw += ((float)(myrand()%200)-100)/100*180;
+				m_yaw = wrapDegrees(m_yaw);
+			}
+		}
 	}
 	
-	// Parameters:
-	// 1: self
-	lua_pushlightuserdata(L, this);
-	// 2: data (other)
-	lua_pushlstring(L, other.c_str(), other.size());
+	m_oldpos = m_base_position;
+
+	/*
+		Move it, with collision detection
+	*/
+
+	core::aabbox3d<f32> box(-BS/3.,0.0,-BS/3., BS/3.,BS*2./3.,BS/3.);
+	collisionMoveResult moveresult;
+	// Maximum movement without glitches
+	f32 pos_max_d = BS*0.25;
+	// Limit speed
+	if(m_speed_f.getLength()*dtime > pos_max_d)
+		m_speed_f *= pos_max_d / (m_speed_f.getLength()*dtime);
+	v3f pos_f = getBasePosition();
+	v3f pos_f_old = pos_f;
+	moveresult = collisionMoveSimple(&m_env->getMap(), pos_max_d,
+			box, dtime, pos_f, m_speed_f);
+	m_touching_ground = moveresult.touching_ground;
 	
-	// Call (2 parameters, 0 result)
-	if(lua_pcall(L, 2, 0, 0))
-	{
-		dstream<<"WARNING: LuaSAO: Error running function "
-				<<funcname<<": "
-				<<lua_tostring(L,-1)<<std::endl;
+	setBasePosition(pos_f);
+
+	if(send_recommended == false)
 		return;
+
+	if(pos_f.getDistanceFrom(m_last_sent_position) > 0.05*BS)
+	{
+		m_last_sent_position = pos_f;
+
+		std::ostringstream os(std::ios::binary);
+		// command (0 = update position)
+		writeU8(os, 0);
+		// pos
+		writeV3F1000(os, m_base_position);
+		// yaw
+		writeF1000(os, m_yaw);
+		// create message and add to list
+		ActiveObjectMessage aom(getId(), false, os.str());
+		messages.push_back(aom);
 	}
 }
 
-void LuaSAO::loadScripts(const std::string &script_name)
+std::string RatSAO::getClientInitializationData()
 {
-	m_script_name = script_name;
-	
-	std::string relative_path;
-	relative_path += "scripts/objects/";
-	relative_path += script_name;
-	std::string server_file = relative_path + "/server.lua";
-	std::string server_path = porting::getDataPath(server_file.c_str());
-
-	// Load the file
-	int ret;
-	ret = luaL_loadfile(L, server_path.c_str());
-	if(ret)
-	{
-		const char *message = lua_tostring(L, -1);
-		lua_pop(L, 1);
-		dstream<<"LuaSAO::loadScript(): lua_loadfile failed: "
-				<<message<<std::endl;
-		assert(0);
-		return;
-	}
-	ret = lua_pcall(L, 0, 0, 0);
-	if(ret)
-	{
-		const char *message = lua_tostring(L, -1);
-		lua_pop(L, 1);
-		dstream<<"LuaSAO::loadScript(): lua_pcall failed: "
-				<<message<<std::endl;
-		assert(0);
-		return;
-	}
+	std::ostringstream os(std::ios::binary);
+	// version
+	writeU8(os, 0);
+	// pos
+	writeV3F1000(os, m_base_position);
+	return os.str();
 }
 
-void LuaSAO::step(float dtime, Queue<ActiveObjectMessage> &messages)
+std::string RatSAO::getStaticData()
 {
-	const char *funcname = "on_step";
-	lua_getglobal(L, funcname);
-	if(!lua_isfunction(L,-1))
+	//dstream<<__FUNCTION_NAME<<std::endl;
+	std::ostringstream os(std::ios::binary);
+	// version
+	writeU8(os, 0);
+	return os.str();
+}
+
+InventoryItem* RatSAO::createPickedUpItem()
+{
+	std::istringstream is("CraftItem rat 1", std::ios_base::binary);
+	InventoryItem *item = InventoryItem::deSerialize(is);
+	return item;
+}
+
+/*
+	Oerkki1SAO
+*/
+
+// Prototype
+Oerkki1SAO proto_Oerkki1SAO(NULL, 0, v3f(0,0,0));
+
+Oerkki1SAO::Oerkki1SAO(ServerEnvironment *env, u16 id, v3f pos):
+	ServerActiveObject(env, id, pos),
+	m_is_active(false),
+	m_speed_f(0,0,0)
+{
+	ServerActiveObject::registerType(getType(), create);
+
+	m_oldpos = v3f(0,0,0);
+	m_last_sent_position = v3f(0,0,0);
+	m_yaw = 0;
+	m_counter1 = 0;
+	m_counter2 = 0;
+	m_age = 0;
+	m_touching_ground = false;
+	m_hp = 20;
+}
+
+ServerActiveObject* Oerkki1SAO::create(ServerEnvironment *env, u16 id, v3f pos,
+		const std::string &data)
+{
+	std::istringstream is(data, std::ios::binary);
+	// read version
+	u8 version = readU8(is);
+	// read hp
+	u8 hp = readU8(is);
+	// check if version is supported
+	if(version != 0)
+		return NULL;
+	Oerkki1SAO *o = new Oerkki1SAO(env, id, pos);
+	o->m_hp = hp;
+	return o;
+}
+
+void Oerkki1SAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
+		bool send_recommended)
+{
+	assert(m_env);
+
+	if(m_is_active == false)
 	{
-		lua_pop(L,1);
-		dstream<<"WARNING: LuaSAO::step(): Function not found: "
-				<<funcname<<std::endl;
-		return;
+		if(m_inactive_interval.step(dtime, 0.5)==false)
+			return;
 	}
-	
-	// Parameters:
-	// 1: self
-	lua_pushlightuserdata(L, this);
-	// 2: dtime
-	lua_pushnumber(L, dtime);
-	
-	// Call (2 parameters, 0 result)
-	if(lua_pcall(L, 2, 0, 0))
+
+	/*
+		The AI
+	*/
+
+	m_age += dtime;
+	if(m_age > 120)
 	{
-		dstream<<"WARNING: LuaSAO::step(): Error running function "
-				<<funcname<<": "
-				<<lua_tostring(L,-1)<<std::endl;
+		// Die
+		m_removed = true;
 		return;
 	}
 
-	// Move messages
-	while(m_message_queue.size() != 0)
+	// Apply gravity
+	m_speed_f.Y -= dtime*9.81*BS;
+
+	/*
+		Move around if some player is close
+	*/
+	bool player_is_close = false;
+	v3f near_player_pos;
+	// Check connected players
+	core::list<Player*> players = m_env->getPlayers(true);
+	core::list<Player*>::Iterator i;
+	for(i = players.begin();
+			i != players.end(); i++)
 	{
-		messages.push_back(m_message_queue.pop_front());
+		Player *player = *i;
+		v3f playerpos = player->getPosition();
+		if(m_base_position.getDistanceFrom(playerpos) < BS*15.0)
+		{
+			player_is_close = true;
+			near_player_pos = playerpos;
+			break;
+		}
+	}
+
+	m_is_active = player_is_close;
+	
+	if(player_is_close == false)
+	{
+		m_speed_f.X = 0;
+		m_speed_f.Z = 0;
+	}
+	else
+	{
+		// Move around
+
+		v3f ndir = near_player_pos - m_base_position;
+		ndir.Y = 0;
+		ndir /= ndir.getLength();
+		f32 nyaw = 180./PI*atan2(ndir.Z,ndir.X);
+		if(nyaw < m_yaw - 180)
+			nyaw += 360;
+		else if(nyaw > m_yaw + 180)
+			nyaw -= 360;
+		m_yaw = 0.95*m_yaw + 0.05*nyaw;
+		m_yaw = wrapDegrees(m_yaw);
+
+		v3f dir(cos(m_yaw/180*PI),0,sin(m_yaw/180*PI));
+		f32 speed = 2*BS;
+		m_speed_f.X = speed * dir.X;
+		m_speed_f.Z = speed * dir.Z;
+
+		if(m_touching_ground && (m_oldpos - m_base_position).getLength()
+				< dtime*speed/2)
+		{
+			m_counter1 -= dtime;
+			if(m_counter1 < 0.0)
+			{
+				m_counter1 += 1.0;
+				// Jump
+				m_speed_f.Y = 5.0*BS;
+			}
+		}
+
+		{
+			m_counter2 -= dtime;
+			if(m_counter2 < 0.0)
+			{
+				m_counter2 += (float)(myrand()%100)/100*3.0;
+				//m_yaw += ((float)(myrand()%200)-100)/100*180;
+				m_yaw += ((float)(myrand()%200)-100)/100*90;
+				m_yaw = wrapDegrees(m_yaw);
+			}
+		}
+	}
+	
+	m_oldpos = m_base_position;
+
+	/*
+		Move it, with collision detection
+	*/
+
+	core::aabbox3d<f32> box(-BS/3.,0.0,-BS/3., BS/3.,BS*5./3.,BS/3.);
+	collisionMoveResult moveresult;
+	// Maximum movement without glitches
+	f32 pos_max_d = BS*0.25;
+	// Limit speed
+	if(m_speed_f.getLength()*dtime > pos_max_d)
+		m_speed_f *= pos_max_d / (m_speed_f.getLength()*dtime);
+	v3f pos_f = getBasePosition();
+	v3f pos_f_old = pos_f;
+	moveresult = collisionMoveSimple(&m_env->getMap(), pos_max_d,
+			box, dtime, pos_f, m_speed_f);
+	m_touching_ground = moveresult.touching_ground;
+	
+	setBasePosition(pos_f);
+
+	if(send_recommended == false)
+		return;
+
+	if(pos_f.getDistanceFrom(m_last_sent_position) > 0.05*BS)
+	{
+		m_last_sent_position = pos_f;
+
+		std::ostringstream os(std::ios::binary);
+		// command (0 = update position)
+		writeU8(os, 0);
+		// pos
+		writeV3F1000(os, m_base_position);
+		// yaw
+		writeF1000(os, m_yaw);
+		// create message and add to list
+		ActiveObjectMessage aom(getId(), false, os.str());
+		messages.push_back(aom);
 	}
 }
 
+std::string Oerkki1SAO::getClientInitializationData()
+{
+	std::ostringstream os(std::ios::binary);
+	// version
+	writeU8(os, 0);
+	// pos
+	writeV3F1000(os, m_base_position);
+	return os.str();
+}
+
+std::string Oerkki1SAO::getStaticData()
+{
+	//dstream<<__FUNCTION_NAME<<std::endl;
+	std::ostringstream os(std::ios::binary);
+	// version
+	writeU8(os, 0);
+	// hp
+	writeU8(os, m_hp);
+	return os.str();
+}
+
+u16 Oerkki1SAO::punch(const std::string &toolname)
+{
+	u16 amount = 5;
+	if(amount < m_hp)
+	{
+		m_hp -= amount;
+	}
+	else
+	{
+		// Die
+		m_removed = true;
+	}
+	return 65536/100;
+}
 
 

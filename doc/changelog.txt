@@ -3,6 +3,59 @@ Minetest-c55 changelog
 This should contain all the major changes.
 For minor stuff, refer to the commit log of the repository.
 
+2011-06-02:
+- Password crash on windows fixed
+- Optimized server CPU usage a lot
+- Furnaces now work also while players are not near to them
+
+2011-05-29:
+- Optimized smooth lighting
+- A number of small fixes
+- Added clouds and simple skyboxes
+- The glass block added
+- Added key configuration to config file
+- Player privileges on server
+- Slightly updated map format
+- Player passwords
+- All textures first searched from texture_path
+- Map directory ("map") has been renamed to "world" (just rename it to load an old world)
+- Mouse inversion (invert_mouse)
+- Grass doesn't grow immediately anymore
+- Fence added
+
+2011-04-24:
+- Smooth lighting with simple ambient occlusion
+- Updated main menu
+
+2011-04-23_0_test:
+- Small bug fixes
+- Item drop multiplication fixed
+- HP added
+- Added A simple monster which spawns to dark places at map generation time
+- Some code refactoring and cleaning (possibly new bugs)
+
+2011-04-11:
+- Fixed crafting a bit
+
+2011-04-10_0:
+- Asynchronous map generation
+- New object system
+
+2011-04-06:
+- Mesh update of node addition/removal is now done asynchronously on client, removing frametime spike
+- Node addition/removal is sent directly only to clients that are closer than 100 nodes to the modification. For the others, the modified blocks are set unsent. (and are re-sent when applicable)
+
+2011-04-05:
+- Made furnace usable
+- Added cobblestone
+- Added wood, stone and steel tools: pickaxes, shovels and axes
+- Incremented to version 0.0.2
+
+2011-04-04:
+- Cleaned client to be completely synchronous, except for the mesh calculation, which is now done with queues in a separate thread.
+- Added node metadata support
+- Added chests
+
 2011-02-17:
 - Added better handling of textures. Now many file extensions are searched. Also too large textures are not put on the texture atlas, and the construction of the texture atlas is stopped when it is full.
 

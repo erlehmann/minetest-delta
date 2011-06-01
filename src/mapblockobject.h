@@ -17,6 +17,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+// This file contains the DEPRECATED MapBlockObject system
+
 #ifndef MAPBLOCKOBJECT_HEADER
 #define MAPBLOCKOBJECT_HEADER
 
@@ -430,7 +432,7 @@ public:
 		buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
 		//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
 		buf->getMaterial().setTexture
-				(0, driver->getTexture(porting::getDataPath("sign.png").c_str()));
+				(0, driver->getTexture(getTexturePath("sign.png").c_str()));
 		buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 		buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 		buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
@@ -454,7 +456,7 @@ public:
 		buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
 		//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
 		buf->getMaterial().setTexture
-				(0, driver->getTexture(porting::getDataPath("sign_back.png").c_str()));
+				(0, driver->getTexture(getTexturePath("sign_back.png").c_str()));
 		buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 		buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 		buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
@@ -561,7 +563,8 @@ public:
 				(-BS*0.3,-BS*.25,-BS*0.3, BS*0.3,BS*0.25,BS*0.3);
 		m_selection_box = new core::aabbox3d<f32>
 				(-BS*0.3,-BS*.25,-BS*0.3, BS*0.3,BS*0.25,BS*0.3);
-
+		
+		m_yaw = 0;
 		m_counter1 = 0;
 		m_counter2 = 0;
 		m_age = 0;
@@ -904,7 +907,8 @@ class PlayerObject : public MovingObject
 public:
 	PlayerObject(MapBlock *block, s16 id, v3f pos):
 		MovingObject(block, id, pos),
-		m_node(NULL)
+		m_node(NULL),
+		m_yaw(0)
 	{
 		m_collision_box = new core::aabbox3d<f32>
 				(-BS*0.3,-BS*.25,-BS*0.3, BS*0.3,BS*0.25,BS*0.3);

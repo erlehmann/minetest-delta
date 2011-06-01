@@ -31,6 +31,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "constants.h"
 #include "mapblockobject.h"
 #include "voxel.h"
+#include "nodemetadata.h"
+#include "staticobject.h"
+
+#define BLOCK_TIMESTAMP_UNDEFINED 0xffffffff
 
 // Named by looking towards z+
 enum{
@@ -154,7 +158,50 @@ public:
 	virtual MapNode getNode(v3s16 p) = 0;
 	virtual void setNode(v3s16 p, MapNode & n) = 0;
 	virtual u16 nodeContainerId() const = 0;
+
+	MapNode getNodeNoEx(v3s16 p)
+	{
+		try{
+			return getNode(p);
+		}
+		catch(InvalidPositionException &e){
+			return MapNode(CONTENT_IGNORE);
+		}
+	}
 };
+
+/*
+	Mesh making stuff
+*/
+
+class MapBlock;
+
+#ifndef SERVER
+
+struct MeshMakeData
+{
+	u32 m_daynight_ratio;
+	NodeModMap m_temp_mods;
+	VoxelManipulator m_vmanip;
+	v3s16 m_blockpos;
+	
+	/*
+		Copy central data directly from block, and other data from
+		parent of block.
+	*/
+	void fill(u32 daynight_ratio, MapBlock *block);
+};
+
+scene::SMesh* makeMapBlockMesh(MeshMakeData *data);
+
+#endif
+
+u8 getFaceLight(u32 daynight_ratio, MapNode n, MapNode n2,
+		v3s16 face_dir);
+
+/*
+	MapBlock itself
+*/
 
 class MapBlock : public NodeContainer
 {
@@ -166,7 +213,7 @@ public:
 	{
 		return NODECONTAINER_ID_MAPBLOCK;
 	}
-
+	
 	NodeContainer * getParent()
 	{
 		return m_parent;
@@ -198,24 +245,28 @@ public:
 		reallocate();
 	}
 	
-	bool getChangedFlag()
+	/*
+		This is called internally or externally after the block is
+		modified, so that the block is saved and possibly not deleted from
+		memory.
+	*/
+	void setChangedFlag()
 	{
-		return changed;
+		changed = true;
 	}
 	void resetChangedFlag()
 	{
 		changed = false;
 	}
-	void setChangedFlag()
+	bool getChangedFlag()
 	{
-		changed = true;
+		return changed;
 	}
 
 	bool getIsUnderground()
 	{
 		return is_underground;
 	}
-
 	void setIsUnderground(bool a_is_underground)
 	{
 		is_underground = a_is_underground;
@@ -243,6 +294,16 @@ public:
 	{
 		return m_lighting_expired;
 	}
+
+	/*bool isFullyGenerated()
+	{
+		return !m_not_fully_generated;
+	}
+	void setFullyGenerated(bool b)
+	{
+		setChangedFlag();
+		m_not_fully_generated = !b;
+	}*/
 
 	bool isValid()
 	{
@@ -301,6 +362,15 @@ public:
 	MapNode getNode(v3s16 p)
 	{
 		return getNode(p.X, p.Y, p.Z);
+	}
+	
+	MapNode getNodeNoEx(v3s16 p)
+	{
+		try{
+			return getNode(p.X, p.Y, p.Z);
+		}catch(InvalidPositionException &e){
+			return MapNode(CONTENT_IGNORE);
+		}
 	}
 	
 	void setNode(s16 x, s16 y, s16 z, MapNode & n)
@@ -369,11 +439,18 @@ public:
 		Graphics-related methods
 	*/
 	
-	// A quick version with nodes passed as parameters
+	/*// A quick version with nodes passed as parameters
 	u8 getFaceLight(u32 daynight_ratio, MapNode n, MapNode n2,
-			v3s16 face_dir);
-	// A more convenient version
+			v3s16 face_dir);*/
+	/*// A more convenient version
 	u8 getFaceLight(u32 daynight_ratio, v3s16 p, v3s16 face_dir)
+	{
+		return getFaceLight(daynight_ratio,
+				getNodeParentNoEx(p),
+				getNodeParentNoEx(p + face_dir),
+				face_dir);
+	}*/
+	u8 getFaceLight2(u32 daynight_ratio, v3s16 p, v3s16 face_dir)
 	{
 		return getFaceLight(daynight_ratio,
 				getNodeParentNoEx(p),
@@ -381,43 +458,19 @@ public:
 				face_dir);
 	}
 	
-#ifndef SERVER
-	// light = 0...255
-	static void makeFastFace(TileSpec tile, u8 light, v3f p,
-			v3s16 dir, v3f scale, v3f posRelative_f,
-			core::array<FastFace> &dest);
-	
-	TileSpec getNodeTile(MapNode mn, v3s16 p, v3s16 face_dir,
-			NodeModMap &temp_mods);
-	u8 getNodeContent(v3s16 p, MapNode mn,
-			NodeModMap &temp_mods);
+#ifndef SERVER // Only on client
 
-	/*
-		Generates the FastFaces of a node row. This has a
-		ridiculous amount of parameters because that way they
-		can be precalculated by the caller.
-
-		translate_dir: unit vector with only one of x, y or z
-		face_dir: unit vector with only one of x, y or z
-	*/
-	void updateFastFaceRow(
-			u32 daynight_ratio,
-			v3f posRelative_f,
-			v3s16 startpos,
-			u16 length,
-			v3s16 translate_dir,
-			v3f translate_dir_f,
-			v3s16 face_dir,
-			v3f face_dir_f,
-			core::array<FastFace> &dest,
-			NodeModMap &temp_mods);
-	
+#if 1
 	/*
 		Thread-safely updates the whole mesh of the mapblock.
+		NOTE: Prefer generating the mesh separately and then using
+		replaceMesh().
 	*/
 	void updateMesh(u32 daynight_ratio);
-	
-#endif // !SERVER
+#endif
+	// Replace the mesh with a new one
+	void replaceMesh(scene::SMesh *mesh_new);
+#endif
 	
 	// See comments in mapblock.cpp
 	bool propagateSunlight(core::map<v3s16, bool> & light_sources,
@@ -431,6 +484,7 @@ public:
 
 	/*
 		MapBlockObject stuff
+		DEPRECATED
 	*/
 	
 	void serializeObjects(std::ostream &os, u8 version)
@@ -478,13 +532,6 @@ public:
 	*/
 	void stepObjects(float dtime, bool server, u32 daynight_ratio);
 
-	/*void wrapObject(MapBlockObject *object)
-	{
-		m_objects.wrapObject(object);
-
-		setChangedFlag();
-	}*/
-
 	// origin is relative to block
 	void getObjects(v3f origin, f32 max_d,
 			core::array<DistanceSortedObject> &dest)
@@ -497,7 +544,7 @@ public:
 		return m_objects.getCount();
 	}
 
-#ifndef SERVER
+#ifndef SERVER // Only on client
 	/*
 		Methods for setting temporary modifications to nodes for
 		drawing
@@ -534,6 +581,11 @@ public:
 		
 		return m_temp_mods.clear();
 	}
+	void copyTempMods(NodeModMap &dst)
+	{
+		JMutexAutoLock lock(m_temp_mods_mutex);
+		m_temp_mods.copy(dst);
+	}
 #endif
 
 	/*
@@ -568,13 +620,29 @@ public:
 	s16 getGroundLevel(v2s16 p2d);
 
 	/*
+		Timestamp (see m_timestamp)
+		NOTE: BLOCK_TIMESTAMP_UNDEFINED=0xffffffff means there is no timestamp.
+	*/
+	void setTimestamp(u32 time)
+	{
+		m_timestamp = time;
+		setChangedFlag();
+	}
+	u32 getTimestamp()
+	{
+		return m_timestamp;
+	}
+
+	/*
 		Serialization
 	*/
 	
-	// Doesn't write version by itself
+	// These don't write or read version by itself
 	void serialize(std::ostream &os, u8 version);
-
 	void deSerialize(std::istream &is, u8 version);
+	// Used after the basic ones when writing on disk (serverside)
+	void serializeDiskExtra(std::ostream &os, u8 version);
+	void deSerializeDiskExtra(std::istream &is, u8 version);
 
 private:
 	/*
@@ -604,18 +672,20 @@ public:
 		Public member variables
 	*/
 
-#ifndef SERVER
+#ifndef SERVER // Only on client
 	scene::SMesh *mesh;
 	JMutex mesh_mutex;
 #endif
+	
+	NodeMetadataList m_node_metadata;
+	StaticObjectList m_static_objects;
 	
 private:
 	/*
 		Private member variables
 	*/
 
-	// Parent container (practically the Map)
-	// Not a MapSector, it is just a structural element.
+	// NOTE: Lots of things rely on this being the Map
 	NodeContainer *m_parent;
 	// Position in blocks on parent
 	v3s16 m_pos;
@@ -655,12 +725,10 @@ private:
 	// Whether day and night lighting differs
 	bool m_day_night_differs;
 	
+	// DEPRECATED
 	MapBlockObjectList m_objects;
 
-	// Object spawning stuff
-	float m_spawn_timer;
-	
-#ifndef SERVER
+#ifndef SERVER // Only on client
 	/*
 		Set to true if the mesh has been ordered to be updated
 		sometime in the background.
@@ -673,6 +741,12 @@ private:
 	NodeModMap m_temp_mods;
 	JMutex m_temp_mods_mutex;
 #endif
+	
+	/*
+		When block is removed from active blocks, this is set to gametime.
+		Value BLOCK_TIMESTAMP_UNDEFINED=0xffffffff means there is no timestamp.
+	*/
+	u32 m_timestamp;
 };
 
 inline bool blockpos_over_limit(v3s16 p)

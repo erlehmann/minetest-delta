@@ -27,7 +27,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "exceptions.h"
 #include "serialization.h"
 #include "tile.h"
-#include "iirrlichtwrapper.h"
 
 /*
 	Initializes all kind of stuff in here.
@@ -94,12 +93,14 @@ void init_content_inventory_texture_paths();
 #define CONTENT_COALSTONE 11
 #define CONTENT_WOOD 12
 #define CONTENT_SAND 13
-
-/*
-	This is used by all kinds of things to allocate memory for all
-	contents except CONTENT_AIR and CONTENT_IGNORE
-*/
-#define USEFUL_CONTENT_COUNT 14
+#define CONTENT_SIGN_WALL 14
+#define CONTENT_CHEST 15
+#define CONTENT_FURNACE 16
+//#define CONTENT_WORKBENCH 17
+#define CONTENT_COBBLE 18
+#define CONTENT_STEEL 19
+#define CONTENT_GLASS 20
+#define CONTENT_FENCE 21
 
 /*
 	Content feature list
@@ -109,7 +110,9 @@ enum ContentParamType
 {
 	CPT_NONE,
 	CPT_LIGHT,
-	CPT_MINERAL
+	CPT_MINERAL,
+	// Direction for chests and furnaces and such
+	CPT_FACEDIR_SIMPLE
 };
 
 enum LiquidType
@@ -120,6 +123,7 @@ enum LiquidType
 };
 
 class MapNode;
+class NodeMetadata;
 
 struct ContentFeatures
 {
@@ -139,28 +143,36 @@ struct ContentFeatures
 	*/
 	TileSpec tiles[6];
 	
-	// TODO: Somehow specify inventory image
-	//std::string inventory_image_path;
-	//TextureSpec inventory_texture;
-	//u32 inventory_texture_id;
 	video::ITexture *inventory_texture;
 
-	bool is_ground_content; //TODO: Remove, use walkable instead
+	bool is_ground_content;
 	bool light_propagates;
 	bool sunlight_propagates;
 	u8 solidness; // Used when choosing which face is drawn
+	// This is used for collision detection.
+	// Also for general solidness queries.
 	bool walkable;
+	// Player can point to these
 	bool pointable;
+	// Player can dig these
 	bool diggable;
+	// Player can build on these
 	bool buildable_to;
+	// Whether the node has no liquid, source liquid or flowing liquid
 	enum LiquidType liquid_type;
-	// If true, param2 is set to direction when placed
+	// If true, param2 is set to direction when placed. Used for torches.
 	// NOTE: the direction format is quite inefficient and should be changed
 	bool wall_mounted;
+	// If true, node is equivalent to air. Torches are, air is. Water is not.
+	// Is used for example to check whether a mud block can have grass on.
+	bool air_equivalent;
 	
 	// Inventory item string as which the node appears in inventory when dug.
 	// Mineral overrides this.
 	std::string dug_item;
+	
+	// Initial metadata is cloned from this
+	NodeMetadata *initial_metadata;
 
 	//TODO: Move more properties here
 
@@ -179,7 +191,9 @@ struct ContentFeatures
 		buildable_to = false;
 		liquid_type = LIQUID_NONE;
 		wall_mounted = false;
+		air_equivalent = false;
 		dug_item = "";
+		initial_metadata = NULL;
 	}
 
 	~ContentFeatures();
@@ -408,6 +422,13 @@ inline v3s16 unpackDir(u8 b)
 	return d;
 }
 
+/*
+	facedir: CPT_FACEDIR_SIMPLE param1 value
+	dir: The face for which stuff is wanted
+	return value: The face from which the stuff is actually found
+*/
+v3s16 facedir_rotate(u8 facedir, v3s16 dir);
+
 enum LightBank
 {
 	LIGHTBANK_DAY,
@@ -430,14 +451,18 @@ struct MapNode
 		  Sunlight is LIGHT_SUN, which is LIGHT_MAX+1.
 		- Contains 2 values, day- and night lighting. Each takes 4 bits.
 	*/
-	s8 param;
-	
 	union
 	{
-		/*
-			The second parameter. Initialized to 0.
-			Direction for torches and flowing water.
-		*/
+		s8 param;
+		u8 param1;
+	};
+	
+	/*
+		The second parameter. Initialized to 0.
+		E.g. direction for torches and flowing water.
+	*/
+	union
+	{
 		u8 param2;
 		u8 dir;
 	};
@@ -500,7 +525,7 @@ struct MapNode
 		// Select the brightest of [light source, propagated light]
 		u8 lightday = 0;
 		u8 lightnight = 0;
-		if(light_propagates())
+		if(content_features(d).param_type == CPT_LIGHT)
 		{
 			lightday = param & 0x0f;
 			lightnight = (param>>4)&0x0f;
@@ -521,7 +546,7 @@ struct MapNode
 	{
 		// Select the brightest of [light source, propagated light]
 		u8 light = 0;
-		if(light_propagates())
+		if(content_features(d).param_type == CPT_LIGHT)
 		{
 			if(bank == LIGHTBANK_DAY)
 				light = param & 0x0f;
@@ -563,8 +588,8 @@ struct MapNode
 
 	void setLight(enum LightBank bank, u8 a_light)
 	{
-		// If not transparent, can't set light
-		if(light_propagates() == false)
+		// If node doesn't contain light data, ignore this
+		if(content_features(d).param_type != CPT_LIGHT)
 			return;
 		if(bank == LIGHTBANK_DAY)
 		{

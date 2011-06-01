@@ -8,8 +8,8 @@ endif(${CMAKE_VERSION} STREQUAL "2.8.2")
 project(minetest)
 
 set(VERSION_MAJOR 0)
-set(VERSION_MINOR 0)
-set(VERSION_PATCH 1)
+set(VERSION_MINOR 2)
+set(VERSION_PATCH 20110602_0)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 # Configuration options
@@ -53,10 +53,10 @@ elseif(APPLE)
 	set(DOCDIR "share/doc/minetest")
 	set(EXAMPLE_CONF_DIR ".")
 elseif(UNIX) # Linux, BSD etc
-	set(DATADIR "usr/share/minetest")
-	set(BINDIR "usr/bin")
-	set(DOCDIR "usr/share/doc/minetest")
-	set(EXAMPLE_CONF_DIR "usr/share/doc/minetest")
+	set(DATADIR "share/minetest")
+	set(BINDIR "bin")
+	set(DOCDIR "share/doc/minetest")
+	set(EXAMPLE_CONF_DIR "share/doc/minetest")
 endif()
 
 install(FILES "doc/README.txt" DESTINATION "${DOCDIR}")

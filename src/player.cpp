@@ -1,6 +1,6 @@
 /*
 Minetest-c55
-Copyright (C) 2010 celeron55, Perttu Ahola <celeron55@gmail.com>
+Copyright (C) 2010-2011 celeron55, Perttu Ahola <celeron55@gmail.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,21 +17,20 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-/*
-(c) 2010 Perttu Ahola <celeron55@gmail.com>
-*/
-
 #include "player.h"
 #include "map.h"
 #include "connection.h"
 #include "constants.h"
 #include "utility.h"
 
+
 Player::Player():
 	touching_ground(false),
 	in_water(false),
 	in_water_stable(false),
 	swimming_up(false),
+	craftresult_is_preview(true),
+	hp(20),
 	peer_id(PEER_ID_INEXISTENT),
 	m_pitch(0),
 	m_yaw(0),
@@ -97,9 +96,12 @@ void Player::serialize(std::ostream &os)
 	Settings args;
 	args.setS32("version", 1);
 	args.set("name", m_name);
+	//args.set("password", m_password);
 	args.setFloat("pitch", m_pitch);
 	args.setFloat("yaw", m_yaw);
 	args.setV3F("position", m_position);
+	args.setBool("craftresult_is_preview", craftresult_is_preview);
+	args.setS32("hp", hp);
 
 	args.writeLines(os);
 
@@ -128,9 +130,37 @@ void Player::deSerialize(std::istream &is)
 	//args.getS32("version");
 	std::string name = args.get("name");
 	updateName(name.c_str());
+	/*std::string password = "";
+	if(args.exists("password"))
+		password = args.get("password");
+	updatePassword(password.c_str());*/
 	m_pitch = args.getFloat("pitch");
 	m_yaw = args.getFloat("yaw");
 	m_position = args.getV3F("position");
+	try{
+		craftresult_is_preview = args.getBool("craftresult_is_preview");
+	}catch(SettingNotFoundException &e){
+		craftresult_is_preview = true;
+	}
+	try{
+		hp = args.getS32("hp");
+	}catch(SettingNotFoundException &e){
+		hp = 20;
+	}
+	/*try{
+		std::string sprivs = args.get("privs");
+		if(sprivs == "all")
+		{
+			privs = PRIV_ALL;
+		}
+		else
+		{
+			std::istringstream ss(sprivs);
+			ss>>privs;
+		}
+	}catch(SettingNotFoundException &e){
+		privs = PRIV_DEFAULT;
+	}*/
 
 	inventory.deSerialize(is);
 }
@@ -180,7 +210,7 @@ RemotePlayer::RemotePlayer(
 		// Set material
 		buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
 		//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
-		buf->getMaterial().setTexture(0, driver->getTexture(porting::getDataPath("player.png").c_str()));
+		buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player.png").c_str()));
 		buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 		buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 		//buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
@@ -204,7 +234,7 @@ RemotePlayer::RemotePlayer(
 		// Set material
 		buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
 		//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
-		buf->getMaterial().setTexture(0, driver->getTexture(porting::getDataPath("player_back.png").c_str()));
+		buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player_back.png").c_str()));
 		buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 		buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 		buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
@@ -263,13 +293,17 @@ LocalPlayer::LocalPlayer():
 	m_sneak_node(32767,32767,32767),
 	m_sneak_node_exists(false)
 {
+	// Initialize hp to 0, so that no hearts will be shown if server
+	// doesn't support health points
+	hp = 0;
 }
 
 LocalPlayer::~LocalPlayer()
 {
 }
 
-void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d)
+void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
+		core::list<CollisionInfo> *collision_info)
 {
 	v3f position = getPosition();
 	v3f oldpos = position;
@@ -523,9 +557,23 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d)
 			*/
 			if(other_axes_overlap && main_axis_collides)
 			{
+				v3f old_speed = m_speed;
+
 				m_speed -= m_speed.dotProduct(dirs[i]) * dirs[i];
 				position -= position.dotProduct(dirs[i]) * dirs[i];
 				position += oldpos.dotProduct(dirs[i]) * dirs[i];
+				
+				if(collision_info)
+				{
+					// Report fall collision
+					if(old_speed.Y < m_speed.Y - 0.1)
+					{
+						CollisionInfo info;
+						info.t = COLLISION_FALL;
+						info.speed = m_speed.Y - old_speed.Y;
+						collision_info->push_back(info);
+					}
+				}
 			}
 		
 		}
@@ -608,6 +656,11 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d)
 		Set new position
 	*/
 	setPosition(position);
+}
+
+void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d)
+{
+	move(dtime, map, pos_max_d, NULL);
 }
 
 void LocalPlayer::applyControl(float dtime)

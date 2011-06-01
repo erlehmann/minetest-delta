@@ -17,12 +17,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+// This file contains the DEPRECATED MapBlockObject system
+
 #include "mapblockobject.h"
 #include "mapblock.h"
 // For object wrapping
 #include "map.h"
 #include "inventory.h"
-#include "irrlichtwrapper.h"
 #include "utility.h"
 
 /*
@@ -62,7 +63,7 @@ v3f MovingObject::getAbsoluteShowPos()
 
 void MovingObject::move(float dtime, v3f acceleration)
 {
-	DSTACK("%s: typeid=%i, pos=(%f,%f,%f), speed=(%f,%f,%f)"
+	DSTACKF("%s: typeid=%i, pos=(%f,%f,%f), speed=(%f,%f,%f)"
 			", dtime=%f, acc=(%f,%f,%f)",
 			__FUNCTION_NAME,
 			getTypeId(),
@@ -282,7 +283,7 @@ void RatObject::addToScene(scene::ISceneManager *smgr)
 	buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
 	buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
 	buf->getMaterial().setTexture
-			(0, driver->getTexture(porting::getDataPath("rat.png").c_str()));
+			(0, driver->getTexture(getTexturePath("rat.png").c_str()));
 	buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 	buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 	buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
@@ -359,8 +360,6 @@ video::ITexture * ItemObject::getItemImage()
 	InventoryItem *item = createInventoryItem();
 	if(item)
 		texture = item->getImage();
-	/*else
-		texture = g_irrlicht->getTexture(porting::getDataPath("cloud.png").c_str());*/
 	if(item)
 		delete item;
 	return texture;
@@ -414,7 +413,7 @@ void PlayerObject::addToScene(scene::ISceneManager *smgr)
 	// Set material
 	buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
 	//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
-	buf->getMaterial().setTexture(0, driver->getTexture(porting::getDataPath("player.png").c_str()));
+	buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player.png").c_str()));
 	buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 	buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 	//buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
@@ -438,7 +437,7 @@ void PlayerObject::addToScene(scene::ISceneManager *smgr)
 	// Set material
 	buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
 	//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
-	buf->getMaterial().setTexture(0, driver->getTexture(porting::getDataPath("player_back.png").c_str()));
+	buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player_back.png").c_str()));
 	buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 	buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 	buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
@@ -756,7 +755,7 @@ void MapBlockObjectList::step(float dtime, bool server, u32 daynight_ratio)
 	core::map<s16, bool> ids_to_delete;
 
 	{
-		DSTACK("%s: stepping objects", __FUNCTION_NAME);
+		DSTACKF("%s: stepping objects", __FUNCTION_NAME);
 
 		for(core::map<s16, MapBlockObject*>::Iterator
 				i = m_objects.getIterator();
@@ -764,7 +763,7 @@ void MapBlockObjectList::step(float dtime, bool server, u32 daynight_ratio)
 		{
 			MapBlockObject *obj = i.getNode()->getValue();
 			
-			DSTACK("%s: stepping object type %i", __FUNCTION_NAME,
+			DSTACKF("%s: stepping object type %i", __FUNCTION_NAME,
 					obj->getTypeId());
 
 			if(server)
@@ -792,7 +791,7 @@ void MapBlockObjectList::step(float dtime, bool server, u32 daynight_ratio)
 	}
 
 	{
-		DSTACK("%s: deleting objects", __FUNCTION_NAME);
+		DSTACKF("%s: deleting objects", __FUNCTION_NAME);
 
 		// Delete objects in delete queue
 		for(core::map<s16, bool>::Iterator
@@ -816,7 +815,7 @@ void MapBlockObjectList::step(float dtime, bool server, u32 daynight_ratio)
 		return;
 	
 	{
-		DSTACK("%s: object wrap loop", __FUNCTION_NAME);
+		DSTACKF("%s: object wrap loop", __FUNCTION_NAME);
 
 		for(core::map<s16, MapBlockObject*>::Iterator
 				i = m_objects.getIterator();

@@ -22,8 +22,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 #include "utility.h"
-#include "irrlichtwrapper.h"
 #include "gettime.h"
+#include "sha1.h"
+#include "base64.h"
 
 TimeTaker::TimeTaker(const char *name, u32 *result)
 {
@@ -60,6 +61,17 @@ u32 TimeTaker::getTime()
 	u32 dtime = time2 - m_time1;
 	return dtime;
 }
+
+const v3s16 g_6dirs[6] =
+{
+	// +right, +top, +back
+	v3s16( 0, 0, 1), // back
+	v3s16( 0, 1, 0), // top
+	v3s16( 1, 0, 0), // right
+	v3s16( 0, 0,-1), // front
+	v3s16( 0,-1, 0), // bottom
+	v3s16(-1, 0, 0) // left
+};
 
 const v3s16 g_26dirs[26] =
 {
@@ -174,6 +186,10 @@ bool isBlockInSight(v3s16 blockpos_b, v3f camera_pos, v3f camera_dir, f32 range,
 	if(distance_ptr)
 		*distance_ptr = d;
 	
+	// If block is very close, it is always in sight
+	if(d < 1.44*1.44*MAP_BLOCKSIZE*BS/2)
+		return true;
+
 	// If block is far away, it's not in sight
 	if(d > range * BS)
 		return false;
@@ -202,4 +218,25 @@ bool isBlockInSight(v3s16 blockpos_b, v3f camera_pos, v3f camera_dir, f32 range,
 
 	return true;
 }
+
+// Get an sha-1 hash of the player's name combined with
+// the password entered. That's what the server uses as
+// their password. (Exception : if the password field is
+// blank, we send a blank password - this is for backwards
+// compatibility with password-less players).
+std::string translatePassword(std::string playername, std::wstring password)
+{
+	if(password.length() == 0)
+		return "";
+
+	std::string slt = playername + wide_to_narrow(password);
+	SHA1 sha1;
+	sha1.addBytes(slt.c_str(), slt.length());
+	unsigned char *digest = sha1.getDigest();
+	std::string pwd = base64_encode(digest, 20);
+	free(digest);
+	return pwd;
+}
+
+
 

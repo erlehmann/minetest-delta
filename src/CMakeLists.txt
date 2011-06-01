@@ -50,6 +50,9 @@ configure_file(
 )
 
 set(common_SRCS
+	auth.cpp
+	collision.cpp
+	nodemetadata.cpp
 	serverobject.cpp
 	noise.cpp
 	mineral.cpp
@@ -67,6 +70,7 @@ set(common_SRCS
 	connection.cpp
 	environment.cpp
 	server.cpp
+	servercommand.cpp
 	socket.cpp
 	mapblock.cpp
 	mapsector.cpp
@@ -74,20 +78,26 @@ set(common_SRCS
 	player.cpp
 	utility.cpp
 	test.cpp
+	sha1.cpp
+	base64.cpp
 )
 
 # Client sources
 set(minetest_SRCS
 	${common_SRCS}
+	keycode.cpp
+	clouds.cpp
 	clientobject.cpp
+	guiFurnaceMenu.cpp
 	guiMainMenu.cpp
 	guiMessageMenu.cpp
 	guiTextInputMenu.cpp
 	guiInventoryMenu.cpp
 	guiPauseMenu.cpp
-	irrlichtwrapper.cpp
+	guiPasswordChange.cpp
 	client.cpp
 	tile.cpp
+	game.cpp
 	main.cpp
 )
 
@@ -104,7 +114,6 @@ include_directories(
 	${CMAKE_BUILD_TYPE}
 	${PNG_INCLUDE_DIR}
 	"${PROJECT_SOURCE_DIR}/jthread"
-	"${PROJECT_SOURCE_DIR}/lua/src"
 )
 
 set(EXECUTABLE_OUTPUT_PATH ../bin)
@@ -123,9 +132,7 @@ if(BUILD_CLIENT)
 		${PLATFORM_LIBS}
 		${CLIENT_PLATFORM_LIBS}
 		jthread
-		lua
 	)
-	#${CMAKE_CURRENT_SOURCE_DIR}/lua/build/liblua
 endif(BUILD_CLIENT)
 
 if(BUILD_SERVER)
@@ -135,7 +142,6 @@ if(BUILD_SERVER)
 		${ZLIB_LIBRARIES}
 		${PLATFORM_LIBS}
 		jthread
-		lua
 	)
 endif(BUILD_SERVER)
 
@@ -148,7 +154,8 @@ if(MSVC)
 
 	# EHa enables SEH exceptions (used for catching segfaults)
 	set(CMAKE_CXX_FLAGS_RELEASE "/EHa /MD /O2 /Ob2 /Oi /Ot /Oy /GL /FD /MT /GS- /arch:SSE /fp:fast /D NDEBUG /D _HAS_ITERATOR_DEBUGGING=0 /TP")
-	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/LTCG /NODEFAULTLIB:\"libcmtd.lib\" /NODEFAULTLIB:\"libcmt.lib\"")
+	#set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/LTCG /NODEFAULTLIB:\"libcmtd.lib\" /NODEFAULTLIB:\"libcmt.lib\"")
+	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/LTCG")
 
 	# Debug build doesn't catch exceptions by itself
 	# Add some optimizations because otherwise it's VERY slow
@@ -167,6 +174,8 @@ else()
 	else()
 		set(WARNING_FLAGS "")
 	endif()
+
+	set(WARNING_FLAGS "${WARNING_FLAGS} -Wno-unused-but-set-variable")
 
 	set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG ${WARNING_FLAGS} -O3 -ffast-math -Wall -fomit-frame-pointer -pipe -funroll-loops")
 	set(CMAKE_CXX_FLAGS_DEBUG "-g -O1 -Wall")
@@ -192,8 +201,6 @@ endif()
 # Example configuration file
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../minetest.conf.example" DESTINATION ${EXAMPLE_CONF_DIR})
 
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../data/scripts" DESTINATION ${DATADIR})
-
 if(BUILD_CLIENT)
 	install(TARGETS minetest DESTINATION ${BINDIR})
 
@@ -218,6 +225,5 @@ endif(BUILD_SERVER)
 # Subdirectories
 
 add_subdirectory(jthread)
-add_subdirectory(lua)
 
 #end
