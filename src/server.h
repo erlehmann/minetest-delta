@@ -480,15 +480,17 @@ private:
 		Additionally, if far_players!=NULL, players further away than
 		far_d_nodes are ignored and their peer_ids are added to far_players
 	*/
+	// Envlock and conlock should be locked when calling these
 	void sendRemoveNode(v3s16 p, u16 ignore_id=0,
 			core::list<u16> *far_players=NULL, float far_d_nodes=100);
 	void sendAddNode(v3s16 p, MapNode n, u16 ignore_id=0,
 			core::list<u16> *far_players=NULL, float far_d_nodes=100);
+	void setBlockNotSent(v3s16 p);
 	
 	// Environment and Connection must be locked when called
 	void SendBlockNoLock(u16 peer_id, MapBlock *block, u8 ver);
 	
-	// Sends blocks to clients
+	// Sends blocks to clients (locks env and con on its own)
 	void SendBlocks(float dtime);
 
 	/*
@@ -500,6 +502,15 @@ private:
 	// When called, connection mutex should be locked
 	RemoteClient* getClient(u16 peer_id);
 	
+	// When called, environment mutex should be locked
+	std::string getPlayerName(u16 peer_id)
+	{
+		Player *player = m_env.getPlayer(peer_id);
+		if(player == NULL)
+			return "[id="+itos(peer_id);
+		return player->getName();
+	}
+
 	/*
 		Get a player from memory or creates one.
 		If player is already connected, return NULL
@@ -626,6 +637,8 @@ private:
 		This is behind m_env_mutex
 	*/
 	u16 m_ignore_map_edit_events_peer_id;
+
+	Profiler *m_profiler;
 
 	friend class EmergeThread;
 	friend class RemoteClient;
