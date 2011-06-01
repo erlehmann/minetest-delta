@@ -215,6 +215,8 @@ FIXME: Server sometimes goes into some infinite PeerNotFoundException loop
 FIXME: The new optimized map sending doesn't sometimes send enough blocks
        from big caves and such
 
+* Take player's walking direction into account in GetNextBlocks
+
 Environment:
 ------------
 
@@ -308,6 +310,9 @@ Making it more portable:
 Stuff to do before release:
 ---------------------------
 
+Fixes to the current release:
+-----------------------------
+
 Stuff to do after release:
 ---------------------------
 - Make sure server handles removing grass when a block is placed (etc)
@@ -386,6 +391,9 @@ Settings g_settings;
 // This is located in defaultsettings.cpp
 extern void set_default_settings();
 
+// Global profiler
+Profiler g_profiler;
+
 /*
 	Random stuff
 */
@@ -436,7 +444,14 @@ std::ostream *derr_client_ptr = &dstream;
 class TimeGetter
 {
 public:
-	TimeGetter(IrrlichtDevice *device):
+	virtual u32 getTime() = 0;
+};
+
+// A precise irrlicht one
+class IrrlichtTimeGetter: public TimeGetter
+{
+public:
+	IrrlichtTimeGetter(IrrlichtDevice *device):
 		m_device(device)
 	{}
 	u32 getTime()
@@ -448,8 +463,18 @@ public:
 private:
 	IrrlichtDevice *m_device;
 };
+// Not so precise one which works without irrlicht
+class SimpleTimeGetter: public TimeGetter
+{
+public:
+	u32 getTime()
+	{
+		return porting::getTimeMs();
+	}
+};
 
 // A pointer to a global instance of the time getter
+// TODO: why?
 TimeGetter *g_timegetter = NULL;
 
 u32 getTimeMs()
@@ -1208,6 +1233,9 @@ int main(int argc, char *argv[])
 	{
 		DSTACK("Dedicated server branch");
 
+		// Create time getter
+		g_timegetter = new SimpleTimeGetter();
+		
 		// Create server
 		Server server(map_dir.c_str());
 		server.start(port);
@@ -1290,7 +1318,7 @@ int main(int argc, char *argv[])
 	device = device;
 	
 	// Create time getter
-	g_timegetter = new TimeGetter(device);
+	g_timegetter = new IrrlichtTimeGetter(device);
 	
 	// Create game callback for menus
 	g_gamecallback = new MainGameCallback(device);
@@ -1497,6 +1525,8 @@ int main(int argc, char *argv[])
 				g_settings.set("creative_mode", itos(menudata.creative_mode));
 				g_settings.set("enable_damage", itos(menudata.enable_damage));
 				
+				// NOTE: These are now checked server side; no need to do it
+				//       here, so let's not do it here.
 				/*// Check for valid parameters, restart menu if invalid.
 				if(playername == "")
 				{
