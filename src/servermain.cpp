@@ -79,6 +79,9 @@ Settings g_settings;
 
 extern void set_default_settings();
 
+// Global profiler
+Profiler g_profiler;
+
 // A dummy thing
 ITextureSource *g_texturesource = NULL;
 
@@ -301,7 +304,7 @@ int main(int argc, char *argv[])
 	}
 	
 	// Figure out path to map
-	std::string map_dir = porting::path_userdata+"/map";
+	std::string map_dir = porting::path_userdata+"/world";
 	if(cmd_args.exists("map-dir"))
 		map_dir = cmd_args.get("map-dir");
 	else if(g_settings.exists("map-dir"))

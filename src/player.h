@@ -1,6 +1,6 @@
 /*
 Minetest-c55
-Copyright (C) 2010 celeron55, Perttu Ahola <celeron55@gmail.com>
+Copyright (C) 2010-2011 celeron55, Perttu Ahola <celeron55@gmail.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,25 +17,25 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-/*
-(c) 2010 Perttu Ahola <celeron55@gmail.com>
-*/
-
 #ifndef PLAYER_HEADER
 #define PLAYER_HEADER
 
 #include "common_irrlicht.h"
 #include "inventory.h"
+#include "collision.h"
 
 #define PLAYERNAME_SIZE 20
 
-#define PLAYERNAME_ALLOWED_CHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.,"
+#define PLAYERNAME_ALLOWED_CHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+
 
 class Map;
 
 class Player
 {
 public:
+
+
 	Player();
 	virtual ~Player();
 
@@ -122,6 +122,10 @@ public:
 	
 	Inventory inventory;
 
+	bool craftresult_is_preview;
+
+	u16 hp;
+
 	u16 peer_id;
 
 protected:
@@ -130,6 +134,9 @@ protected:
 	f32 m_yaw;
 	v3f m_speed;
 	v3f m_position;
+
+public:
+
 };
 
 /*
@@ -323,6 +330,8 @@ public:
 		return true;
 	}
 
+	void move(f32 dtime, Map &map, f32 pos_max_d,
+			core::list<CollisionInfo> *collision_info);
 	void move(f32 dtime, Map &map, f32 pos_max_d);
 
 	void applyControl(float dtime);

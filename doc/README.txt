@@ -3,6 +3,12 @@ Minetest-c55
 An InfiniMiner/Minecraft inspired game.
 Copyright (c) 2010-2011 Perttu Ahola <celeron55@gmail.com>
 
+Further documentation:
+----------------------
+- Website: http://celeron.55.lt/~celeron55/minetest/
+- Wiki: http://celeron.55.lt/~celeron55/minetest/wiki/
+- Forum: http://celeron.55.lt/~celeron55/minetest/forum/
+
 This is a development version:
 ------------------------------
 - Don't expect it to work as well as a finished game will.
@@ -12,6 +18,7 @@ This is a development version:
 Controls:
 ---------
 - See the in-game pause menu
+- Settable in the configuration file, see the section below.
 
 Map directory:
 --------------
@@ -46,7 +53,7 @@ Compiling on GNU/Linux:
 -----------------------
 
 Install dependencies. Here's an example for Debian/Ubuntu:
-$ apt-get install libirrlicht-dev cmake libbz2-dev libpng12-dev libjpeg8-dev libxxf86vm-dev
+$ apt-get install build-essential libirrlicht-dev cmake libbz2-dev libpng12-dev libjpeg8-dev libxxf86vm-dev libgl1-mesa-dev
 
 Download source, extract (this is the URL to the latest of source repository, which might not work at all times):
 $ wget https://bitbucket.org/celeron55/minetest/get/tip.tar.gz
@@ -143,8 +150,7 @@ Compiling on Windows:
 	If using MSVC:
 		- Open the generated minetest.sln
 		- The project defaults to the "Debug" configuration. Make very sure to
-		  select "Release", unless you like to have a very glitchy gaming
-		  experience.
+		  select "Release", unless you want to debug some stuff (it's slower)
 		- Build the ALL_BUILD project
 		- Build the INSTALL project
 		- You should now have a working game with the executable in
@@ -153,6 +159,7 @@ Compiling on Windows:
 		  project.
 	If using MinGW:
 		- Using the command line, browse to the build directory and run 'make'
+		  (or mingw32-make or whatever it happens to be)
 		- You should now have a working game with the executable in
 			DIR/minetest/bin/minetest.exe
 

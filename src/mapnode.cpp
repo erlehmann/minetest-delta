@@ -25,11 +25,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "mineral.h"
 // For g_settings
 #include "main.h"
+#include "nodemetadata.h"
 
 ContentFeatures::~ContentFeatures()
 {
 	if(translate_to)
 		delete translate_to;
+	if(initial_metadata)
+		delete initial_metadata;
 }
 
 void ContentFeatures::setTexture(u16 i, std::string name, u8 alpha)
@@ -127,6 +130,9 @@ void init_mapnode()
 	for(u16 i=0; i<256; i++)
 	{
 		ContentFeatures *f = &g_content_features[i];
+		// Re-initialize
+		*f = ContentFeatures();
+
 		for(u16 j=0; j<6; j++)
 			f->tiles[j].material_type = initial_material_type;
 	}
@@ -140,7 +146,7 @@ void init_mapnode()
 	f->setInventoryTextureCube("stone.png", "stone.png", "stone.png");
 	f->param_type = CPT_MINERAL;
 	f->is_ground_content = true;
-	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	f->dug_item = std::string("MaterialItem ")+itos(CONTENT_COBBLE)+" 1";
 	
 	i = CONTENT_GRASS;
 	f = &g_content_features[i];
@@ -200,7 +206,27 @@ void init_mapnode()
 		f->setAllTextures("[noalpha:leaves.png");
 	}
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
-	
+
+	i = CONTENT_GLASS;
+	f = &g_content_features[i];
+	f->light_propagates = true;
+	f->param_type = CPT_LIGHT;
+	f->is_ground_content = true;
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	f->solidness = 0; // drawn separately, makes no faces
+	f->setInventoryTextureCube("glass.png", "glass.png", "glass.png");
+
+	i = CONTENT_FENCE;
+	f = &g_content_features[i];
+	f->light_propagates = true;
+	f->param_type = CPT_LIGHT;
+	f->is_ground_content = true;
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	f->solidness = 0; // drawn separately, makes no faces
+	f->air_equivalent = true; // grass grows underneath
+	f->setInventoryTexture("item_fence.png");
+
+	// Deprecated
 	i = CONTENT_COALSTONE;
 	f = &g_content_features[i];
 	//f->translate_to = new MapNode(CONTENT_STONE, MINERAL_COAL);
@@ -235,6 +261,7 @@ void init_mapnode()
 	f->pointable = false;
 	f->diggable = false;
 	f->buildable_to = true;
+	f->air_equivalent = true;
 	
 	i = CONTENT_WATER;
 	f = &g_content_features[i];
@@ -282,15 +309,99 @@ void init_mapnode()
 	f->setInventoryTexture("torch_on_floor.png");
 	f->param_type = CPT_LIGHT;
 	f->light_propagates = true;
+	f->sunlight_propagates = true;
 	f->solidness = 0; // drawn separately, makes no faces
 	f->walkable = false;
 	f->wall_mounted = true;
+	f->air_equivalent = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
 	
+	i = CONTENT_SIGN_WALL;
+	f = &g_content_features[i];
+	f->setInventoryTexture("sign_wall.png");
+	f->param_type = CPT_LIGHT;
+	f->light_propagates = true;
+	f->sunlight_propagates = true;
+	f->solidness = 0; // drawn separately, makes no faces
+	f->walkable = false;
+	f->wall_mounted = true;
+	f->air_equivalent = true;
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	if(f->initial_metadata == NULL)
+		f->initial_metadata = new SignNodeMetadata("Some sign");
+	
+	i = CONTENT_CHEST;
+	f = &g_content_features[i];
+	f->param_type = CPT_FACEDIR_SIMPLE;
+	f->setAllTextures("chest_side.png");
+	f->setTexture(0, "chest_top.png");
+	f->setTexture(1, "chest_top.png");
+	f->setTexture(5, "chest_front.png"); // Z-
+	f->setInventoryTexture("chest_top.png");
+	//f->setInventoryTextureCube("chest_top.png", "chest_side.png", "chest_side.png");
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	if(f->initial_metadata == NULL)
+		f->initial_metadata = new ChestNodeMetadata();
+	
+	i = CONTENT_FURNACE;
+	f = &g_content_features[i];
+	f->param_type = CPT_FACEDIR_SIMPLE;
+	f->setAllTextures("furnace_side.png");
+	f->setTexture(5, "furnace_front.png"); // Z-
+	f->setInventoryTexture("furnace_front.png");
+	//f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	f->dug_item = std::string("MaterialItem ")+itos(CONTENT_COBBLE)+" 6";
+	if(f->initial_metadata == NULL)
+		f->initial_metadata = new FurnaceNodeMetadata();
+	
+	i = CONTENT_COBBLE;
+	f = &g_content_features[i];
+	f->setAllTextures("cobble.png");
+	f->setInventoryTextureCube("cobble.png", "cobble.png", "cobble.png");
+	f->param_type = CPT_NONE;
+	f->is_ground_content = true;
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	
+	i = CONTENT_STEEL;
+	f = &g_content_features[i];
+	f->setAllTextures("steel_block.png");
+	f->setInventoryTextureCube("steel_block.png", "steel_block.png",
+			"steel_block.png");
+	f->param_type = CPT_NONE;
+	f->is_ground_content = true;
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	
+	// NOTE: Remember to add frequently used stuff to the texture atlas in tile.cpp
+}
+
+v3s16 facedir_rotate(u8 facedir, v3s16 dir)
+{
+	/*
+		Face 2 (normally Z-) direction:
+		facedir=0: Z-
+		facedir=1: X-
+		facedir=2: Z+
+		facedir=3: X+
+	*/
+	v3s16 newdir;
+	if(facedir==0) // Same
+		newdir = v3s16(dir.X, dir.Y, dir.Z);
+	else if(facedir == 1) // Face is taken from rotXZccv(-90)
+		newdir = v3s16(-dir.Z, dir.Y, dir.X);
+	else if(facedir == 2) // Face is taken from rotXZccv(180)
+		newdir = v3s16(-dir.X, dir.Y, -dir.Z);
+	else if(facedir == 3) // Face is taken from rotXZccv(90)
+		newdir = v3s16(dir.Z, dir.Y, -dir.X);
+	else
+		newdir = dir;
+	return newdir;
 }
 
 TileSpec MapNode::getTile(v3s16 dir)
 {
+	if(content_features(d).param_type == CPT_FACEDIR_SIMPLE)
+		dir = facedir_rotate(param1, dir);
+	
 	TileSpec spec;
 	
 	s32 dir_i = -1;

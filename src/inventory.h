@@ -35,6 +35,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #define QUANTITY_ITEM_MAX_COUNT 99
 
+class ServerActiveObject;
+class ServerEnvironment;
+
 class InventoryItem
 {
 public:
@@ -54,6 +57,14 @@ public:
 #endif
 	// Shall return a text to show in the GUI
 	virtual std::string getText() { return ""; }
+	// Creates an object from the item, to be placed in the world.
+	virtual ServerActiveObject* createSAO(ServerEnvironment *env, u16 id, v3f pos);
+	// Gets amount of items that dropping one SAO will decrement
+	virtual u16 getDropCount(){ return getCount(); }
+
+	/*
+		Quantity methods
+	*/
 
 	// Shall return true if the item can be add()ed to the other
 	virtual bool addableTo(InventoryItem *other)
@@ -61,9 +72,6 @@ public:
 		return false;
 	}
 	
-	/*
-		Quantity methods
-	*/
 	u16 getCount()
 	{
 		return m_count;
@@ -72,6 +80,7 @@ public:
 	{
 		m_count = count;
 	}
+	// This should return something else for stackable items
 	virtual u16 freeSpace()
 	{
 		return 0;
@@ -86,6 +95,16 @@ public:
 		assert(m_count >= count);
 		m_count -= count;
 	}
+
+	/*
+		Other properties
+	*/
+	// Whether it can be cooked
+	virtual bool isCookable(){return false;}
+	// Time of cooking
+	virtual float getCookTime(){return 3.0;}
+	// Result of cooking
+	virtual InventoryItem *createCookResult(){return NULL;}
 
 protected:
 	u16 m_count;
@@ -149,6 +168,11 @@ public:
 		return QUANTITY_ITEM_MAX_COUNT - m_count;
 	}
 	/*
+		Other properties
+	*/
+	bool isCookable();
+	InventoryItem *createCookResult();
+	/*
 		Special methods
 	*/
 	u8 getMaterial()
@@ -159,6 +183,7 @@ private:
 	u8 m_content;
 };
 
+//TODO: Remove
 class MapBlockObjectItem : public InventoryItem
 {
 public:
@@ -246,26 +271,7 @@ public:
 		return new CraftItem(m_subname, m_count);
 	}
 #ifndef SERVER
-	video::ITexture * getImage()
-	{
-		if(g_texturesource == NULL)
-			return NULL;
-		
-		std::string name;
-
-		if(m_subname == "Stick")
-			name = "stick.png";
-		else if(m_subname == "lump_of_coal")
-			name = "lump_of_coal.png";
-		else if(m_subname == "lump_of_iron")
-			name = "lump_of_iron.png";
-		else
-			name = "cloud.png";
-		
-		// Get such a texture
-		//return g_irrlicht->getTexture(name);
-		return g_texturesource->getTextureRaw(name);
-	}
+	video::ITexture * getImage();
 #endif
 	std::string getText()
 	{
@@ -273,6 +279,10 @@ public:
 		os<<m_count;
 		return os.str();
 	}
+
+	ServerActiveObject* createSAO(ServerEnvironment *env, u16 id, v3f pos);
+	u16 getDropCount();
+
 	virtual bool addableTo(InventoryItem *other)
 	{
 		if(std::string(other->getName()) != "CraftItem")
@@ -288,6 +298,11 @@ public:
 			return 0;
 		return QUANTITY_ITEM_MAX_COUNT - m_count;
 	}
+	/*
+		Other properties
+	*/
+	bool isCookable();
+	InventoryItem *createCookResult();
 	/*
 		Special methods
 	*/
@@ -335,11 +350,31 @@ public:
 		
 		std::string basename;
 		if(m_toolname == "WPick")
-			basename = "tool_wpick.png";
+			basename = "tool_woodpick.png";
 		else if(m_toolname == "STPick")
-			basename = "tool_stpick.png";
+			basename = "tool_stonepick.png";
+		else if(m_toolname == "SteelPick")
+			basename = "tool_steelpick.png";
 		else if(m_toolname == "MesePick")
 			basename = "tool_mesepick.png";
+		else if(m_toolname == "WShovel")
+			basename = "tool_woodshovel.png";
+		else if(m_toolname == "STShovel")
+			basename = "tool_stoneshovel.png";
+		else if(m_toolname == "SteelShovel")
+			basename = "tool_steelshovel.png";
+		else if(m_toolname == "WAxe")
+			basename = "tool_woodaxe.png";
+		else if(m_toolname == "STAxe")
+			basename = "tool_stoneaxe.png";
+		else if(m_toolname == "SteelAxe")
+			basename = "tool_steelaxe.png";
+		else if(m_toolname == "WSword")
+			basename = "tool_woodsword.png";
+		else if(m_toolname == "STSword")
+			basename = "tool_stonesword.png";
+		else if(m_toolname == "SteelSword")
+			basename = "tool_steelsword.png";
 		else
 			basename = "cloud.png";
 		
@@ -355,11 +390,6 @@ public:
 		os<<basename<<"^[progressbar"<<value_f;
 
 		return g_texturesource->getTextureRaw(os.str());
-
-		/*TextureSpec spec;
-		spec.addTid(g_irrlicht->getTextureId(basename));
-		spec.addTid(g_irrlicht->getTextureId(os.str()));
-		return g_irrlicht->getTexture(spec);*/
 	}
 #endif
 	std::string getText()
@@ -428,6 +458,10 @@ public:
 	u32 getSize();
 	// Count used slots
 	u32 getUsedSlots();
+	u32 getFreeSlots();
+
+	/*bool getDirty(){ return m_dirty; }
+	void setDirty(bool dirty=true){ m_dirty = dirty; }*/
 	
 	// Get pointer to item
 	InventoryItem * getItem(u32 i);
@@ -435,6 +469,7 @@ public:
 	InventoryItem * changeItem(u32 i, InventoryItem *newitem);
 	// Delete item
 	void deleteItem(u32 i);
+
 	// Adds an item to a suitable place. Returns leftover item.
 	// If all went into the list, returns NULL.
 	InventoryItem * addItem(InventoryItem *newitem);
@@ -444,6 +479,9 @@ public:
 	// If can be added partly, decremented item is returned back.
 	// If can be added fully, NULL is returned.
 	InventoryItem * addItem(u32 i, InventoryItem *newitem);
+
+	// Checks whether the item could be added to the given slot
+	bool itemFits(u32 i, InventoryItem *newitem);
 
 	// Takes some items from a slot.
 	// If there are not enough, takes as many as it can.
@@ -459,6 +497,7 @@ private:
 	core::array<InventoryItem*> m_items;
 	u32 m_size;
 	std::string m_name;
+	//bool m_dirty;
 };
 
 class Inventory
@@ -495,6 +534,41 @@ private:
 	core::array<InventoryList*> m_lists;
 };
 
+class Player;
+
+struct InventoryContext
+{
+	Player *current_player;
+	
+	InventoryContext():
+		current_player(NULL)
+	{}
+};
+
+class InventoryAction;
+
+class InventoryManager
+{
+public:
+	InventoryManager(){}
+	virtual ~InventoryManager(){}
+	
+	/*
+		Get a pointer to an inventory specified by id.
+		id can be:
+		- "current_player"
+		- "nodemeta:X,Y,Z"
+	*/
+	virtual Inventory* getInventory(InventoryContext *c, std::string id)
+		{return NULL;}
+	// Used on the server by InventoryAction::apply and other stuff
+	virtual void inventoryModified(InventoryContext *c, std::string id)
+		{}
+	// Used on the client
+	virtual void inventoryAction(InventoryAction *a)
+		{}
+};
+
 #define IACTION_MOVE 0
 
 struct InventoryAction
@@ -503,16 +577,18 @@ struct InventoryAction
 	
 	virtual u16 getType() const = 0;
 	virtual void serialize(std::ostream &os) = 0;
-	virtual void apply(Inventory *inventory) = 0;
+	virtual void apply(InventoryContext *c, InventoryManager *mgr) = 0;
 };
 
 struct IMoveAction : public InventoryAction
 {
 	// count=0 means "everything"
 	u16 count;
-	std::string from_name;
+	std::string from_inv;
+	std::string from_list;
 	s16 from_i;
-	std::string to_name;
+	std::string to_inv;
+	std::string to_list;
 	s16 to_i;
 	
 	IMoveAction()
@@ -528,12 +604,16 @@ struct IMoveAction : public InventoryAction
 		std::getline(is, ts, ' ');
 		count = stoi(ts);
 
-		std::getline(is, from_name, ' ');
+		std::getline(is, from_inv, ' ');
+
+		std::getline(is, from_list, ' ');
 
 		std::getline(is, ts, ' ');
 		from_i = stoi(ts);
 
-		std::getline(is, to_name, ' ');
+		std::getline(is, to_inv, ' ');
+
+		std::getline(is, to_list, ' ');
 
 		std::getline(is, ts, ' ');
 		to_i = stoi(ts);
@@ -548,14 +628,62 @@ struct IMoveAction : public InventoryAction
 	{
 		os<<"Move ";
 		os<<count<<" ";
-		os<<from_name<<" ";
+		os<<from_inv<<" ";
+		os<<from_list<<" ";
 		os<<from_i<<" ";
-		os<<to_name<<" ";
+		os<<to_inv<<" ";
+		os<<to_list<<" ";
 		os<<to_i;
 	}
 
-	void apply(Inventory *inventory);
+	void apply(InventoryContext *c, InventoryManager *mgr);
 };
+
+/*
+	Craft checking system
+*/
+
+enum ItemSpecType
+{
+	ITEM_NONE,
+	ITEM_MATERIAL,
+	ITEM_CRAFT,
+	ITEM_TOOL,
+	ITEM_MBO
+};
+
+struct ItemSpec
+{
+	enum ItemSpecType type;
+	// Only other one of these is used
+	std::string name;
+	u16 num;
+
+	ItemSpec():
+		type(ITEM_NONE)
+	{
+	}
+	ItemSpec(enum ItemSpecType a_type, std::string a_name):
+		type(a_type),
+		name(a_name),
+		num(65535)
+	{
+	}
+	ItemSpec(enum ItemSpecType a_type, u16 a_num):
+		type(a_type),
+		name(""),
+		num(a_num)
+	{
+	}
+
+	bool checkItem(InventoryItem *item);
+};
+
+/*
+	items: a pointer to an array of 9 pointers to items
+	specs: a pointer to an array of 9 ItemSpecs
+*/
+bool checkItemCombination(InventoryItem **items, ItemSpec *specs);
 
 #endif
 

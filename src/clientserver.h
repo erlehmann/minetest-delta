@@ -24,6 +24,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #define PROTOCOL_ID 0x4f457403
 
+#define PASSWORD_SIZE 28       // Maximum password length. Allows for
+                               // base64-encoded SHA-1 (27+\0).
+
 enum ToClientCommand
 {
 	TOCLIENT_INIT = 0x10,
@@ -33,14 +36,18 @@ enum ToClientCommand
 
 		[0] u16 TOSERVER_INIT
 		[2] u8 deployed version
-		[3] v3s16 player's position + v3f(0,BS/2,0) floatToInt'd
+		[3] v3s16 player's position + v3f(0,BS/2,0) floatToInt'd 
+		([4] u64 map seed (new as of 2011-02-27))
+
+		NOTE: The position in here is deprecated; position is
+		      explicitly sent afterwards
 	*/
 
 	TOCLIENT_BLOCKDATA = 0x20, //TODO: Multiple blocks
 	TOCLIENT_ADDNODE = 0x21,
 	TOCLIENT_REMOVENODE = 0x22,
 	
-	TOCLIENT_PLAYERPOS = 0x23,
+	TOCLIENT_PLAYERPOS = 0x23, // Obsolete
 	/*
 		[0] u16 command
 		// Followed by an arbitary number of these:
@@ -61,9 +68,9 @@ enum ToClientCommand
 		[N] char[20] name
 	*/
 	
-	TOCLIENT_OPT_BLOCK_NOT_FOUND = 0x25, // Not used
+	TOCLIENT_OPT_BLOCK_NOT_FOUND = 0x25, // Obsolete
 
-	TOCLIENT_SECTORMETA = 0x26, // Not used
+	TOCLIENT_SECTORMETA = 0x26, // Obsolete
 	/*
 		[0] u16 command
 		[2] u8 sector count
@@ -133,6 +140,26 @@ enum ToClientCommand
 		}
 	*/
 
+	TOCLIENT_HP = 0x33,
+	/*
+		u16 command
+		u8 hp
+	*/
+
+	TOCLIENT_MOVE_PLAYER = 0x34,
+	/*
+		u16 command
+		v3f1000 player position
+		f1000 player pitch
+		f1000 player yaw
+	*/
+
+	TOCLIENT_ACCESS_DENIED = 0x35,
+	/*
+		u16 command
+		u16 reason_length
+		wstring reason
+	*/
 };
 
 enum ToServerCommand
@@ -144,6 +171,7 @@ enum ToServerCommand
 		[0] u16 TOSERVER_INIT
 		[2] u8 SER_FMT_VER_HIGHEST
 		[3] u8[20] player_name
+		[23] u8[28] password
 	*/
 
 	TOSERVER_INIT2 = 0x11,
@@ -154,9 +182,9 @@ enum ToServerCommand
 		[0] u16 TOSERVER_INIT2
 	*/
 
-	TOSERVER_GETBLOCK=0x20, // Not used
-	TOSERVER_ADDNODE = 0x21, // Not used
-	TOSERVER_REMOVENODE = 0x22, // deprecated
+	TOSERVER_GETBLOCK=0x20, // Obsolete
+	TOSERVER_ADDNODE = 0x21, // Obsolete
+	TOSERVER_REMOVENODE = 0x22, // Obsolete
 
 	TOSERVER_PLAYERPOS = 0x23,
 	/*
@@ -185,7 +213,7 @@ enum ToServerCommand
 		...
 	*/
 
-	TOSERVER_ADDNODE_FROM_INVENTORY = 0x26, // deprecated
+	TOSERVER_ADDNODE_FROM_INVENTORY = 0x26, // Obsolete
 	/*
 		[0] u16 command
 		[2] v3s16 pos
@@ -217,9 +245,9 @@ enum ToServerCommand
 		3: digging completed
 	*/
 	
-	TOSERVER_RELEASE = 0x29, // Not used
+	TOSERVER_RELEASE = 0x29, // Obsolete
 
-	TOSERVER_SIGNTEXT = 0x30,
+	TOSERVER_SIGNTEXT = 0x30, // Old signs
 	/*
 		u16 command
 		v3s16 blockpos
@@ -238,6 +266,38 @@ enum ToServerCommand
 		u16 command
 		u16 length
 		wstring message
+	*/
+
+	TOSERVER_SIGNNODETEXT = 0x33,
+	/*
+		u16 command
+		v3s16 p
+		u16 textlen
+		textdata
+	*/
+
+	TOSERVER_CLICK_ACTIVEOBJECT = 0x34,
+	/*
+		length: 7
+		[0] u16 command
+		[2] u8 button (0=left, 1=right)
+		[3] u16 id
+		[5] u16 item
+	*/
+	
+	TOSERVER_DAMAGE = 0x35,
+	/*
+		u16 command
+		u8 amount
+	*/
+
+	TOSERVER_PASSWORD=0x36,
+	/*
+		Sent to change password.
+
+		[0] u16 TOSERVER_PASSWORD
+		[2] u8[28] old password
+		[30] u8[28] new password
 	*/
 
 };

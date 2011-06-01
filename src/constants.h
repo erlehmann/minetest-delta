@@ -33,6 +33,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define DEBUGFILE "debug.txt"
 
 #define WATER_ALPHA 160
+//#define WATER_ALPHA 190
 
 // Define for simulating the quirks of sending through internet.
 // Causes the socket class to deliberately drop random packets.
@@ -52,6 +53,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define FOV_ANGLE (PI/2.5)
 
 // The absolute working limit is (2^15 - viewing_range).
+// I really don't want to make every algorithm to check if it's 
+// going near the limit or not, so this is lower.
 #define MAP_GENERATION_LIMIT (31000)
 
 // Size of node in rendering units

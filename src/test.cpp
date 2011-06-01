@@ -517,14 +517,14 @@ struct TestMapBlock
 			assert(b.getNode(v3s16(1,1,0)).getLight(LIGHTBANK_DAY) == 0);
 			assert(b.getNode(v3s16(1,0,0)).getLight(LIGHTBANK_DAY) == 0);
 			assert(b.getNode(v3s16(1,2,3)).getLight(LIGHTBANK_DAY) == LIGHT_SUN);
-			assert(b.getFaceLight(1000, p, v3s16(0,1,0)) == LIGHT_SUN);
-			assert(b.getFaceLight(1000, p, v3s16(0,-1,0)) == 0);
-			assert(b.getFaceLight(0, p, v3s16(0,-1,0)) == 0);
+			assert(b.getFaceLight2(1000, p, v3s16(0,1,0)) == LIGHT_SUN);
+			assert(b.getFaceLight2(1000, p, v3s16(0,-1,0)) == 0);
+			assert(b.getFaceLight2(0, p, v3s16(0,-1,0)) == 0);
 			// According to MapBlock::getFaceLight,
 			// The face on the z+ side should have double-diminished light
 			//assert(b.getFaceLight(p, v3s16(0,0,1)) == diminish_light(diminish_light(LIGHT_MAX)));
 			// The face on the z+ side should have diminished light
-			assert(b.getFaceLight(1000, p, v3s16(0,0,1)) == diminish_light(LIGHT_MAX));
+			assert(b.getFaceLight2(1000, p, v3s16(0,0,1)) == diminish_light(LIGHT_MAX));
 		}
 		/*
 			Check how the block handles being in between blocks with some non-sunlight
@@ -951,18 +951,18 @@ struct TestConnection
 			assert(got_exception);
 		}
 		{
-			//u8 data1[1100];
-			SharedBuffer<u8> data1(1100);
-			for(u16 i=0; i<1100; i++){
+			const int datasize = 30000;
+			SharedBuffer<u8> data1(datasize);
+			for(u16 i=0; i<datasize; i++){
 				data1[i] = i/4;
 			}
 
-			dstream<<"Sending data (size="<<1100<<"):";
-			for(int i=0; i<1100 && i<20; i++){
+			dstream<<"Sending data (size="<<datasize<<"):";
+			for(int i=0; i<datasize && i<20; i++){
 				if(i%2==0) DEBUGPRINT(" ");
 				DEBUGPRINT("%.2X", ((int)((const char*)*data1)[i])&0xff);
 			}
-			if(1100>20)
+			if(datasize>20)
 				dstream<<"...";
 			dstream<<std::endl;
 			
@@ -970,10 +970,10 @@ struct TestConnection
 
 			sleep_ms(50);
 			
-			u8 recvdata[2000];
+			u8 recvdata[datasize + 1000];
 			dstream<<"** running client.Receive()"<<std::endl;
 			u16 peer_id = 132;
-			u16 size = client.Receive(peer_id, recvdata, 2000);
+			u16 size = client.Receive(peer_id, recvdata, datasize + 1000);
 			dstream<<"** Client received: peer_id="<<peer_id
 					<<", size="<<size
 					<<std::endl;

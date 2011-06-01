@@ -1,6 +1,6 @@
 /*
 Minetest-c55
-Copyright (C) 2010 celeron55, Perttu Ahola <celeron55@gmail.com>
+Copyright (C) 2010-2011 celeron55, Perttu Ahola <celeron55@gmail.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "porting.h"
 #include "mineral.h"
 #include "noise.h"
+#include "serverobject.h"
 
 /*
 	Map
@@ -36,8 +37,8 @@ Map::Map(std::ostream &dout):
 	m_dout(dout),
 	m_sector_cache(NULL)
 {
-	m_sector_mutex.Init();
-	assert(m_sector_mutex.IsInitialized());
+	/*m_sector_mutex.Init();
+	assert(m_sector_mutex.IsInitialized());*/
 }
 
 Map::~Map()
@@ -103,7 +104,7 @@ MapSector * Map::getSectorNoGenerateNoExNoLock(v2s16 p)
 
 MapSector * Map::getSectorNoGenerateNoEx(v2s16 p)
 {
-	JMutexAutoLock lock(m_sector_mutex);
+	//JMutexAutoLock lock(m_sector_mutex); // Bulk comment-out
 
 	return getSectorNoGenerateNoExNoLock(p);
 }
@@ -606,13 +607,13 @@ s16 Map::propagateSunlight(v3s16 start,
 		}
 		else
 		{
-			// Turn mud into grass
+			/*// Turn mud into grass
 			if(n.d == CONTENT_MUD)
 			{
 				n.d = CONTENT_GRASS;
 				block->setNode(relpos, n);
 				modified_blocks.insert(blockpos, block);
-			}
+			}*/
 
 			// Sunlight goes no further
 			break;
@@ -837,9 +838,6 @@ void Map::updateLighting(core::map<v3s16, MapBlock*> & a_blocks,
 }
 
 /*
-	This is called after changing a node from transparent to opaque.
-	The lighting value of the node should be left as-is after changing
-	other values. This sets the lighting value to 0.
 */
 void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 		core::map<v3s16, MapBlock*> &modified_blocks)
@@ -876,12 +874,12 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 	catch(InvalidPositionException &e)
 	{
 	}
-	
+
+#if 1
 	/*
-		If the new node doesn't propagate sunlight and there is
-		grass below, change it to mud
+		If the new node is solid and there is grass below, change it to mud
 	*/
-	if(content_features(n.d).sunlight_propagates == false)
+	if(content_features(n.d).walkable == true)
 	{
 		try{
 			MapNode bottomnode = getNode(bottompos);
@@ -897,7 +895,9 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 		{
 		}
 	}
+#endif
 
+#if 0
 	/*
 		If the new node is mud and it is under sunlight, change it
 		to grass
@@ -906,6 +906,7 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 	{
 		n.d = CONTENT_GRASS;
 	}
+#endif
 
 	/*
 		Remove all light that has come out of this node
@@ -941,19 +942,39 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 	}
 
 	/*
+		If node lets sunlight through and is under sunlight, it has
+		sunlight too.
+	*/
+	if(node_under_sunlight && content_features(n.d).sunlight_propagates)
+	{
+		n.setLight(LIGHTBANK_DAY, LIGHT_SUN);
+	}
+	
+	/*
 		Set the node on the map
 	*/
 	
 	setNode(p, n);
+
+	/*
+		Add intial metadata
+	*/
+
+	NodeMetadata *meta_proto = content_features(n.d).initial_metadata;
+	if(meta_proto)
+	{
+		NodeMetadata *meta = meta_proto->clone();
+		setNodeMetadata(p, meta);
+	}
 	
 	/*
-		If node is under sunlight, take all sunlighted nodes under
-		it and clear light from them and from where the light has
-		been spread.
+		If node is under sunlight and doesn't let sunlight through,
+		take all sunlighted nodes under it and clear light from them
+		and from where the light has been spread.
 		TODO: This could be optimized by mass-unlighting instead
 		      of looping
 	*/
-	if(node_under_sunlight)
+	if(node_under_sunlight && !content_features(n.d).sunlight_propagates)
 	{
 		s16 y = p.Y - 1;
 		for(;; y--){
@@ -981,7 +1002,7 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 				break;
 		}
 	}
-	
+
 	for(s32 i=0; i<2; i++)
 	{
 		enum LightBank bank = banks[i];
@@ -1083,6 +1104,12 @@ void Map::removeNodeAndUpdate(v3s16 p,
 				getNode(p).getLight(bank),
 				light_sources, modified_blocks);
 	}
+
+	/*
+		Remove node metadata
+	*/
+
+	removeNodeMetadata(p);
 
 	/*
 		Remove the node.
@@ -1320,7 +1347,7 @@ bool Map::dayNightDiffed(v3s16 blockpos)
 */
 void Map::timerUpdate(float dtime)
 {
-	JMutexAutoLock lock(m_sector_mutex);
+	//JMutexAutoLock lock(m_sector_mutex); // Bulk comment-out
 
 	core::map<v2s16, MapSector*>::Iterator si;
 
@@ -1370,7 +1397,7 @@ void Map::deleteSectors(core::list<v2s16> &list, bool only_blocks)
 u32 Map::deleteUnusedSectors(float timeout, bool only_blocks,
 		core::list<v3s16> *deleted_blocks)
 {
-	JMutexAutoLock lock(m_sector_mutex);
+	//JMutexAutoLock lock(m_sector_mutex); // Bulk comment-out
 
 	core::list<v2s16> sector_deletion_queue;
 	core::map<v2s16, MapSector*>::Iterator i = m_sectors.getIterator();
@@ -1687,14 +1714,88 @@ void Map::transformLiquids(core::map<v3s16, MapBlock*> & modified_blocks)
 	//dstream<<"Map::transformLiquids(): loopcount="<<loopcount<<std::endl;
 }
 
+NodeMetadata* Map::getNodeMetadata(v3s16 p)
+{
+	v3s16 blockpos = getNodeBlockPos(p);
+	v3s16 p_rel = p - blockpos*MAP_BLOCKSIZE;
+	MapBlock *block = getBlockNoCreateNoEx(blockpos);
+	if(block == NULL)
+	{
+		dstream<<"WARNING: Map::setNodeMetadata(): Block not found"
+				<<std::endl;
+		return NULL;
+	}
+	NodeMetadata *meta = block->m_node_metadata.get(p_rel);
+	return meta;
+}
+
+void Map::setNodeMetadata(v3s16 p, NodeMetadata *meta)
+{
+	v3s16 blockpos = getNodeBlockPos(p);
+	v3s16 p_rel = p - blockpos*MAP_BLOCKSIZE;
+	MapBlock *block = getBlockNoCreateNoEx(blockpos);
+	if(block == NULL)
+	{
+		dstream<<"WARNING: Map::setNodeMetadata(): Block not found"
+				<<std::endl;
+		return;
+	}
+	block->m_node_metadata.set(p_rel, meta);
+}
+
+void Map::removeNodeMetadata(v3s16 p)
+{
+	v3s16 blockpos = getNodeBlockPos(p);
+	v3s16 p_rel = p - blockpos*MAP_BLOCKSIZE;
+	MapBlock *block = getBlockNoCreateNoEx(blockpos);
+	if(block == NULL)
+	{
+		dstream<<"WARNING: Map::removeNodeMetadata(): Block not found"
+				<<std::endl;
+		return;
+	}
+	block->m_node_metadata.remove(p_rel);
+}
+
+void Map::nodeMetadataStep(float dtime,
+		core::map<v3s16, MapBlock*> &changed_blocks)
+{
+	/*
+		NOTE:
+		Currently there is no way to ensure that all the necessary
+		blocks are loaded when this is run. (They might get unloaded)
+		NOTE: ^- Actually, that might not be so. In a quick test it
+		reloaded a block with a furnace when I walked back to it from
+		a distance.
+	*/
+	core::map<v2s16, MapSector*>::Iterator si;
+	si = m_sectors.getIterator();
+	for(; si.atEnd() == false; si++)
+	{
+		MapSector *sector = si.getNode()->getValue();
+		core::list< MapBlock * > sectorblocks;
+		sector->getBlocks(sectorblocks);
+		core::list< MapBlock * >::Iterator i;
+		for(i=sectorblocks.begin(); i!=sectorblocks.end(); i++)
+		{
+			MapBlock *block = *i;
+			bool changed = block->m_node_metadata.step(dtime);
+			if(changed)
+				changed_blocks[block->getPos()] = block;
+		}
+	}
+}
+
 /*
 	ServerMap
 */
 
 ServerMap::ServerMap(std::string savedir):
 	Map(dout_server),
-	m_seed(0)
+	m_seed(0),
+	m_map_metadata_changed(true)
 {
+	dstream<<__FUNCTION_NAME<<std::endl;
 	
 	//m_chunksize = 64;
 	//m_chunksize = 16; // Too slow
@@ -1702,7 +1803,6 @@ ServerMap::ServerMap(std::string savedir):
 	//m_chunksize = 4;
 	//m_chunksize = 2;
 	
-	// TODO: Save to and load from a file
 	m_seed = (((u64)(myrand()%0xffff)<<0)
 			+ ((u64)(myrand()%0xffff)<<16)
 			+ ((u64)(myrand()%0xffff)<<32)
@@ -1736,11 +1836,19 @@ ServerMap::ServerMap(std::string savedir):
 			}
 			else
 			{
-				// Load map metadata (seed, chunksize)
-				loadMapMeta();
-				
-				// Load chunk metadata
-				loadChunkMeta();
+				try{
+					// Load map metadata (seed, chunksize)
+					loadMapMeta();
+
+					// Load chunk metadata
+					loadChunkMeta();
+				}
+				catch(FileNotGoodException &e){
+					dstream<<DTIME<<"WARNING: Server: Could not load "
+							<<"metafile(s). Disabling chunk-based "
+							<<"generation."<<std::endl;
+					m_chunksize = 0;
+				}
 			
 				/*// Load sector (0,0) and throw and exception on fail
 				if(loadSectorFull(v2s16(0,0)) == false)
@@ -1785,6 +1893,8 @@ ServerMap::ServerMap(std::string savedir):
 
 ServerMap::~ServerMap()
 {
+	dstream<<__FUNCTION_NAME<<std::endl;
+	
 	try
 	{
 		if(m_map_saving_enabled)
@@ -1958,7 +2068,7 @@ double base_rock_level_2d(u64 seed, v2s16 p)
 {
 	// The base ground level
 	double base = (double)WATER_LEVEL - (double)AVERAGE_MUD_AMOUNT
-			+ 25. * noise2d_perlin(
+			+ 20. * noise2d_perlin(
 			0.5+(float)p.X/500., 0.5+(float)p.Y/500.,
 			(seed>>32)+654879876, 6, 0.6);
 	
@@ -1970,7 +2080,7 @@ double base_rock_level_2d(u64 seed, v2s16 p)
 		base = base2;*/
 #if 1
 	// Higher ground level
-	double higher = (double)WATER_LEVEL + 25. + 45. * noise2d_perlin(
+	double higher = (double)WATER_LEVEL + 25. + 35. * noise2d_perlin(
 			0.5+(float)p.X/250., 0.5+(float)p.Y/250.,
 			seed+85039, 5, 0.69);
 	//higher = 30; // For debugging
@@ -2011,184 +2121,240 @@ double base_rock_level_2d(u64 seed, v2s16 p)
 	return h;
 }
 
+double get_mud_add_amount(u64 seed, v2s16 p)
+{
+	return ((float)AVERAGE_MUD_AMOUNT + 3.0 * noise2d_perlin(
+			0.5+(float)p.X/200, 0.5+(float)p.Y/200,
+			seed+91013, 3, 0.55));
+}
+
+/*
+	Adds random objects to block, depending on the content of the block
+*/
+void addRandomObjects(MapBlock *block)
+{
+	for(s16 z0=0; z0<MAP_BLOCKSIZE; z0++)
+	for(s16 x0=0; x0<MAP_BLOCKSIZE; x0++)
+	{
+		bool last_node_walkable = false;
+		for(s16 y0=0; y0<MAP_BLOCKSIZE; y0++)
+		{
+			v3s16 p(x0,y0,z0);
+			MapNode n = block->getNodeNoEx(p);
+			if(n.d == CONTENT_IGNORE)
+				continue;
+			if(content_features(n.d).liquid_type != LIQUID_NONE)
+				continue;
+			if(content_features(n.d).walkable)
+			{
+				last_node_walkable = true;
+				continue;
+			}
+			if(last_node_walkable)
+			{
+				// If block contains light information
+				if(content_features(n.d).param_type == CPT_LIGHT)
+				{
+					if(n.getLight(LIGHTBANK_DAY) <= 3)
+					{
+						if(myrand() % 300 == 0)
+						{
+							v3f pos_f = intToFloat(p+block->getPosRelative(), BS);
+							pos_f.Y -= BS*0.4;
+							ServerActiveObject *obj = new RatSAO(NULL, 0, pos_f);
+							std::string data = obj->getStaticData();
+							StaticObject s_obj(obj->getType(),
+									obj->getBasePosition(), data);
+							// Add some
+							block->m_static_objects.insert(0, s_obj);
+							block->m_static_objects.insert(0, s_obj);
+							block->m_static_objects.insert(0, s_obj);
+							block->m_static_objects.insert(0, s_obj);
+							block->m_static_objects.insert(0, s_obj);
+							block->m_static_objects.insert(0, s_obj);
+							delete obj;
+						}
+						if(myrand() % 300 == 0)
+						{
+							v3f pos_f = intToFloat(p+block->getPosRelative(), BS);
+							pos_f.Y -= BS*0.4;
+							ServerActiveObject *obj = new Oerkki1SAO(NULL,0,pos_f);
+							std::string data = obj->getStaticData();
+							StaticObject s_obj(obj->getType(),
+									obj->getBasePosition(), data);
+							// Add one
+							block->m_static_objects.insert(0, s_obj);
+							delete obj;
+						}
+					}
+				}
+			}
+			last_node_walkable = false;
+		}
+	}
+	block->setChangedFlag();
+}
+
 #define VMANIP_FLAG_DUNGEON VOXELFLAG_CHECKED1
 
 /*
 	This is the main map generation method
 */
 
-MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
-		core::map<v3s16, MapBlock*> &changed_blocks,
-		bool force)
+void makeChunk(ChunkMakeData *data)
 {
-	DSTACK(__FUNCTION_NAME);
-
-	/*
-		Don't generate if already fully generated
-	*/
-	if(force == false)
-	{
-		MapChunk *chunk = getChunk(chunkpos);
-		if(chunk != NULL && chunk->getGenLevel() == GENERATED_FULLY)
-		{
-			dstream<<"generateChunkRaw(): Chunk "
-					<<"("<<chunkpos.X<<","<<chunkpos.Y<<")"
-					<<" already generated"<<std::endl;
-			return chunk;
-		}
-	}
-
-	dstream<<"generateChunkRaw(): Generating chunk "
-			<<"("<<chunkpos.X<<","<<chunkpos.Y<<")"
-			<<std::endl;
+	if(data->no_op)
+		return;
 	
-	TimeTaker timer("generateChunkRaw()");
-	
-	// The distance how far into the neighbors the generator is allowed to go.
-	s16 max_spread_amount_sectors = 2;
-	assert(max_spread_amount_sectors <= m_chunksize);
-	s16 max_spread_amount = max_spread_amount_sectors * MAP_BLOCKSIZE;
-
-	// Minimum amount of space left on sides for mud to fall in
-	//s16 min_mud_fall_space = 2;
-	
-	// Maximum diameter of stone obstacles in X and Z
-	/*s16 stone_obstacle_max_size = (max_spread_amount-min_mud_fall_space)*2;
-	assert(stone_obstacle_max_size/2 <= max_spread_amount-min_mud_fall_space);*/
-	
-	s16 y_blocks_min = -4;
-	s16 y_blocks_max = 3;
-	s16 h_blocks = y_blocks_max - y_blocks_min + 1;
-	s16 y_nodes_min = y_blocks_min * MAP_BLOCKSIZE;
-	s16 y_nodes_max = y_blocks_max * MAP_BLOCKSIZE + MAP_BLOCKSIZE - 1;
-
-	v2s16 sectorpos_base = chunk_to_sector(chunkpos);
-	s16 sectorpos_base_size = m_chunksize;
-
-	/*v2s16 sectorpos_bigbase = chunk_to_sector(chunkpos - v2s16(1,1));
-	s16 sectorpos_bigbase_size = m_chunksize * 3;*/
-	v2s16 sectorpos_bigbase =
-			sectorpos_base - v2s16(1,1) * max_spread_amount_sectors;
-	s16 sectorpos_bigbase_size =
-			sectorpos_base_size + 2 * max_spread_amount_sectors;
-
-	v3s16 bigarea_blocks_min(
-		sectorpos_bigbase.X,
-		y_blocks_min,
-		sectorpos_bigbase.Y
-	);
-
-	v3s16 bigarea_blocks_max(
-		sectorpos_bigbase.X + sectorpos_bigbase_size - 1,
-		y_blocks_max,
-		sectorpos_bigbase.Y + sectorpos_bigbase_size - 1
-	);
-	
-	// Relative values to control amount of stuff in one chunk
-	/*u32 relative_area = (u32)sectorpos_base_size*MAP_BLOCKSIZE
-			*(u32)sectorpos_base_size*MAP_BLOCKSIZE;*/
-	u32 relative_volume = (u32)sectorpos_base_size*MAP_BLOCKSIZE
-			*(u32)sectorpos_base_size*MAP_BLOCKSIZE
+	s16 y_nodes_min = data->y_blocks_min * MAP_BLOCKSIZE;
+	s16 y_nodes_max = data->y_blocks_max * MAP_BLOCKSIZE + MAP_BLOCKSIZE - 1;
+	s16 h_blocks = data->y_blocks_max - data->y_blocks_min + 1;
+	u32 relative_volume = (u32)data->sectorpos_base_size*MAP_BLOCKSIZE
+			*(u32)data->sectorpos_base_size*MAP_BLOCKSIZE
 			*(u32)h_blocks*MAP_BLOCKSIZE;
-		
-	/*
-		The limiting edges of the lighting update, inclusive.
-	*/
-	s16 lighting_min_d = 0-max_spread_amount;
-	s16 lighting_max_d = sectorpos_base_size*MAP_BLOCKSIZE+max_spread_amount-1;
-
-	/*
-		Create the whole area of this and the neighboring chunks
-	*/
-	{
-		TimeTaker timer("generateChunkRaw() create area");
-		
-		for(s16 x=0; x<sectorpos_bigbase_size; x++)
-		for(s16 z=0; z<sectorpos_bigbase_size; z++)
-		{
-			v2s16 sectorpos = sectorpos_bigbase + v2s16(x,z);
-			ServerMapSector *sector = createSector(sectorpos);
-			assert(sector);
-
-			for(s16 y=y_blocks_min; y<=y_blocks_max; y++)
-			{
-				v3s16 blockpos(sectorpos.X, y, sectorpos.Y);
-				MapBlock *block = createBlock(blockpos);
-
-				// Lighting won't be calculated
-				//block->setLightingExpired(true);
-				// Lighting will be calculated
-				block->setLightingExpired(false);
-
-				/*
-					Block gets sunlight if this is true.
-
-					This should be set to true when the top side of a block
-					is completely exposed to the sky.
-
-					Actually this doesn't matter now because the
-					initial lighting is done here.
-				*/
-				block->setIsUnderground(y != y_blocks_max);
-			}
-		}
-	}
-	
-	/*
-		Now we have a big empty area.
-
-		Make a ManualMapVoxelManipulator that contains this and the
-		neighboring chunks
-	*/
-
-	ManualMapVoxelManipulator vmanip(this);
-	// Add the area we just generated
-	{
-		TimeTaker timer("generateChunkRaw() initialEmerge");
-		vmanip.initialEmerge(bigarea_blocks_min, bigarea_blocks_max);
-	}
+	v3s16 bigarea_blocks_min(
+		data->sectorpos_bigbase.X,
+		data->y_blocks_min,
+		data->sectorpos_bigbase.Y
+	);
+	v3s16 bigarea_blocks_max(
+		data->sectorpos_bigbase.X + data->sectorpos_bigbase_size - 1,
+		data->y_blocks_max,
+		data->sectorpos_bigbase.Y + data->sectorpos_bigbase_size - 1
+	);
+	s16 lighting_min_d = 0-data->max_spread_amount;
+	s16 lighting_max_d = data->sectorpos_base_size*MAP_BLOCKSIZE
+			+ data->max_spread_amount-1;
 
 	// Clear all flags
-	vmanip.clearFlag(0xff);
+	data->vmanip.clearFlag(0xff);
 
-	TimeTaker timer_generate("generateChunkRaw() generate");
+	TimeTaker timer_generate("makeChunk() generate");
 
 	// Maximum height of the stone surface and obstacles.
-	// This is used to disable dungeon generation from going too high.
+	// This is used to disable cave generation from going too high.
 	s16 stone_surface_max_y = 0;
 
 	/*
 		Generate general ground level to full area
 	*/
-	
 	{
 	// 22ms @cs=8
-	//TimeTaker timer1("ground level");
+	TimeTaker timer1("Generating ground level");
 
-	for(s16 x=0; x<sectorpos_bigbase_size*MAP_BLOCKSIZE; x++)
-	for(s16 z=0; z<sectorpos_bigbase_size*MAP_BLOCKSIZE; z++)
+#if 0
+	NoiseBuffer noisebuf1;
+	//NoiseBuffer noisebuf2;
+	{
+		v3f minpos_f(
+			data->sectorpos_bigbase.X*MAP_BLOCKSIZE,
+			y_nodes_min,
+			data->sectorpos_bigbase.Y*MAP_BLOCKSIZE
+		);
+		v3f maxpos_f = minpos_f + v3f(
+			data->sectorpos_bigbase_size*MAP_BLOCKSIZE,
+			y_nodes_max-y_nodes_min,
+			data->sectorpos_bigbase_size*MAP_BLOCKSIZE
+		);
+		v3f samplelength_f = v3f(4.0, 4.0, 4.0);
+
+		TimeTaker timer("noisebuf.create");
+		
+		noisebuf1.create(data->seed+25104, 6, 0.60, 200.0,
+				minpos_f.X, minpos_f.Y, minpos_f.Z,
+				maxpos_f.X, maxpos_f.Y, maxpos_f.Z,
+				samplelength_f.X, samplelength_f.Y, samplelength_f.Z);
+		/*noisebuf1.create(data->seed+25104, 3, 0.60, 25.0,
+				minpos_f.X, minpos_f.Y, minpos_f.Z,
+				maxpos_f.X, maxpos_f.Y, maxpos_f.Z,
+				samplelength_f.X, samplelength_f.Y, samplelength_f.Z);
+		noisebuf2.create(data->seed+25105, 4, 0.50, 200.0,
+				minpos_f.X, minpos_f.Y, minpos_f.Z,
+				maxpos_f.X, maxpos_f.Y, maxpos_f.Z,
+				samplelength_f.X, samplelength_f.Y, samplelength_f.Z);*/
+	}
+
+	for(s16 x=0; x<data->sectorpos_bigbase_size*MAP_BLOCKSIZE; x++)
+	for(s16 z=0; z<data->sectorpos_bigbase_size*MAP_BLOCKSIZE; z++)
 	{
 		// Node position
-		v2s16 p2d = sectorpos_bigbase*MAP_BLOCKSIZE + v2s16(x,z);
+		v2s16 p2d = data->sectorpos_bigbase*MAP_BLOCKSIZE + v2s16(x,z);
+		
+		// Ground height at this point
+		float surface_y_f = 0.0;
+
+		// Use perlin noise for ground height
+		surface_y_f = base_rock_level_2d(data->seed, p2d);
+		//surface_y_f = base_rock_level_2d(data->seed, p2d);
+		
+		// Convert to integer
+		s16 surface_y = (s16)surface_y_f;
+		
+		// Log it
+		if(surface_y > stone_surface_max_y)
+			stone_surface_max_y = surface_y;
+
+		/*
+			Fill ground with stone
+		*/
+		{
+			// Use fast index incrementing
+			v3s16 em = data->vmanip.m_area.getExtent();
+			u32 i = data->vmanip.m_area.index(v3s16(p2d.X, y_nodes_min, p2d.Y));
+			for(s16 y=y_nodes_min; y<=y_nodes_max; y++)
+			{
+				// Skip if already generated.
+				// This is done here because there might be a cave at
+				// any point in ground, which could look like it
+				// wasn't generated.
+				if(data->vmanip.m_data[i].d != CONTENT_AIR)
+					break;
+
+				/*s16 noiseval = 50.0 * noise3d_perlin(
+						0.5+(float)p2d.X/100.0,
+						0.5+(float)y/100.0,
+						0.5+(float)p2d.Y/100.0,
+						data->seed+123, 5, 0.5);*/
+				double noiseval = 64.0 * noisebuf1.get(p2d.X, y, p2d.Y);
+				/*double noiseval = 30.0 * noisebuf1.get(p2d.X, y, p2d.Y);
+				noiseval *= MYMAX(0, -0.2 + noisebuf2.get(p2d.X, y, p2d.Y));*/
+				
+				//if(y < surface_y + noiseval)
+				if(noiseval > 0)
+				//if(noiseval > y)
+					data->vmanip.m_data[i].d = CONTENT_STONE;
+
+				data->vmanip.m_area.add_y(em, i, 1);
+			}
+		}
+	}
+#endif
+	
+#if 1
+	for(s16 x=0; x<data->sectorpos_bigbase_size*MAP_BLOCKSIZE; x++)
+	for(s16 z=0; z<data->sectorpos_bigbase_size*MAP_BLOCKSIZE; z++)
+	{
+		// Node position
+		v2s16 p2d = data->sectorpos_bigbase*MAP_BLOCKSIZE + v2s16(x,z);
 		
 		/*
 			Skip of already generated
 		*/
-		{
+		/*{
 			v3s16 p(p2d.X, y_nodes_min, p2d.Y);
-			if(vmanip.m_data[vmanip.m_area.index(p)].d != CONTENT_AIR)
+			if(data->vmanip.m_data[data->vmanip.m_area.index(p)].d != CONTENT_AIR)
 				continue;
-		}
+		}*/
 
 		// Ground height at this point
 		float surface_y_f = 0.0;
 
 		// Use perlin noise for ground height
-		surface_y_f = base_rock_level_2d(m_seed, p2d);
+		surface_y_f = base_rock_level_2d(data->seed, p2d);
 		
 		/*// Experimental stuff
 		{
-			float a = highlands_level_2d(m_seed, p2d);
+			float a = highlands_level_2d(data->seed, p2d);
 			if(a > surface_y_f)
 				surface_y_f = a;
 		}*/
@@ -2205,16 +2371,24 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		*/
 		{
 			// Use fast index incrementing
-			v3s16 em = vmanip.m_area.getExtent();
-			u32 i = vmanip.m_area.index(v3s16(p2d.X, y_nodes_min, p2d.Y));
+			v3s16 em = data->vmanip.m_area.getExtent();
+			u32 i = data->vmanip.m_area.index(v3s16(p2d.X, y_nodes_min, p2d.Y));
 			for(s16 y=y_nodes_min; y<surface_y && y<=y_nodes_max; y++)
 			{
-				vmanip.m_data[i].d = CONTENT_STONE;
+				// Skip if already generated.
+				// This is done here because there might be a cave at
+				// any point in ground, which could look like it
+				// wasn't generated.
+				if(data->vmanip.m_data[i].d != CONTENT_AIR)
+					break;
 
-				vmanip.m_area.add_y(em, i, 1);
+				data->vmanip.m_data[i].d = CONTENT_STONE;
+
+				data->vmanip.m_area.add_y(em, i, 1);
 			}
 		}
 	}
+#endif
 	
 	}//timer1
 
@@ -2222,167 +2396,49 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		Randomize some parameters
 	*/
 	
-	s32 stone_obstacle_count = 0;
+	//s32 stone_obstacle_count = 0;
 	/*s32 stone_obstacle_count =
-			rangelim((1.0+noise2d(m_seed+897,
-			sectorpos_base.X, sectorpos_base.Y))/2.0 * 30, 0, 100000);*/
+			rangelim((1.0+noise2d(data->seed+897,
+			data->sectorpos_base.X, data->sectorpos_base.Y))/2.0 * 30, 0, 100000);*/
 	
-	s16 stone_obstacle_max_height = 0;
+	//s16 stone_obstacle_max_height = 0;
 	/*s16 stone_obstacle_max_height =
-			rangelim((1.0+noise2d(m_seed+5902,
-			sectorpos_base.X, sectorpos_base.Y))/2.0 * 30, 0, 100000);*/
+			rangelim((1.0+noise2d(data->seed+5902,
+			data->sectorpos_base.X, data->sectorpos_base.Y))/2.0 * 30, 0, 100000);*/
 
 	/*
 		Loop this part, it will make stuff look older and newer nicely
 	*/
-	//for(u32 i_age=0; i_age<1; i_age++)
-	for(u32 i_age=0; i_age<2; i_age++)
+	const u32 age_loops = 2;
+	for(u32 i_age=0; i_age<age_loops; i_age++)
 	{ // Aging loop
+	/******************************
+		BEGINNING OF AGING LOOP
+	******************************/
 
-	{
-	// 8ms @cs=8
-	//TimeTaker timer1("stone obstacles");
-
-	/*
-		Add some random stone obstacles
-	*/
-	
-	for(s32 ri=0; ri<stone_obstacle_count; ri++)
-	{
-		// Randomize max height so usually stuff will be quite low
-		s16 maxheight_randomized = myrand_range(0, stone_obstacle_max_height);
-
-		//s16 stone_obstacle_max_size = sectorpos_base_size * MAP_BLOCKSIZE - 10;
-		s16 stone_obstacle_max_size = MAP_BLOCKSIZE*4-4;
-
-		v3s16 ob_size(
-			myrand_range(5, stone_obstacle_max_size),
-			myrand_range(0, maxheight_randomized),
-			myrand_range(5, stone_obstacle_max_size)
-		);
-		
-		// Don't make stupid small rectangle bumps
-		if(ob_size.Y < 5)
-			continue;
-		
-		v2s16 ob_place(
-			myrand_range(1+ob_size.X/2+2,
-					sectorpos_base_size*MAP_BLOCKSIZE-1-1-ob_size.X/2-2),
-			myrand_range(1+ob_size.Z/2+2,
-					sectorpos_base_size*MAP_BLOCKSIZE-1-1-ob_size.Z/2-2)
-		);
-		
-		// Minimum space left on top of the obstacle
-		s16 min_head_space = 12;
-		
-		for(s16 x=-ob_size.X/2; x<ob_size.X/2; x++)
-		for(s16 z=-ob_size.Z/2; z<ob_size.Z/2; z++)
-		{
-			// Node position in 2d
-			v2s16 p2d = sectorpos_base*MAP_BLOCKSIZE + ob_place + v2s16(x,z);
-			
-			// Find stone ground level
-			// (ignore everything else than mud in already generated chunks)
-			// and mud amount over the stone level
-			s16 surface_y = 0;
-			s16 mud_amount = 0;
-			{
-				v3s16 em = vmanip.m_area.getExtent();
-				u32 i = vmanip.m_area.index(v3s16(p2d.X, y_nodes_max, p2d.Y));
-				s16 y;
-				// Go to ground level
-				for(y=y_nodes_max; y>=y_nodes_min; y--)
-				{
-					MapNode *n = &vmanip.m_data[i];
-					/*if(content_walkable(n.d)
-							&& n.d != CONTENT_MUD
-							&& n.d != CONTENT_GRASS)
-						break;*/
-					if(n->d == CONTENT_STONE)
-						break;
-					
-					if(n->d == CONTENT_MUD || n->d == CONTENT_GRASS)
-					{
-						mud_amount++;
-						/*
-							Change to mud because otherwise we might
-							be throwing mud on grass at the next
-							step
-						*/
-						n->d = CONTENT_MUD;
-					}
-						
-					vmanip.m_area.add_y(em, i, -1);
-				}
-				if(y >= y_nodes_min)
-					surface_y = y;
-				else
-					surface_y = y_nodes_min;
-			}
-
-
-			/*
-				Add stone on ground
-			*/
-			{
-				v3s16 em = vmanip.m_area.getExtent();
-				s16 y_start = surface_y+1;
-				u32 i = vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
-				s16 y;
-				// Add stone
-				s16 count = 0;
-				for(y=y_start; y<=y_nodes_max - min_head_space; y++)
-				{
-					MapNode &n = vmanip.m_data[i];
-					n.d = CONTENT_STONE;
-
-					if(y > stone_surface_max_y)
-						stone_surface_max_y = y;
-
-					count++;
-					if(count >= ob_size.Y)
-						break;
-						
-					vmanip.m_area.add_y(em, i, 1);
-				}
-				// Add mud
-				count = 0;
-				for(; y<=y_nodes_max - min_head_space; y++)
-				{
-					MapNode &n = vmanip.m_data[i];
-					n.d = CONTENT_MUD;
-					count++;
-					if(count >= mud_amount)
-						break;
-						
-					vmanip.m_area.add_y(em, i, 1);
-				}
-			}
-
-		}
-	}
-
-	}//timer1
+#if 1
 	{
 	// 24ms @cs=8
-	//TimeTaker timer1("dungeons");
+	//TimeTaker timer1("caves");
 
 	/*
-		Make dungeons
+		Make caves
 	*/
-	u32 dungeons_count = relative_volume / 600000;
+	u32 caves_count = relative_volume / 400000;
 	u32 bruises_count = relative_volume * stone_surface_max_y / 40000000;
 	if(stone_surface_max_y < WATER_LEVEL)
 		bruises_count = 0;
-	/*u32 dungeons_count = 0;
+	/*u32 caves_count = 0;
 	u32 bruises_count = 0;*/
-	for(u32 jj=0; jj<dungeons_count+bruises_count; jj++)
+	for(u32 jj=0; jj<caves_count+bruises_count; jj++)
 	{
-		s16 min_tunnel_diameter = 2;
-		s16 max_tunnel_diameter = 6;
-		u16 tunnel_routepoints = 25;
+		s16 min_tunnel_diameter = 3;
+		s16 max_tunnel_diameter = 5;
+		u16 tunnel_routepoints = 20;
 		
-		bool bruise_surface = (jj < bruises_count);
+		v3f main_direction(0,0,0);
+
+		bool bruise_surface = (jj > caves_count);
 
 		if(bruise_surface)
 		{
@@ -2391,31 +2447,34 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 			/*min_tunnel_diameter = MYMAX(0, stone_surface_max_y/6);
 			max_tunnel_diameter = myrand_range(MYMAX(0, stone_surface_max_y/6), MYMAX(0, stone_surface_max_y/2));*/
 			
-			/*s16 tunnel_rou = rangelim(25*(0.5+1.0*noise2d(m_seed+42,
-					sectorpos_base.X, sectorpos_base.Y)), 0, 15);*/
+			/*s16 tunnel_rou = rangelim(25*(0.5+1.0*noise2d(data->seed+42,
+					data->sectorpos_base.X, data->sectorpos_base.Y)), 0, 15);*/
 
 			tunnel_routepoints = 5;
+		}
+		else
+		{
 		}
 
 		// Allowed route area size in nodes
 		v3s16 ar(
-			sectorpos_base_size*MAP_BLOCKSIZE,
+			data->sectorpos_base_size*MAP_BLOCKSIZE,
 			h_blocks*MAP_BLOCKSIZE,
-			sectorpos_base_size*MAP_BLOCKSIZE
+			data->sectorpos_base_size*MAP_BLOCKSIZE
 		);
 
 		// Area starting point in nodes
 		v3s16 of(
-			sectorpos_base.X*MAP_BLOCKSIZE,
-			y_blocks_min*MAP_BLOCKSIZE,
-			sectorpos_base.Y*MAP_BLOCKSIZE
+			data->sectorpos_base.X*MAP_BLOCKSIZE,
+			data->y_blocks_min*MAP_BLOCKSIZE,
+			data->sectorpos_base.Y*MAP_BLOCKSIZE
 		);
 
 		// Allow a bit more
 		//(this should be more than the maximum radius of the tunnel)
 		//s16 insure = 5; // Didn't work with max_d = 20
 		s16 insure = 10;
-		s16 more = max_spread_amount - max_tunnel_diameter/2 - insure;
+		s16 more = data->max_spread_amount - max_tunnel_diameter/2 - insure;
 		ar += v3s16(1,0,1) * more * 2;
 		of -= v3s16(1,0,1) * more;
 		
@@ -2423,7 +2482,7 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		// Allow half a diameter + 7 over stone surface
 		s16 route_y_max = -of.Y + stone_surface_max_y + max_tunnel_diameter/2 + 7;
 
-		/*// If dungeons, don't go through surface too often
+		/*// If caves, don't go through surface too often
 		if(bruise_surface == false)
 			route_y_max -= myrand_range(0, max_tunnel_diameter*2);*/
 
@@ -2448,16 +2507,16 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		s16 route_start_y_min = route_y_min;
 		s16 route_start_y_max = route_y_max;
 
-		// Start every 2nd dungeon from surface
+		// Start every 2nd cave from surface
 		bool coming_from_surface = (jj % 2 == 0 && bruise_surface == false);
 
 		if(coming_from_surface)
 		{
-			route_start_y_min = -of.Y + stone_surface_max_y + 5;
+			route_start_y_min = -of.Y + stone_surface_max_y + 10;
 		}
 		
 		route_start_y_min = rangelim(route_start_y_min, 0, ar.Y-1);
-		route_start_y_max = rangelim(route_start_y_max, 0, ar.Y-1);
+		route_start_y_max = rangelim(route_start_y_max, route_start_y_min, ar.Y-1);
 
 		// Randomize starting position
 		v3f orp(
@@ -2474,6 +2533,16 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		
 		for(u16 j=0; j<tunnel_routepoints; j++)
 		{
+			if(j%7==0 && bruise_surface == false)
+			{
+				main_direction = v3f(
+					((float)(myrand()%20)-(float)10)/10,
+					((float)(myrand()%20)-(float)10)/30,
+					((float)(myrand()%20)-(float)10)/10
+				);
+				main_direction *= (float)myrand_range(1, 3);
+			}
+
 			// Randomize size
 			s16 min_d = min_tunnel_diameter;
 			s16 max_d = max_tunnel_diameter;
@@ -2486,7 +2555,7 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 			}
 			else
 			{
-				maxlen = v3s16(15, myrand_range(1, 20), 15);
+				maxlen = v3s16(rs*4, myrand_range(1, rs*3), rs*4);
 			}
 
 			v3f vec;
@@ -2507,6 +2576,8 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 					(float)(myrand()%(maxlen.Z*2))-(float)maxlen.Z
 				);
 			}
+			
+			vec += main_direction;
 
 			v3f rp = orp + vec;
 			if(rp.X < 0)
@@ -2553,8 +2624,8 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 								continue;
 							p += of;
 							
-							//assert(vmanip.m_area.contains(p));
-							if(vmanip.m_area.contains(p) == false)
+							//assert(data->vmanip.m_area.contains(p));
+							if(data->vmanip.m_area.contains(p) == false)
 							{
 								dstream<<"WARNING: "<<__FUNCTION_NAME
 										<<":"<<__LINE__<<": "
@@ -2565,13 +2636,13 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 							
 							// Just set it to air, it will be changed to
 							// water afterwards
-							u32 i = vmanip.m_area.index(p);
-							vmanip.m_data[i] = airnode;
+							u32 i = data->vmanip.m_area.index(p);
+							data->vmanip.m_data[i] = airnode;
 
 							if(bruise_surface == false)
 							{
 								// Set tunnel flag
-								vmanip.m_flags[i] |= VMANIP_FLAG_DUNGEON;
+								data->vmanip.m_flags[i] |= VMANIP_FLAG_DUNGEON;
 							}
 						}
 					}
@@ -2584,6 +2655,9 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	}
 
 	}//timer1
+#endif
+
+#if 1
 	{
 	// 46ms @cs=8
 	//TimeTaker timer1("ore veins");
@@ -2597,22 +2671,22 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 
 		// Allowed route area size in nodes
 		v3s16 ar(
-			sectorpos_base_size*MAP_BLOCKSIZE,
+			data->sectorpos_base_size*MAP_BLOCKSIZE,
 			h_blocks*MAP_BLOCKSIZE,
-			sectorpos_base_size*MAP_BLOCKSIZE
+			data->sectorpos_base_size*MAP_BLOCKSIZE
 		);
 
 		// Area starting point in nodes
 		v3s16 of(
-			sectorpos_base.X*MAP_BLOCKSIZE,
-			y_blocks_min*MAP_BLOCKSIZE,
-			sectorpos_base.Y*MAP_BLOCKSIZE
+			data->sectorpos_base.X*MAP_BLOCKSIZE,
+			data->y_blocks_min*MAP_BLOCKSIZE,
+			data->sectorpos_base.Y*MAP_BLOCKSIZE
 		);
 
 		// Allow a bit more
 		//(this should be more than the maximum radius of the tunnel)
 		s16 insure = 3;
-		s16 more = max_spread_amount - max_vein_diameter/2 - insure;
+		s16 more = data->max_spread_amount - max_vein_diameter/2 - insure;
 		ar += v3s16(1,0,1) * more * 2;
 		of -= v3s16(1,0,1) * more;
 		
@@ -2698,12 +2772,12 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 								continue;
 							p += of;
 							
-							assert(vmanip.m_area.contains(p));
+							assert(data->vmanip.m_area.contains(p));
 							
 							// Just set it to air, it will be changed to
 							// water afterwards
-							u32 i = vmanip.m_area.index(p);
-							MapNode *n = &vmanip.m_data[i];
+							u32 i = data->vmanip.m_area.index(p);
+							MapNode *n = &data->vmanip.m_data[i];
 							if(n->d == CONTENT_STONE)
 								n->param = mineral;
 						}
@@ -2717,27 +2791,28 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	}
 
 	}//timer1
+#endif
+
+#if 1
 	{
 	// 15ms @cs=8
-	//TimeTaker timer1("add mud");
+	TimeTaker timer1("add mud");
 
 	/*
 		Add mud to the central chunk
 	*/
 	
-	for(s16 x=0; x<sectorpos_base_size*MAP_BLOCKSIZE; x++)
-	for(s16 z=0; z<sectorpos_base_size*MAP_BLOCKSIZE; z++)
+	for(s16 x=0; x<data->sectorpos_base_size*MAP_BLOCKSIZE; x++)
+	for(s16 z=0; z<data->sectorpos_base_size*MAP_BLOCKSIZE; z++)
 	{
 		// Node position in 2d
-		v2s16 p2d = sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
+		v2s16 p2d = data->sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
 		
 		// Randomize mud amount
-		s16 mud_add_amount = (s16)(2.5 + 2.0 * noise2d_perlin(
-				0.5+(float)p2d.X/200, 0.5+(float)p2d.Y/200,
-				m_seed+1, 3, 0.55));
+		s16 mud_add_amount = get_mud_add_amount(data->seed, p2d) / 2.0;
 
 		// Find ground level
-		s16 surface_y = find_ground_level_clever(vmanip, p2d);
+		s16 surface_y = find_ground_level_clever(data->vmanip, p2d);
 
 		/*
 			If topmost node is grass, change it to mud.
@@ -2745,10 +2820,11 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 			chunk and then converted.
 		*/
 		{
-			u32 i = vmanip.m_area.index(v3s16(p2d.X, surface_y, p2d.Y));
-			MapNode *n = &vmanip.m_data[i];
+			u32 i = data->vmanip.m_area.index(v3s16(p2d.X, surface_y, p2d.Y));
+			MapNode *n = &data->vmanip.m_data[i];
 			if(n->d == CONTENT_GRASS)
-				n->d = CONTENT_MUD;
+				*n = MapNode(CONTENT_MUD);
+				//n->d = CONTENT_MUD;
 		}
 
 		/*
@@ -2756,25 +2832,29 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		*/
 		{
 			s16 mudcount = 0;
-			v3s16 em = vmanip.m_area.getExtent();
+			v3s16 em = data->vmanip.m_area.getExtent();
 			s16 y_start = surface_y+1;
-			u32 i = vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
+			u32 i = data->vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
 			for(s16 y=y_start; y<=y_nodes_max; y++)
 			{
 				if(mudcount >= mud_add_amount)
 					break;
 					
-				MapNode &n = vmanip.m_data[i];
-				n.d = CONTENT_MUD;
+				MapNode &n = data->vmanip.m_data[i];
+				n = MapNode(CONTENT_MUD);
+				//n.d = CONTENT_MUD;
 				mudcount++;
 
-				vmanip.m_area.add_y(em, i, 1);
+				data->vmanip.m_area.add_y(em, i, 1);
 			}
 		}
 
 	}
 
 	}//timer1
+#endif
+
+#if 1
 	{
 	// 340ms @cs=8
 	TimeTaker timer1("flow mud");
@@ -2784,8 +2864,8 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	*/
 
 	// Limit area by 1 because mud is flown into neighbors.
-	s16 mudflow_minpos = 0-max_spread_amount+1;
-	s16 mudflow_maxpos = sectorpos_base_size*MAP_BLOCKSIZE+max_spread_amount-2;
+	s16 mudflow_minpos = 0-data->max_spread_amount+1;
+	s16 mudflow_maxpos = data->sectorpos_base_size*MAP_BLOCKSIZE+data->max_spread_amount-2;
 
 	// Iterate a few times
 	for(s16 k=0; k<3; k++)
@@ -2806,10 +2886,10 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		}
 
 		// Node position in 2d
-		v2s16 p2d = sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
+		v2s16 p2d = data->sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
 		
-		v3s16 em = vmanip.m_area.getExtent();
-		u32 i = vmanip.m_area.index(v3s16(p2d.X, y_nodes_max, p2d.Y));
+		v3s16 em = data->vmanip.m_area.getExtent();
+		u32 i = data->vmanip.m_area.index(v3s16(p2d.X, y_nodes_max, p2d.Y));
 		s16 y=y_nodes_max;
 
 		for(;; y--)
@@ -2818,22 +2898,22 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 			// Find mud
 			for(; y>=y_nodes_min; y--)
 			{
-				n = &vmanip.m_data[i];
+				n = &data->vmanip.m_data[i];
 				//if(content_walkable(n->d))
 				//	break;
 				if(n->d == CONTENT_MUD || n->d == CONTENT_GRASS)
 					break;
 					
-				vmanip.m_area.add_y(em, i, -1);
+				data->vmanip.m_area.add_y(em, i, -1);
 			}
 
 			// Stop if out of area
-			//if(vmanip.m_area.contains(i) == false)
+			//if(data->vmanip.m_area.contains(i) == false)
 			if(y < y_nodes_min)
 				break;
 
 			/*// If not mud, do nothing to it
-			MapNode *n = &vmanip.m_data[i];
+			MapNode *n = &data->vmanip.m_data[i];
 			if(n->d != CONTENT_MUD && n->d != CONTENT_GRASS)
 				continue;*/
 
@@ -2842,11 +2922,11 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 			*/
 			{
 				u32 i2 = i;
-				vmanip.m_area.add_y(em, i2, -1);
+				data->vmanip.m_area.add_y(em, i2, -1);
 				// Cancel if out of area
-				if(vmanip.m_area.contains(i2) == false)
+				if(data->vmanip.m_area.contains(i2) == false)
 					continue;
-				MapNode *n2 = &vmanip.m_data[i2];
+				MapNode *n2 = &data->vmanip.m_data[i2];
 				if(n2->d != CONTENT_MUD && n2->d != CONTENT_GRASS)
 					continue;
 			}
@@ -2867,9 +2947,9 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 			// Theck that upper is air or doesn't exist.
 			// Cancel dropping if upper keeps it in place
 			u32 i3 = i;
-			vmanip.m_area.add_y(em, i3, 1);
-			if(vmanip.m_area.contains(i3) == true
-					&& content_walkable(vmanip.m_data[i3].d) == true)
+			data->vmanip.m_area.add_y(em, i3, 1);
+			if(data->vmanip.m_area.contains(i3) == true
+					&& content_walkable(data->vmanip.m_data[i3].d) == true)
 			{
 				continue;
 			}
@@ -2881,39 +2961,39 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 				v3s16 dirp = dirs4[di];
 				u32 i2 = i;
 				// Move to side
-				vmanip.m_area.add_p(em, i2, dirp);
+				data->vmanip.m_area.add_p(em, i2, dirp);
 				// Fail if out of area
-				if(vmanip.m_area.contains(i2) == false)
+				if(data->vmanip.m_area.contains(i2) == false)
 					continue;
 				// Check that side is air
-				MapNode *n2 = &vmanip.m_data[i2];
+				MapNode *n2 = &data->vmanip.m_data[i2];
 				if(content_walkable(n2->d))
 					continue;
 				// Check that under side is air
-				vmanip.m_area.add_y(em, i2, -1);
-				if(vmanip.m_area.contains(i2) == false)
+				data->vmanip.m_area.add_y(em, i2, -1);
+				if(data->vmanip.m_area.contains(i2) == false)
 					continue;
-				n2 = &vmanip.m_data[i2];
+				n2 = &data->vmanip.m_data[i2];
 				if(content_walkable(n2->d))
 					continue;
 				/*// Check that under that is air (need a drop of 2)
-				vmanip.m_area.add_y(em, i2, -1);
-				if(vmanip.m_area.contains(i2) == false)
+				data->vmanip.m_area.add_y(em, i2, -1);
+				if(data->vmanip.m_area.contains(i2) == false)
 					continue;
-				n2 = &vmanip.m_data[i2];
+				n2 = &data->vmanip.m_data[i2];
 				if(content_walkable(n2->d))
 					continue;*/
 				// Loop further down until not air
 				do{
-					vmanip.m_area.add_y(em, i2, -1);
+					data->vmanip.m_area.add_y(em, i2, -1);
 					// Fail if out of area
-					if(vmanip.m_area.contains(i2) == false)
+					if(data->vmanip.m_area.contains(i2) == false)
 						continue;
-					n2 = &vmanip.m_data[i2];
+					n2 = &data->vmanip.m_data[i2];
 				}while(content_walkable(n2->d) == false);
 				// Loop one up so that we're in air
-				vmanip.m_area.add_y(em, i2, 1);
-				n2 = &vmanip.m_data[i2];
+				data->vmanip.m_area.add_y(em, i2, 1);
+				n2 = &data->vmanip.m_data[i2];
 
 				// Move mud to new place
 				*n2 = *n;
@@ -2929,26 +3009,29 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	}
 
 	}//timer1
+#endif
+
+#if 1
 	{
 	// 50ms @cs=8
-	//TimeTaker timer1("add water");
+	TimeTaker timer1("add water");
 
 	/*
 		Add water to the central chunk (and a bit more)
 	*/
 	
-	for(s16 x=0-max_spread_amount;
-			x<sectorpos_base_size*MAP_BLOCKSIZE+max_spread_amount;
+	for(s16 x=0-data->max_spread_amount;
+			x<data->sectorpos_base_size*MAP_BLOCKSIZE+data->max_spread_amount;
 			x++)
-	for(s16 z=0-max_spread_amount;
-			z<sectorpos_base_size*MAP_BLOCKSIZE+max_spread_amount;
+	for(s16 z=0-data->max_spread_amount;
+			z<data->sectorpos_base_size*MAP_BLOCKSIZE+data->max_spread_amount;
 			z++)
 	{
 		// Node position in 2d
-		v2s16 p2d = sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
+		v2s16 p2d = data->sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
 		
 		// Find ground level
-		//s16 surface_y = find_ground_level(vmanip, p2d);
+		//s16 surface_y = find_ground_level(data->vmanip, p2d);
 
 		/*
 			If ground level is over water level, skip.
@@ -2963,42 +3046,27 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 			Add water on ground
 		*/
 		{
-			v3s16 em = vmanip.m_area.getExtent();
+			v3s16 em = data->vmanip.m_area.getExtent();
 			u8 light = LIGHT_MAX;
 			// Start at global water surface level
 			s16 y_start = WATER_LEVEL;
-			u32 i = vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
-			MapNode *n = &vmanip.m_data[i];
-
-			/*// Add first one to transforming liquid queue, if water
-			if(n->d == CONTENT_WATER || n->d == CONTENT_WATERSOURCE)
-			{
-				v3s16 p = v3s16(p2d.X, y_start, p2d.Y);
-				m_transforming_liquid.push_back(p);
-			}*/
+			u32 i = data->vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
+			MapNode *n = &data->vmanip.m_data[i];
 
 			for(s16 y=y_start; y>=y_nodes_min; y--)
 			{
-				n = &vmanip.m_data[i];
+				n = &data->vmanip.m_data[i];
 				
 				// Stop when there is no water and no air
 				if(n->d != CONTENT_AIR && n->d != CONTENT_WATERSOURCE
 						&& n->d != CONTENT_WATER)
 				{
-					/*// Add bottom one to transforming liquid queue
-					vmanip.m_area.add_y(em, i, 1);
-					n = &vmanip.m_data[i];
-					if(n->d == CONTENT_WATER || n->d == CONTENT_WATERSOURCE)
-					{
-						v3s16 p = v3s16(p2d.X, y, p2d.Y);
-						m_transforming_liquid.push_back(p);
-					}*/
 
 					break;
 				}
 				
-				// Make water only not in dungeons
-				if(!(vmanip.m_flags[i]&VMANIP_FLAG_DUNGEON))
+				// Make water only not in caves
+				if(!(data->vmanip.m_flags[i]&VMANIP_FLAG_DUNGEON))
 				{
 					n->d = CONTENT_WATERSOURCE;
 					//n->setLight(LIGHTBANK_DAY, light);
@@ -3006,11 +3074,11 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 					// Add to transforming liquid queue (in case it'd
 					// start flowing)
 					v3s16 p = v3s16(p2d.X, y, p2d.Y);
-					m_transforming_liquid.push_back(p);
+					data->transforming_liquid.push_back(p);
 				}
 				
 				// Next one
-				vmanip.m_area.add_y(em, i, -1);
+				data->vmanip.m_area.add_y(em, i, -1);
 				if(light > 0)
 					light--;
 			}
@@ -3019,9 +3087,14 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	}
 
 	}//timer1
+#endif
 	
 	} // Aging loop
+	/***********************
+		END OF AGING LOOP
+	************************/
 
+#if 1
 	{
 	//TimeTaker timer1("convert mud to sand");
 
@@ -3032,22 +3105,22 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	//s16 mud_add_amount = myrand_range(2, 4);
 	//s16 mud_add_amount = 0;
 	
-	/*for(s16 x=0; x<sectorpos_base_size*MAP_BLOCKSIZE; x++)
-	for(s16 z=0; z<sectorpos_base_size*MAP_BLOCKSIZE; z++)*/
-	for(s16 x=0-max_spread_amount+1;
-			x<sectorpos_base_size*MAP_BLOCKSIZE+max_spread_amount-1;
+	/*for(s16 x=0; x<data->sectorpos_base_size*MAP_BLOCKSIZE; x++)
+	for(s16 z=0; z<data->sectorpos_base_size*MAP_BLOCKSIZE; z++)*/
+	for(s16 x=0-data->max_spread_amount+1;
+			x<data->sectorpos_base_size*MAP_BLOCKSIZE+data->max_spread_amount-1;
 			x++)
-	for(s16 z=0-max_spread_amount+1;
-			z<sectorpos_base_size*MAP_BLOCKSIZE+max_spread_amount-1;
+	for(s16 z=0-data->max_spread_amount+1;
+			z<data->sectorpos_base_size*MAP_BLOCKSIZE+data->max_spread_amount-1;
 			z++)
 	{
 		// Node position in 2d
-		v2s16 p2d = sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
+		v2s16 p2d = data->sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
 		
 		// Determine whether to have sand here
 		double sandnoise = noise2d_perlin(
 				0.5+(float)p2d.X/500, 0.5+(float)p2d.Y/500,
-				m_seed+59420, 3, 0.50);
+				data->seed+59420, 3, 0.50);
 
 		bool have_sand = (sandnoise > -0.15);
 
@@ -3055,19 +3128,19 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 			continue;
 
 		// Find ground level
-		s16 surface_y = find_ground_level_clever(vmanip, p2d);
+		s16 surface_y = find_ground_level_clever(data->vmanip, p2d);
 		
 		if(surface_y > WATER_LEVEL + 2)
 			continue;
 
 		{
-			v3s16 em = vmanip.m_area.getExtent();
+			v3s16 em = data->vmanip.m_area.getExtent();
 			s16 y_start = surface_y;
-			u32 i = vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
+			u32 i = data->vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
 			u32 not_sand_counter = 0;
 			for(s16 y=y_start; y>=y_nodes_min; y--)
 			{
-				MapNode *n = &vmanip.m_data[i];
+				MapNode *n = &data->vmanip.m_data[i];
 				if(n->d == CONTENT_MUD || n->d == CONTENT_GRASS)
 				{
 					n->d = CONTENT_SAND;
@@ -3079,13 +3152,16 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 						break;
 				}
 
-				vmanip.m_area.add_y(em, i, -1);
+				data->vmanip.m_area.add_y(em, i, -1);
 			}
 		}
 
 	}
 
 	}//timer1
+#endif
+
+#if 1
 	{
 	// 1ms @cs=8
 	//TimeTaker timer1("generate trees");
@@ -3096,72 +3172,77 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	{
 		// Divide area into parts
 		s16 div = 8;
-		s16 sidelen = sectorpos_base_size*MAP_BLOCKSIZE / div;
+		s16 sidelen = data->sectorpos_base_size*MAP_BLOCKSIZE / div;
 		double area = sidelen * sidelen;
 		for(s16 x0=0; x0<div; x0++)
 		for(s16 z0=0; z0<div; z0++)
 		{
 			// Center position of part of division
 			v2s16 p2d_center(
-				sectorpos_base.X*MAP_BLOCKSIZE + sidelen/2 + sidelen*x0,
-				sectorpos_base.Y*MAP_BLOCKSIZE + sidelen/2 + sidelen*z0
+				data->sectorpos_base.X*MAP_BLOCKSIZE + sidelen/2 + sidelen*x0,
+				data->sectorpos_base.Y*MAP_BLOCKSIZE + sidelen/2 + sidelen*z0
 			);
 			// Minimum edge of part of division
 			v2s16 p2d_min(
-				sectorpos_base.X*MAP_BLOCKSIZE + sidelen*x0,
-				sectorpos_base.Y*MAP_BLOCKSIZE + sidelen*z0
+				data->sectorpos_base.X*MAP_BLOCKSIZE + sidelen*x0,
+				data->sectorpos_base.Y*MAP_BLOCKSIZE + sidelen*z0
 			);
 			// Maximum edge of part of division
 			v2s16 p2d_max(
-				sectorpos_base.X*MAP_BLOCKSIZE + sidelen + sidelen*x0 - 1,
-				sectorpos_base.Y*MAP_BLOCKSIZE + sidelen + sidelen*z0 - 1
+				data->sectorpos_base.X*MAP_BLOCKSIZE + sidelen + sidelen*x0 - 1,
+				data->sectorpos_base.Y*MAP_BLOCKSIZE + sidelen + sidelen*z0 - 1
 			);
 			// Amount of trees
-			u32 tree_count = area * tree_amount_2d(m_seed, p2d_center);
+			u32 tree_count = area * tree_amount_2d(data->seed, p2d_center);
 			// Put trees in random places on part of division
 			for(u32 i=0; i<tree_count; i++)
 			{
 				s16 x = myrand_range(p2d_min.X, p2d_max.X);
 				s16 z = myrand_range(p2d_min.Y, p2d_max.Y);
-				s16 y = find_ground_level(vmanip, v2s16(x,z));
+				s16 y = find_ground_level(data->vmanip, v2s16(x,z));
 				// Don't make a tree under water level
 				if(y < WATER_LEVEL)
+					continue;
+				// Don't make a tree so high that it doesn't fit
+				if(y > y_nodes_max - 6)
 					continue;
 				v3s16 p(x,y,z);
 				/*
 					Trees grow only on mud and grass
 				*/
 				{
-					u32 i = vmanip.m_area.index(v3s16(p));
-					MapNode *n = &vmanip.m_data[i];
+					u32 i = data->vmanip.m_area.index(v3s16(p));
+					MapNode *n = &data->vmanip.m_data[i];
 					if(n->d != CONTENT_MUD && n->d != CONTENT_GRASS)
 						continue;
 				}
 				p.Y++;
 				// Make a tree
-				make_tree(vmanip, p);
+				make_tree(data->vmanip, p);
 			}
 		}
 		/*u32 tree_max = relative_area / 60;
 		//u32 count = myrand_range(0, tree_max);
 		for(u32 i=0; i<count; i++)
 		{
-			s16 x = myrand_range(0, sectorpos_base_size*MAP_BLOCKSIZE-1);
-			s16 z = myrand_range(0, sectorpos_base_size*MAP_BLOCKSIZE-1);
-			x += sectorpos_base.X*MAP_BLOCKSIZE;
-			z += sectorpos_base.Y*MAP_BLOCKSIZE;
-			s16 y = find_ground_level(vmanip, v2s16(x,z));
+			s16 x = myrand_range(0, data->sectorpos_base_size*MAP_BLOCKSIZE-1);
+			s16 z = myrand_range(0, data->sectorpos_base_size*MAP_BLOCKSIZE-1);
+			x += data->sectorpos_base.X*MAP_BLOCKSIZE;
+			z += data->sectorpos_base.Y*MAP_BLOCKSIZE;
+			s16 y = find_ground_level(data->vmanip, v2s16(x,z));
 			// Don't make a tree under water level
 			if(y < WATER_LEVEL)
 				continue;
 			v3s16 p(x,y+1,z);
 			// Make a tree
-			make_tree(vmanip, p);
+			make_tree(data->vmanip, p);
 		}*/
 	}
 
 	}//timer1
+#endif
 
+#if 1
 	{
 	// 19ms @cs=8
 	//TimeTaker timer1("grow grass");
@@ -3170,17 +3251,17 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		Grow grass
 	*/
 
-	/*for(s16 x=0-4; x<sectorpos_base_size*MAP_BLOCKSIZE+4; x++)
-	for(s16 z=0-4; z<sectorpos_base_size*MAP_BLOCKSIZE+4; z++)*/
-	for(s16 x=0-max_spread_amount;
-			x<sectorpos_base_size*MAP_BLOCKSIZE+max_spread_amount;
+	/*for(s16 x=0-4; x<data->sectorpos_base_size*MAP_BLOCKSIZE+4; x++)
+	for(s16 z=0-4; z<data->sectorpos_base_size*MAP_BLOCKSIZE+4; z++)*/
+	for(s16 x=0-data->max_spread_amount;
+			x<data->sectorpos_base_size*MAP_BLOCKSIZE+data->max_spread_amount;
 			x++)
-	for(s16 z=0-max_spread_amount;
-			z<sectorpos_base_size*MAP_BLOCKSIZE+max_spread_amount;
+	for(s16 z=0-data->max_spread_amount;
+			z<data->sectorpos_base_size*MAP_BLOCKSIZE+data->max_spread_amount;
 			z++)
 	{
 		// Node position in 2d
-		v2s16 p2d = sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
+		v2s16 p2d = data->sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
 		
 		/*
 			Find the lowest surface to which enough light ends up
@@ -3190,17 +3271,17 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		*/
 		s16 surface_y = 0;
 		{
-			v3s16 em = vmanip.m_area.getExtent();
-			u32 i = vmanip.m_area.index(v3s16(p2d.X, y_nodes_max, p2d.Y));
+			v3s16 em = data->vmanip.m_area.getExtent();
+			u32 i = data->vmanip.m_area.index(v3s16(p2d.X, y_nodes_max, p2d.Y));
 			s16 y;
 			// Go to ground level
 			for(y=y_nodes_max; y>=y_nodes_min; y--)
 			{
-				MapNode &n = vmanip.m_data[i];
+				MapNode &n = data->vmanip.m_data[i];
 				if(n.d != CONTENT_AIR
 						&& n.d != CONTENT_LEAVES)
 					break;
-				vmanip.m_area.add_y(em, i, -1);
+				data->vmanip.m_area.add_y(em, i, -1);
 			}
 			if(y >= y_nodes_min)
 				surface_y = y;
@@ -3208,13 +3289,14 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 				surface_y = y_nodes_min;
 		}
 		
-		u32 i = vmanip.m_area.index(p2d.X, surface_y, p2d.Y);
-		MapNode *n = &vmanip.m_data[i];
+		u32 i = data->vmanip.m_area.index(p2d.X, surface_y, p2d.Y);
+		MapNode *n = &data->vmanip.m_data[i];
 		if(n->d == CONTENT_MUD)
 			n->d = CONTENT_GRASS;
 	}
 
 	}//timer1
+#endif
 
 	/*
 		Initial lighting (sunlight)
@@ -3226,6 +3308,7 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	// 750ms @cs=8, can't optimize more
 	TimeTaker timer1("initial lighting");
 
+	// NOTE: This is no used... umm... for some reason!
 #if 0
 	/*
 		Go through the edges and add all nodes that have light to light_sources
@@ -3260,15 +3343,15 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		}
 		
 		// Node position in 2d
-		v2s16 p2d = sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
+		v2s16 p2d = data->sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
 
 		{
-			v3s16 em = vmanip.m_area.getExtent();
+			v3s16 em = data->vmanip.m_area.getExtent();
 			s16 y_start = y_nodes_max;
-			u32 i = vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
+			u32 i = data->vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
 			for(s16 y=y_start; y>=y_nodes_min; y--)
 			{
-				MapNode *n = &vmanip.m_data[i];
+				MapNode *n = &data->vmanip.m_data[i];
 				if(n->getLight(LIGHTBANK_DAY) != 0)
 				{
 					light_sources.insert(v3s16(p2d.X, y, p2d.Y), true);
@@ -3315,17 +3398,17 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		}
 		
 		// Node position in 2d
-		v2s16 p2d = sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
+		v2s16 p2d = data->sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
 		
 		// Loop from top to down
 		{
 			u8 light = LIGHT_SUN;
-			v3s16 em = vmanip.m_area.getExtent();
+			v3s16 em = data->vmanip.m_area.getExtent();
 			s16 y_start = y_nodes_max;
-			u32 i = vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
+			u32 i = data->vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
 			for(s16 y=y_start; y>=y_nodes_min; y--)
 			{
-				MapNode *n = &vmanip.m_data[i];
+				MapNode *n = &data->vmanip.m_data[i];
 				if(light_propagates_content(n->d) == false)
 				{
 					light = 0;
@@ -3347,19 +3430,19 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 				}
 				
 				// Increment index by y
-				vmanip.m_area.add_y(em, i, -1);
+				data->vmanip.m_area.add_y(em, i, -1);
 			}
 		}
 	}
 #endif
 
-	/*for(s16 x=0; x<sectorpos_base_size*MAP_BLOCKSIZE; x++)
-	for(s16 z=0; z<sectorpos_base_size*MAP_BLOCKSIZE; z++)*/
-	/*for(s16 x=0-max_spread_amount+1;
-			x<sectorpos_base_size*MAP_BLOCKSIZE+max_spread_amount-1;
+	/*for(s16 x=0; x<data->sectorpos_base_size*MAP_BLOCKSIZE; x++)
+	for(s16 z=0; z<data->sectorpos_base_size*MAP_BLOCKSIZE; z++)*/
+	/*for(s16 x=0-data->max_spread_amount+1;
+			x<data->sectorpos_base_size*MAP_BLOCKSIZE+data->max_spread_amount-1;
 			x++)
-	for(s16 z=0-max_spread_amount+1;
-			z<sectorpos_base_size*MAP_BLOCKSIZE+max_spread_amount-1;
+	for(s16 z=0-data->max_spread_amount+1;
+			z<data->sectorpos_base_size*MAP_BLOCKSIZE+data->max_spread_amount-1;
 			z++)*/
 #if 1
 	/*
@@ -3374,7 +3457,7 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 			z++)
 	{
 		// Node position in 2d
-		v2s16 p2d = sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
+		v2s16 p2d = data->sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
 		
 		/*
 			Apply initial sunlight
@@ -3382,12 +3465,12 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		{
 			u8 light = LIGHT_SUN;
 			bool add_to_sources = false;
-			v3s16 em = vmanip.m_area.getExtent();
+			v3s16 em = data->vmanip.m_area.getExtent();
 			s16 y_start = y_nodes_max;
-			u32 i = vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
+			u32 i = data->vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
 			for(s16 y=y_start; y>=y_nodes_min; y--)
 			{
-				MapNode *n = &vmanip.m_data[i];
+				MapNode *n = &data->vmanip.m_data[i];
 
 				if(light_propagates_content(n->d) == false)
 				{
@@ -3417,8 +3500,8 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 					{
 						v3s16 dirp = dirs4[di];
 						u32 i2 = i;
-						vmanip.m_area.add_p(em, i2, dirp);
-						MapNode *n2 = &vmanip.m_data[i2];
+						data->vmanip.m_area.add_p(em, i2, dirp);
+						MapNode *n2 = &data->vmanip.m_data[i2];
 						if(
 							n2->d != CONTENT_AIR
 							&& n2->d != CONTENT_WATERSOURCE
@@ -3441,58 +3524,7 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 				}
 				
 				// Increment index by y
-				vmanip.m_area.add_y(em, i, -1);
-			}
-		}
-	}
-#endif
-
-#if 0
-	for(s16 x=lighting_min_d+1;
-			x<=lighting_max_d-1;
-			x++)
-	for(s16 z=lighting_min_d+1;
-			z<=lighting_max_d-1;
-			z++)
-	{
-		// Node position in 2d
-		v2s16 p2d = sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
-		
-		/*
-			Apply initial sunlight
-		*/
-		{
-			u8 light = LIGHT_SUN;
-			v3s16 em = vmanip.m_area.getExtent();
-			s16 y_start = y_nodes_max;
-			u32 i = vmanip.m_area.index(v3s16(p2d.X, y_start, p2d.Y));
-			for(s16 y=y_start; y>=y_nodes_min; y--)
-			{
-				MapNode *n = &vmanip.m_data[i];
-
-				if(light_propagates_content(n->d) == false)
-				{
-					light = 0;
-				}
-				else if(light != LIGHT_SUN
-					|| sunlight_propagates_content(n->d) == false)
-				{
-					if(light > 0)
-						light--;
-				}
-				
-				n->setLight(LIGHTBANK_DAY, light);
-				n->setLight(LIGHTBANK_NIGHT, 0);
-				
-				// This doesn't take much time
-				if(light != 0)
-				{
-					// Insert light source
-					light_sources.insert(v3s16(p2d.X, y, p2d.Y), true);
-				}
-				
-				// Increment index by y
-				vmanip.m_area.add_y(em, i, -1);
+				data->vmanip.m_area.add_y(em, i, -1);
 			}
 		}
 	}
@@ -3502,8 +3534,8 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 
 	// Spread light around
 	{
-		TimeTaker timer("generateChunkRaw() spreadLight");
-		vmanip.spreadLight(LIGHTBANK_DAY, light_sources);
+		TimeTaker timer("makeChunk() spreadLight");
+		data->vmanip.spreadLight(LIGHTBANK_DAY, light_sources);
 	}
 	
 	/*
@@ -3511,14 +3543,148 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	*/
 
 	timer_generate.stop();
+}
 
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+//###################################################################
+
+void ServerMap::initChunkMake(ChunkMakeData &data, v2s16 chunkpos)
+{
+	if(m_chunksize == 0)
+	{
+		data.no_op = true;
+		return;
+	}
+
+	data.no_op = false;
+
+	// The distance how far into the neighbors the generator is allowed to go.
+	s16 max_spread_amount_sectors = 2;
+	assert(max_spread_amount_sectors <= m_chunksize);
+	s16 max_spread_amount = max_spread_amount_sectors * MAP_BLOCKSIZE;
+
+	s16 y_blocks_min = -4;
+	s16 y_blocks_max = 3;
+
+	v2s16 sectorpos_base = chunk_to_sector(chunkpos);
+	s16 sectorpos_base_size = m_chunksize;
+
+	v2s16 sectorpos_bigbase =
+			sectorpos_base - v2s16(1,1) * max_spread_amount_sectors;
+	s16 sectorpos_bigbase_size =
+			sectorpos_base_size + 2 * max_spread_amount_sectors;
+	
+	// Check limits
+	const s16 limit = MAP_GENERATION_LIMIT / MAP_BLOCKSIZE;
+	if(sectorpos_bigbase.X < -limit
+	|| sectorpos_bigbase.X + sectorpos_bigbase_size >= limit
+	|| sectorpos_bigbase.Y < -limit
+	|| sectorpos_bigbase.Y + sectorpos_bigbase_size >= limit)
+	{
+		data.no_op = true;
+		return;
+	}
+
+	data.seed = m_seed;
+	data.chunkpos = chunkpos;
+	data.y_blocks_min = y_blocks_min;
+	data.y_blocks_max = y_blocks_max;
+	data.sectorpos_base = sectorpos_base;
+	data.sectorpos_base_size = sectorpos_base_size;
+	data.sectorpos_bigbase = sectorpos_bigbase;
+	data.sectorpos_bigbase_size = sectorpos_bigbase_size;
+	data.max_spread_amount = max_spread_amount;
+
+	/*
+		Create the whole area of this and the neighboring chunks
+	*/
+	{
+		TimeTaker timer("initChunkMake() create area");
+		
+		for(s16 x=0; x<sectorpos_bigbase_size; x++)
+		for(s16 z=0; z<sectorpos_bigbase_size; z++)
+		{
+			v2s16 sectorpos = sectorpos_bigbase + v2s16(x,z);
+			ServerMapSector *sector = createSector(sectorpos);
+			assert(sector);
+
+			for(s16 y=y_blocks_min; y<=y_blocks_max; y++)
+			{
+				v3s16 blockpos(sectorpos.X, y, sectorpos.Y);
+				MapBlock *block = createBlock(blockpos);
+
+				// Lighting won't be calculated
+				//block->setLightingExpired(true);
+				// Lighting will be calculated
+				block->setLightingExpired(false);
+
+				/*
+					Block gets sunlight if this is true.
+
+					This should be set to true when the top side of a block
+					is completely exposed to the sky.
+
+					Actually this doesn't matter now because the
+					initial lighting is done here.
+				*/
+				block->setIsUnderground(y != y_blocks_max);
+			}
+		}
+	}
+	
+	/*
+		Now we have a big empty area.
+
+		Make a ManualMapVoxelManipulator that contains this and the
+		neighboring chunks
+	*/
+	
+	v3s16 bigarea_blocks_min(
+		sectorpos_bigbase.X,
+		y_blocks_min,
+		sectorpos_bigbase.Y
+	);
+	v3s16 bigarea_blocks_max(
+		sectorpos_bigbase.X + sectorpos_bigbase_size - 1,
+		y_blocks_max,
+		sectorpos_bigbase.Y + sectorpos_bigbase_size - 1
+	);
+	
+	data.vmanip.setMap(this);
+	// Add the area
+	{
+		TimeTaker timer("initChunkMake() initialEmerge");
+		data.vmanip.initialEmerge(bigarea_blocks_min, bigarea_blocks_max);
+	}
+	
+}
+
+MapChunk* ServerMap::finishChunkMake(ChunkMakeData &data,
+		core::map<v3s16, MapBlock*> &changed_blocks)
+{
+	if(data.no_op)
+		return NULL;
+	
 	/*
 		Blit generated stuff to map
 	*/
 	{
 		// 70ms @cs=8
 		//TimeTaker timer("generateChunkRaw() blitBackAll");
-		vmanip.blitBackAll(&changed_blocks);
+		data.vmanip.blitBackAll(&changed_blocks);
 	}
 
 	/*
@@ -3533,7 +3699,35 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		}
 	}
 
-	
+	/*
+		Copy transforming liquid information
+	*/
+	while(data.transforming_liquid.size() > 0)
+	{
+		v3s16 p = data.transforming_liquid.pop_front();
+		m_transforming_liquid.push_back(p);
+	}
+
+	/*
+		Add random objects to blocks
+	*/
+	{
+		for(s16 x=0; x<data.sectorpos_base_size; x++)
+		for(s16 z=0; z<data.sectorpos_base_size; z++)
+		{
+			v2s16 sectorpos = data.sectorpos_base + v2s16(x,z);
+			ServerMapSector *sector = createSector(sectorpos);
+			assert(sector);
+
+			for(s16 y=data.y_blocks_min; y<=data.y_blocks_max; y++)
+			{
+				v3s16 blockpos(sectorpos.X, y, sectorpos.Y);
+				MapBlock *block = createBlock(blockpos);
+				addRandomObjects(block);
+			}
+		}
+	}
+
 	/*
 		Create chunk metadata
 	*/
@@ -3541,7 +3735,7 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	for(s16 x=-1; x<=1; x++)
 	for(s16 y=-1; y<=1; y++)
 	{
-		v2s16 chunkpos0 = chunkpos + v2s16(x,y);
+		v2s16 chunkpos0 = data.chunkpos + v2s16(x,y);
 		// Add chunk meta information
 		MapChunk *chunk = getChunk(chunkpos0);
 		if(chunk == NULL)
@@ -3557,7 +3751,7 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	/*
 		Set central chunk non-volatile
 	*/
-	MapChunk *chunk = getChunk(chunkpos);
+	MapChunk *chunk = getChunk(data.chunkpos);
 	assert(chunk);
 	// Set non-volatile
 	//chunk->setIsVolatile(false);
@@ -3567,6 +3761,49 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 		Save changed parts of map
 	*/
 	save(true);
+	
+	return chunk;
+}
+
+#if 0
+// NOTE: Deprecated
+MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
+		core::map<v3s16, MapBlock*> &changed_blocks,
+		bool force)
+{
+	DSTACK(__FUNCTION_NAME);
+
+	/*
+		Don't generate if already fully generated
+	*/
+	if(force == false)
+	{
+		MapChunk *chunk = getChunk(chunkpos);
+		if(chunk != NULL && chunk->getGenLevel() == GENERATED_FULLY)
+		{
+			dstream<<"generateChunkRaw(): Chunk "
+					<<"("<<chunkpos.X<<","<<chunkpos.Y<<")"
+					<<" already generated"<<std::endl;
+			return chunk;
+		}
+	}
+
+	dstream<<"generateChunkRaw(): Generating chunk "
+			<<"("<<chunkpos.X<<","<<chunkpos.Y<<")"
+			<<std::endl;
+	
+	TimeTaker timer("generateChunkRaw()");
+
+	ChunkMakeData data;
+	
+	// Initialize generation
+	initChunkMake(data, chunkpos);
+	
+	// Generate stuff
+	makeChunk(&data);
+
+	// Finalize generation
+	MapChunk *chunk = finishChunkMake(data, changed_blocks);
 
 	/*
 		Return central chunk (which was requested)
@@ -3574,6 +3811,7 @@ MapChunk* ServerMap::generateChunkRaw(v2s16 chunkpos,
 	return chunk;
 }
 
+// NOTE: Deprecated
 MapChunk* ServerMap::generateChunk(v2s16 chunkpos1,
 		core::map<v3s16, MapBlock*> &changed_blocks)
 {
@@ -3599,10 +3837,11 @@ MapChunk* ServerMap::generateChunk(v2s16 chunkpos1,
 	MapChunk *chunk = getChunk(chunkpos1);
 	return chunk;
 }
+#endif
 
 ServerMapSector * ServerMap::createSector(v2s16 p2d)
 {
-	DSTACK("%s: p2d=(%d,%d)",
+	DSTACKF("%s: p2d=(%d,%d)",
 			__FUNCTION_NAME,
 			p2d.X, p2d.Y);
 	
@@ -3653,6 +3892,7 @@ ServerMapSector * ServerMap::createSector(v2s16 p2d)
 	return sector;
 }
 
+#if 0
 MapSector * ServerMap::emergeSector(v2s16 p2d,
 		core::map<v3s16, MapBlock*> &changed_blocks)
 {
@@ -3739,6 +3979,7 @@ MapSector * ServerMap::emergeSector(v2s16 p2d,
 	*/
 	//return generateSector();
 }
+#endif
 
 /*
 	NOTE: This is not used for main map generation, only for blocks
@@ -3752,9 +3993,17 @@ MapBlock * ServerMap::generateBlock(
 		core::map<v3s16, MapBlock*> &lighting_invalidated_blocks
 )
 {
-	DSTACK("%s: p=(%d,%d,%d)",
+	DSTACKF("%s: p=(%d,%d,%d)",
 			__FUNCTION_NAME,
 			p.X, p.Y, p.Z);
+
+	// If chunks are disabled
+	/*if(m_chunksize == 0)
+	{
+		dstream<<"ServerMap::generateBlock(): Chunks disabled -> "
+				<<"not generating."<<std::endl;
+		return NULL;
+	}*/
 	
 	/*dstream<<"generateBlock(): "
 			<<"("<<p.X<<","<<p.Y<<","<<p.Z<<")"
@@ -3793,6 +4042,25 @@ MapBlock * ServerMap::generateBlock(
 		block->unDummify();
 	}
 	
+#if 0
+	/*
+		Generate a completely empty block
+	*/
+	for(s16 z0=0; z0<MAP_BLOCKSIZE; z0++)
+	for(s16 x0=0; x0<MAP_BLOCKSIZE; x0++)
+	{
+		for(s16 y0=0; y0<MAP_BLOCKSIZE; y0++)
+		{
+			MapNode n;
+			n.d = CONTENT_AIR;
+			block->setNode(v3s16(x0,y0,z0), n);
+		}
+	}
+#else
+	/*
+		Generate a proper block
+	*/
+	
 	u8 water_material = CONTENT_WATERSOURCE;
 	
 	s32 lowest_ground_y = 32767;
@@ -3805,8 +4073,13 @@ MapBlock * ServerMap::generateBlock(
 
 		//s16 surface_y = 0;
 
+		s16 mud_add_amount = get_mud_add_amount(m_seed, p2d_nodes+v2s16(x0,z0));
+
 		s16 surface_y = base_rock_level_2d(m_seed, p2d_nodes+v2s16(x0,z0))
-				+ AVERAGE_MUD_AMOUNT;
+				+ mud_add_amount;
+		// If chunks are disabled
+		if(m_chunksize == 0)
+			surface_y = WATER_LEVEL + 1;
 
 		if(surface_y < lowest_ground_y)
 			lowest_ground_y = surface_y;
@@ -3852,7 +4125,7 @@ MapBlock * ServerMap::generateBlock(
 				else
 					n.d = CONTENT_AIR;
 			}
-			// Else it's ground or dungeons (air)
+			// Else it's ground or caves (air)
 			else
 			{
 				// If it's surface_depth under ground, it's stone
@@ -3933,7 +4206,7 @@ MapBlock * ServerMap::generateBlock(
 	//dstream<<"generateBlock(): Done"<<std::endl;
 
 	/*
-		Generate dungeons
+		Generate caves
 	*/
 
 	// Initialize temporary table
@@ -4071,36 +4344,36 @@ MapBlock * ServerMap::generateBlock(
 continue_generating:
 		
 		/*
-			Choose whether to actually generate dungeon
+			Choose whether to actually generate cave
 		*/
-		bool do_generate_dungeons = true;
+		bool do_generate_caves = true;
 		// Don't generate if no part is underground
 		if(!some_part_underground)
 		{
-			do_generate_dungeons = false;
+			do_generate_caves = false;
 		}
 		// Don't generate if mostly underwater surface
 		/*else if(mostly_underwater_surface)
 		{
-			do_generate_dungeons = false;
+			do_generate_caves = false;
 		}*/
 		// Partly underground = cave
 		else if(!completely_underground)
 		{
-			do_generate_dungeons = (rand() % 100 <= (s32)(caves_amount*100));
+			do_generate_caves = (rand() % 100 <= (s32)(caves_amount*100));
 		}
-		// Found existing dungeon underground
+		// Found existing cave underground
 		else if(found_existing && completely_underground)
 		{
-			do_generate_dungeons = (rand() % 100 <= (s32)(caves_amount*100));
+			do_generate_caves = (rand() % 100 <= (s32)(caves_amount*100));
 		}
-		// Underground and no dungeons found
+		// Underground and no caves found
 		else
 		{
-			do_generate_dungeons = (rand() % 300 <= (s32)(caves_amount*100));
+			do_generate_caves = (rand() % 300 <= (s32)(caves_amount*100));
 		}
 
-		if(do_generate_dungeons)
+		if(do_generate_caves)
 		{
 			/*
 				Generate some tunnel starting from orp and ors
@@ -4152,7 +4425,7 @@ continue_generating:
 
 	// Set to true if has caves.
 	// Set when some non-air is changed to air when making caves.
-	bool has_dungeons = false;
+	bool has_caves = false;
 
 	/*
 		Apply temporary cave data to block
@@ -4165,7 +4438,7 @@ continue_generating:
 		{
 			MapNode n = block->getNode(v3s16(x0,y0,z0));
 
-			// Create dungeons
+			// Create caves
 			if(underground_emptiness[
 					ued*ued*(z0*ued/MAP_BLOCKSIZE)
 					+ued*(y0*ued/MAP_BLOCKSIZE)
@@ -4174,7 +4447,7 @@ continue_generating:
 				if(content_features(n.d).walkable/*is_ground_content(n.d)*/)
 				{
 					// Has now caves
-					has_dungeons = true;
+					has_caves = true;
 					// Set air to node
 					n.d = CONTENT_AIR;
 				}
@@ -4194,7 +4467,7 @@ continue_generating:
 		Force lighting update if some part of block is partly
 		underground and has caves.
 	*/
-	/*if(some_part_underground && !completely_underground && has_dungeons)
+	/*if(some_part_underground && !completely_underground && has_caves)
 	{
 		//dstream<<"Half-ground caves"<<std::endl;
 		lighting_invalidated_blocks[block->getPos()] = block;
@@ -4324,6 +4597,8 @@ continue_generating:
 			}
 		}
 	}
+
+#endif // end of proper block generation
 	
 	/*
 		Add block to sector.
@@ -4339,11 +4614,11 @@ continue_generating:
 	*/
 	dstream
 	<<"lighting_invalidated_blocks.size()"
-	<<", has_dungeons"
+	<<", has_caves"
 	<<", completely_ug"
 	<<", some_part_ug"
 	<<"  "<<lighting_invalidated_blocks.size()
-	<<", "<<has_dungeons
+	<<", "<<has_caves
 	<<", "<<completely_underground
 	<<", "<<some_part_underground
 	<<std::endl;
@@ -4354,7 +4629,7 @@ continue_generating:
 
 MapBlock * ServerMap::createBlock(v3s16 p)
 {
-	DSTACK("%s: p=(%d,%d,%d)",
+	DSTACKF("%s: p=(%d,%d,%d)",
 			__FUNCTION_NAME, p.X, p.Y, p.Z);
 	
 	/*
@@ -4418,7 +4693,7 @@ MapBlock * ServerMap::emergeBlock(
 		core::map<v3s16, MapBlock*> &lighting_invalidated_blocks
 )
 {
-	DSTACK("%s: p=(%d,%d,%d), only_from_disk=%d",
+	DSTACKF("%s: p=(%d,%d,%d), only_from_disk=%d",
 			__FUNCTION_NAME,
 			p.X, p.Y, p.Z, only_from_disk);
 	
@@ -4604,13 +4879,16 @@ plan_b:
 	/*
 		Plan B: Get from map generator perlin noise function
 	*/
-	double level = base_rock_level_2d(m_seed, p2d);
+	// This won't work if proper generation is disabled
+	if(m_chunksize == 0)
+		return WATER_LEVEL+2;
+	double level = base_rock_level_2d(m_seed, p2d) + AVERAGE_MUD_AMOUNT;
 	return (s16)level;
 }
 
-void ServerMap::createDir(std::string path)
+void ServerMap::createDirs(std::string path)
 {
-	if(fs::CreateDir(path) == false)
+	if(fs::CreateAllDirs(path) == false)
 	{
 		m_dout<<DTIME<<"ServerMap: Failed to create directory "
 				<<"\""<<path<<"\""<<std::endl;
@@ -4618,29 +4896,52 @@ void ServerMap::createDir(std::string path)
 	}
 }
 
-std::string ServerMap::getSectorSubDir(v2s16 pos)
+std::string ServerMap::getSectorDir(v2s16 pos, int layout)
 {
 	char cc[9];
-	snprintf(cc, 9, "%.4x%.4x",
-			(unsigned int)pos.X&0xffff,
-			(unsigned int)pos.Y&0xffff);
+	switch(layout)
+	{
+		case 1:
+			snprintf(cc, 9, "%.4x%.4x",
+				(unsigned int)pos.X&0xffff,
+				(unsigned int)pos.Y&0xffff);
 
-	return std::string(cc);
-}
+			return m_savedir + "/sectors/" + cc;
+		case 2:
+			snprintf(cc, 9, "%.3x/%.3x",
+				(unsigned int)pos.X&0xfff,
+				(unsigned int)pos.Y&0xfff);
 
-std::string ServerMap::getSectorDir(v2s16 pos)
-{
-	return m_savedir + "/sectors/" + getSectorSubDir(pos);
+			return m_savedir + "/sectors2/" + cc;
+		default:
+			assert(false);
+	}
 }
 
 v2s16 ServerMap::getSectorPos(std::string dirname)
 {
-	if(dirname.size() != 8)
-		throw InvalidFilenameException("Invalid sector directory name");
 	unsigned int x, y;
-	int r = sscanf(dirname.c_str(), "%4x%4x", &x, &y);
-	if(r != 2)
-		throw InvalidFilenameException("Invalid sector directory name");
+	int r;
+	size_t spos = dirname.rfind('/') + 1;
+	assert(spos != std::string::npos);
+	if(dirname.size() - spos == 8)
+	{
+		// Old layout
+		r = sscanf(dirname.substr(spos).c_str(), "%4x%4x", &x, &y);
+	}
+	else if(dirname.size() - spos == 3)
+	{
+		// New layout
+		r = sscanf(dirname.substr(spos-4).c_str(), "%3x/%3x", &x, &y);
+		// Sign-extend the 12 bit values up to 16 bits...
+		if(x&0x800) x|=0xF000;
+		if(y&0x800) y|=0xF000;
+	}
+	else
+	{
+		assert(false);
+	}
+	assert(r == 2);
 	v2s16 pos((s16)x, (s16)y);
 	return pos;
 }
@@ -4672,14 +4973,23 @@ void ServerMap::save(bool only_changed)
 		dstream<<DTIME<<"ServerMap: Saving whole map, this can take time."
 				<<std::endl;
 	
-	saveMapMeta();
-	saveChunkMeta();
+	if(only_changed == false || m_map_metadata_changed)
+	{
+		saveMapMeta();
+	}
+
+	// Disable saving chunk metadata if chunks are disabled
+	if(m_chunksize != 0)
+	{
+		if(only_changed == false || anyChunkModified())
+			saveChunkMeta();
+	}
 	
 	u32 sector_meta_count = 0;
 	u32 block_count = 0;
 	
 	{ //sectorlock
-	JMutexAutoLock lock(m_sector_mutex);
+	//JMutexAutoLock lock(m_sector_mutex); // Bulk comment-out
 	
 	core::map<v2s16, MapSector*>::Iterator i = m_sectors.getIterator();
 	for(; i.atEnd() == false; i++)
@@ -4727,6 +5037,8 @@ void ServerMap::save(bool only_changed)
 	}
 }
 
+#if 0
+// NOTE: Doing this is insane. Deprecated and probably broken.
 void ServerMap::loadAll()
 {
 	DSTACK(__FUNCTION_NAME);
@@ -4739,7 +5051,7 @@ void ServerMap::loadAll()
 
 	dstream<<DTIME<<"There are "<<list.size()<<" sectors."<<std::endl;
 	
-	JMutexAutoLock lock(m_sector_mutex);
+	//JMutexAutoLock lock(m_sector_mutex); // Bulk comment-out
 	
 	s32 counter = 0;
 	s32 printed_counter = -100000;
@@ -4787,6 +5099,7 @@ void ServerMap::loadAll()
 	}
 	dstream<<DTIME<<"ServerMap: Map loaded."<<std::endl;
 }
+#endif
 
 #if 0
 void ServerMap::saveMasterHeightmap()
@@ -4827,7 +5140,7 @@ void ServerMap::saveMapMeta()
 			<<"seed="<<m_seed<<", chunksize="<<m_chunksize
 			<<std::endl;
 
-	createDir(m_savedir);
+	createDirs(m_savedir);
 	
 	std::string fullpath = m_savedir + "/map_meta.txt";
 	std::ofstream os(fullpath.c_str(), std::ios_base::binary);
@@ -4846,13 +5159,14 @@ void ServerMap::saveMapMeta()
 
 	os<<"[end_of_params]\n";
 	
+	m_map_metadata_changed = false;
 }
 
 void ServerMap::loadMapMeta()
 {
 	DSTACK(__FUNCTION_NAME);
 	
-	dstream<<"INFO: ServerMap::loadMapMeta(): Loading chunk metadata"
+	dstream<<"INFO: ServerMap::loadMapMeta(): Loading map metadata"
 			<<std::endl;
 
 	std::string fullpath = m_savedir + "/map_meta.txt";
@@ -4861,7 +5175,7 @@ void ServerMap::loadMapMeta()
 	{
 		dstream<<"ERROR: ServerMap::loadMapMeta(): "
 				<<"could not open"<<fullpath<<std::endl;
-		throw FileNotGoodException("Cannot open chunk metadata");
+		throw FileNotGoodException("Cannot open map metadata");
 	}
 
 	Settings params;
@@ -4890,13 +5204,16 @@ void ServerMap::loadMapMeta()
 void ServerMap::saveChunkMeta()
 {
 	DSTACK(__FUNCTION_NAME);
+
+	// This should not be called if chunks are disabled.
+	assert(m_chunksize != 0);
 	
 	u32 count = m_chunks.size();
 
 	dstream<<"INFO: ServerMap::saveChunkMeta(): Saving metadata of "
 			<<count<<" chunks"<<std::endl;
 
-	createDir(m_savedir);
+	createDirs(m_savedir);
 	
 	std::string fullpath = m_savedir + "/chunk_meta";
 	std::ofstream os(fullpath.c_str(), std::ios_base::binary);
@@ -4930,6 +5247,8 @@ void ServerMap::saveChunkMeta()
 		// Write chunk data
 		chunk->serialize(os, version);
 	}
+
+	setChunksNonModified();
 }
 
 void ServerMap::loadChunkMeta()
@@ -4982,10 +5301,8 @@ void ServerMap::saveSectorMeta(ServerMapSector *sector)
 	u8 version = SER_FMT_VER_HIGHEST;
 	// Get destination
 	v2s16 pos = sector->getPos();
-	createDir(m_savedir);
-	createDir(m_savedir+"/sectors");
 	std::string dir = getSectorDir(pos);
-	createDir(dir);
+	createDirs(dir);
 	
 	std::string fullpath = dir + "/meta";
 	std::ofstream o(fullpath.c_str(), std::ios_base::binary);
@@ -4997,20 +5314,41 @@ void ServerMap::saveSectorMeta(ServerMapSector *sector)
 	sector->differs_from_disk = false;
 }
 
-MapSector* ServerMap::loadSectorMeta(std::string dirname)
+MapSector* ServerMap::loadSectorMeta(std::string sectordir, bool save_after_load)
 {
 	DSTACK(__FUNCTION_NAME);
 	// Get destination
-	v2s16 p2d = getSectorPos(dirname);
-	std::string dir = m_savedir + "/sectors/" + dirname;
-	
-	std::string fullpath = dir + "/meta";
+	v2s16 p2d = getSectorPos(sectordir);
+
+	ServerMapSector *sector = NULL;
+
+	std::string fullpath = sectordir + "/meta";
 	std::ifstream is(fullpath.c_str(), std::ios_base::binary);
 	if(is.good() == false)
-		throw FileNotGoodException("Cannot open sector metafile");
-
-	ServerMapSector *sector = ServerMapSector::deSerialize
-			(is, this, p2d, m_sectors);
+	{
+		// If the directory exists anyway, it probably is in some old
+		// format. Just go ahead and create the sector.
+		if(fs::PathExists(sectordir))
+		{
+			dstream<<"ServerMap::loadSectorMeta(): Sector metafile "
+					<<fullpath<<" doesn't exist but directory does."
+					<<" Continuing with a sector with no metadata."
+					<<std::endl;
+			sector = new ServerMapSector(this, p2d);
+			m_sectors.insert(p2d, sector);
+		}
+		else
+		{
+			throw FileNotGoodException("Cannot open sector metafile");
+		}
+	}
+	else
+	{
+		sector = ServerMapSector::deSerialize
+				(is, this, p2d, m_sectors);
+		if(save_after_load)
+			saveSectorMeta(sector);
+	}
 	
 	sector->differs_from_disk = false;
 
@@ -5020,14 +5358,31 @@ MapSector* ServerMap::loadSectorMeta(std::string dirname)
 bool ServerMap::loadSectorFull(v2s16 p2d)
 {
 	DSTACK(__FUNCTION_NAME);
-	std::string sectorsubdir = getSectorSubDir(p2d);
 
 	MapSector *sector = NULL;
 
-	JMutexAutoLock lock(m_sector_mutex);
+	// The directory layout we're going to load from.
+	//  1 - original sectors/xxxxzzzz/
+	//  2 - new sectors2/xxx/zzz/
+	//  If we load from anything but the latest structure, we will
+	//  immediately save to the new one, and remove the old.
+	int loadlayout = 1;
+	std::string sectordir1 = getSectorDir(p2d, 1);
+	std::string sectordir;
+	if(fs::PathExists(sectordir1))
+	{
+		sectordir = sectordir1;
+	}
+	else
+	{
+		loadlayout = 2;
+		sectordir = getSectorDir(p2d, 2);
+	}
+
+	//JMutexAutoLock lock(m_sector_mutex); // Bulk comment-out
 
 	try{
-		sector = loadSectorMeta(sectorsubdir);
+		sector = loadSectorMeta(sectordir, loadlayout != 2);
 	}
 	catch(InvalidFilenameException &e)
 	{
@@ -5046,7 +5401,7 @@ bool ServerMap::loadSectorFull(v2s16 p2d)
 		Load blocks
 	*/
 	std::vector<fs::DirListNode> list2 = fs::GetDirListing
-			(m_savedir+"/sectors/"+sectorsubdir);
+			(sectordir);
 	std::vector<fs::DirListNode>::iterator i2;
 	for(i2=list2.begin(); i2!=list2.end(); i2++)
 	{
@@ -5054,15 +5409,24 @@ bool ServerMap::loadSectorFull(v2s16 p2d)
 		if(i2->dir)
 			continue;
 		try{
-			loadBlock(sectorsubdir, i2->name, sector);
+			loadBlock(sectordir, i2->name, sector, loadlayout != 2);
 		}
 		catch(InvalidFilenameException &e)
 		{
 			// This catches unknown crap in directory
 		}
 	}
+
+	if(loadlayout != 2)
+	{
+		dstream<<"Sector converted to new layout - deleting "<<
+			sectordir1<<std::endl;
+		fs::RecursiveDelete(sectordir1);
+	}
+
 	return true;
 }
+
 
 void ServerMap::saveBlock(MapBlock *block)
 {
@@ -5083,12 +5447,9 @@ void ServerMap::saveBlock(MapBlock *block)
 	// Get destination
 	v3s16 p3d = block->getPos();
 	v2s16 p2d(p3d.X, p3d.Z);
-	createDir(m_savedir);
-	createDir(m_savedir+"/sectors");
 	std::string dir = getSectorDir(p2d);
-	createDir(dir);
+	createDirs(dir);
 	
-	// Block file is map/sectors/xxxxxxxx/xxxx
 	char cc[5];
 	snprintf(cc, 5, "%.4x", (unsigned int)p3d.Y&0xffff);
 	std::string fullpath = dir + "/" + cc;
@@ -5102,32 +5463,27 @@ void ServerMap::saveBlock(MapBlock *block)
 	*/
 	o.write((char*)&version, 1);
 	
+	// Write basic data
 	block->serialize(o, version);
-
-	/*
-		Versions up from 9 have block objects.
-	*/
-	if(version >= 9)
-	{
-		block->serializeObjects(o, version);
-	}
 	
-	// We just wrote it to the disk
+	// Write extra data stored on disk
+	block->serializeDiskExtra(o, version);
+
+	// We just wrote it to the disk so clear modified flag
 	block->resetChangedFlag();
 }
 
-void ServerMap::loadBlock(std::string sectordir, std::string blockfile, MapSector *sector)
+void ServerMap::loadBlock(std::string sectordir, std::string blockfile, MapSector *sector, bool save_after_load)
 {
 	DSTACK(__FUNCTION_NAME);
 
+	std::string fullpath = sectordir+"/"+blockfile;
 	try{
 
-		// Block file is map/sectors/xxxxxxxx/xxxx
-		std::string fullpath = m_savedir+"/sectors/"+sectordir+"/"+blockfile;
 		std::ifstream is(fullpath.c_str(), std::ios_base::binary);
 		if(is.good() == false)
 			throw FileNotGoodException("Cannot open block file");
-
+		
 		v3s16 p3d = getBlockPos(sectordir, blockfile);
 		v2s16 p2d(p3d.X, p3d.Z);
 		
@@ -5158,26 +5514,21 @@ void ServerMap::loadBlock(std::string sectordir, std::string blockfile, MapSecto
 			created_new = true;
 		}
 		
-		// deserialize block data
+		// Read basic data
 		block->deSerialize(is, version);
-		
-		/*
-			Versions up from 9 have block objects.
-		*/
-		if(version >= 9)
-		{
-			block->updateObjects(is, version, NULL, 0);
-		}
 
+		// Read extra data stored on disk
+		block->deSerializeDiskExtra(is, version);
+		
+		// If it's a new block, insert it to the map
 		if(created_new)
 			sector->insertBlock(block);
 		
 		/*
-			Convert old formats to new and save
+			Save blocks loaded in old format in new format
 		*/
 
-		// Save old format blocks in new format
-		if(version < SER_FMT_VER_HIGHEST)
+		if(version < SER_FMT_VER_HIGHEST || save_after_load)
 		{
 			saveBlock(block);
 		}
@@ -5192,6 +5543,8 @@ void ServerMap::loadBlock(std::string sectordir, std::string blockfile, MapSecto
 				"(SerializationError). Ignoring. "
 				"A new one will be generated."
 				<<std::endl;
+
+		// TODO: Backup file; name is in fullpath.
 	}
 }
 
@@ -5253,7 +5606,7 @@ MapSector * ClientMap::emergeSector(v2s16 p2d)
 	ClientMapSector *sector = new ClientMapSector(this, p2d);
 	
 	{
-		JMutexAutoLock lock(m_sector_mutex);
+		//JMutexAutoLock lock(m_sector_mutex); // Bulk comment-out
 		m_sectors.insert(p2d, sector);
 	}
 	
@@ -5265,7 +5618,7 @@ void ClientMap::deSerializeSector(v2s16 p2d, std::istream &is)
 	DSTACK(__FUNCTION_NAME);
 	ClientMapSector *sector = NULL;
 
-	JMutexAutoLock lock(m_sector_mutex);
+	//JMutexAutoLock lock(m_sector_mutex); // Bulk comment-out
 	
 	core::map<v2s16, MapSector*>::Node *n = m_sectors.find(p2d);
 
@@ -5278,7 +5631,7 @@ void ClientMap::deSerializeSector(v2s16 p2d, std::istream &is)
 	{
 		sector = new ClientMapSector(this, p2d);
 		{
-			JMutexAutoLock lock(m_sector_mutex);
+			//JMutexAutoLock lock(m_sector_mutex); // Bulk comment-out
 			m_sectors.insert(p2d, sector);
 		}
 	}
@@ -5312,7 +5665,7 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 	*/
 	int time1 = time(0);
 
-	u32 daynight_ratio = m_client->getDayNightRatio();
+	//u32 daynight_ratio = m_client->getDayNightRatio();
 
 	m_camera_mutex.Lock();
 	v3f camera_position = m_camera_position;
@@ -5339,9 +5692,9 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 			p_nodes_min.Y / MAP_BLOCKSIZE - 1,
 			p_nodes_min.Z / MAP_BLOCKSIZE - 1);
 	v3s16 p_blocks_max(
-			p_nodes_max.X / MAP_BLOCKSIZE + 1,
-			p_nodes_max.Y / MAP_BLOCKSIZE + 1,
-			p_nodes_max.Z / MAP_BLOCKSIZE + 1);
+			p_nodes_max.X / MAP_BLOCKSIZE,
+			p_nodes_max.Y / MAP_BLOCKSIZE,
+			p_nodes_max.Z / MAP_BLOCKSIZE);
 	
 	u32 vertex_count = 0;
 	
@@ -5415,7 +5768,7 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 				continue;
 			}
 			
-			// This is ugly
+			// This is ugly (spherical distance limit?)
 			/*if(m_control.range_all == false &&
 					d - 0.5*BS*MAP_BLOCKSIZE > range)
 				continue;*/
@@ -5423,6 +5776,9 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 #if 1
 			/*
 				Update expired mesh (used for day/night change)
+
+				It doesn't work exactly like it should now with the
+				tasked mesh update but whatever.
 			*/
 
 			bool mesh_expired = false;
@@ -5459,28 +5815,12 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 				mesh_update_count++;
 
 				// Mesh has been expired: generate new mesh
-				//block->updateMeshes(daynight_i);
-				block->updateMesh(daynight_ratio);
+				//block->updateMesh(daynight_ratio);
+				m_client->addUpdateMeshTask(block->getPos());
 
 				mesh_expired = false;
 			}
 			
-			/*
-				Don't draw an expired mesh that is far away
-			*/
-			/*if(mesh_expired && d >= faraway)
-			//if(mesh_expired)
-			{
-				// Instead, delete it
-				JMutexAutoLock lock(block->mesh_mutex);
-				if(block->mesh)
-				{
-					block->mesh->drop();
-					block->mesh = NULL;
-				}
-				// And continue to next block
-				continue;
-			}*/
 #endif
 			/*
 				Draw the faces of the block
@@ -5668,6 +6008,7 @@ void ClientMap::updateMeshes(v3s16 blockpos, u32 daynight_ratio)
 		v3s16 p = blockpos + v3s16(0,0,0);
 		MapBlock *b = getBlockNoCreate(p);
 		b->updateMesh(daynight_ratio);
+		//b->setMeshExpired(true);
 	}
 	catch(InvalidPositionException &e){}
 	// Leading edge
@@ -5675,40 +6016,61 @@ void ClientMap::updateMeshes(v3s16 blockpos, u32 daynight_ratio)
 		v3s16 p = blockpos + v3s16(-1,0,0);
 		MapBlock *b = getBlockNoCreate(p);
 		b->updateMesh(daynight_ratio);
+		//b->setMeshExpired(true);
 	}
 	catch(InvalidPositionException &e){}
 	try{
 		v3s16 p = blockpos + v3s16(0,-1,0);
 		MapBlock *b = getBlockNoCreate(p);
 		b->updateMesh(daynight_ratio);
+		//b->setMeshExpired(true);
 	}
 	catch(InvalidPositionException &e){}
 	try{
 		v3s16 p = blockpos + v3s16(0,0,-1);
 		MapBlock *b = getBlockNoCreate(p);
 		b->updateMesh(daynight_ratio);
+		//b->setMeshExpired(true);
 	}
 	catch(InvalidPositionException &e){}
-	/*// Trailing edge
-	try{
-		v3s16 p = blockpos + v3s16(1,0,0);
-		MapBlock *b = getBlockNoCreate(p);
-		b->updateMesh(daynight_ratio);
-	}
-	catch(InvalidPositionException &e){}
-	try{
-		v3s16 p = blockpos + v3s16(0,1,0);
-		MapBlock *b = getBlockNoCreate(p);
-		b->updateMesh(daynight_ratio);
-	}
-	catch(InvalidPositionException &e){}
-	try{
-		v3s16 p = blockpos + v3s16(0,0,1);
-		MapBlock *b = getBlockNoCreate(p);
-		b->updateMesh(daynight_ratio);
-	}
-	catch(InvalidPositionException &e){}*/
 }
+
+#if 0
+/*
+	Update mesh of block in which the node is, and if the node is at the
+	leading edge, update the appropriate leading blocks too.
+*/
+void ClientMap::updateNodeMeshes(v3s16 nodepos, u32 daynight_ratio)
+{
+	v3s16 dirs[4] = {
+		v3s16(0,0,0),
+		v3s16(-1,0,0),
+		v3s16(0,-1,0),
+		v3s16(0,0,-1),
+	};
+	v3s16 blockposes[4];
+	for(u32 i=0; i<4; i++)
+	{
+		v3s16 np = nodepos + dirs[i];
+		blockposes[i] = getNodeBlockPos(np);
+		// Don't update mesh of block if it has been done already
+		bool already_updated = false;
+		for(u32 j=0; j<i; j++)
+		{
+			if(blockposes[j] == blockposes[i])
+			{
+				already_updated = true;
+				break;
+			}
+		}
+		if(already_updated)
+			continue;
+		// Update mesh
+		MapBlock *b = getBlockNoCreate(blockposes[i]);
+		b->updateMesh(daynight_ratio);
+	}
+}
+#endif
 
 void ClientMap::PrintInfo(std::ostream &out)
 {
@@ -5867,7 +6229,8 @@ void MapVoxelManipulator::blitBack
 }
 
 ManualMapVoxelManipulator::ManualMapVoxelManipulator(Map *map):
-		MapVoxelManipulator(map)
+		MapVoxelManipulator(map),
+		m_create_area(false)
 {
 }
 
