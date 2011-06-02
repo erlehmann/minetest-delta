@@ -18,6 +18,7 @@
 import zlib
 import Image, ImageDraw
 import os
+import sys
 import string
 import time
 
@@ -52,8 +53,10 @@ def limit(i,l,h):
         i=l
     return i
 
-# Fix these!
-path="../map/"
+# This will work as long as the script is in the right place and the folder's
+# name is map.
+path=sys.path[0]+"/../map/"
+# Filename of the output.
 output="map.png"
 
 sector_xmin = -1000/16
