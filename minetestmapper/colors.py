@@ -1,6 +1,10 @@
 ## A dictionary of the colors.
 # The key is a number describing the mapnode type as defined in the mapnode.h
 # file. The value is the RGB value.
+# To add a mapnode:
+#   <mapnode-number> : (<R>, <G>, <B>),
+# where mapnode-number is the number from mapnode.h and R, G and B are the RGB
+# color values.
 colors = {
         0 : (128, 128, 128),
         1 : (107, 134, 51),
