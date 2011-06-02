@@ -1,3 +1,6 @@
+## A dictionary of the colors.
+# The key is a number describing the mapnode type as defined in the mapnode.h
+# file. The value is the RGB value.
 colors = {
         0 : (128, 128, 128),
         1 : (107, 134, 51),

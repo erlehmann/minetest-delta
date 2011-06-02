@@ -22,6 +22,9 @@ import sys
 import string
 import time
 
+# Import the colors from colors.py
+from colors import colors
+
 def hex_to_int(h):
     i = int(h,16)
     if(i > 2047):
@@ -64,19 +67,12 @@ sector_xmax = 1000/16
 sector_zmin = -1000/16
 sector_zmax = 1000/16
 
-# Load color information for the blocks.
-#colors = {}
-#f = file("colors.txt")
-#for line in f:
-#    values = string.split(line)
-#    colors[int(values[0])] = (int(values[1]), int(values[2]), int(values[3]))
-#f.close()
-from colors import colors
 
 xlist = []
 zlist = []
 
-# List all sectors to memory and calculate the width and heigth of the resulting picture.
+# List all sectors to memory and calculate the width and heigth of the
+# resulting picture.
 if os.path.exists(path + "sectors2"):
     for filename in os.listdir(path + "sectors2"):
         for filename2 in os.listdir(path + "sectors2/" + filename):
@@ -217,13 +213,15 @@ for n in range(len(xlist)):
                     if(ord(mapdata[datapos])!=254):
                         try:
                             pixellist.remove((x,z))
-                            # Memorize information on the type and height of the block and for drawing the picture.
+                            # Memorize information on the type and height of
+                            # the block and for drawing the picture.
                             stuff[(chunkxpos+x,chunkzpos+z)]=(chunkypos+y,ord(mapdata[datapos]))
                             break
                         except:
                             print "strange block: " + xhex+zhex+"/"+yhex + " x: " + str(x) + " y: " + str(y) + " z: " + str(z) + " block: " + str(ord(mapdata[datapos]))
 
-        # After finding all the pixeld in the sector, we can move on to the next sector without having to continue the Y axis.
+        # After finding all the pixeld in the sector, we can move on to the
+        # next sector without having to continue the Y axis.
         if(len(pixellist)==0):
             break
 
