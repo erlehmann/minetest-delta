@@ -65,12 +65,13 @@ sector_zmin = -1000/16
 sector_zmax = 1000/16
 
 # Load color information for the blocks.
-colors = {}
-f = file("colors.txt")
-for line in f:
-    values = string.split(line)
-    colors[int(values[0])] = (int(values[1]), int(values[2]), int(values[3]))
-f.close()
+#colors = {}
+#f = file("colors.txt")
+#for line in f:
+#    values = string.split(line)
+#    colors[int(values[0])] = (int(values[1]), int(values[2]), int(values[3]))
+#f.close()
+from colors import colors
 
 xlist = []
 zlist = []
