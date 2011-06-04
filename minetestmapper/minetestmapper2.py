@@ -49,11 +49,11 @@ def int_to_hex4(i):
     else:
         return "%04X" % i
 
-def limit(i,l,h):
-    if(i>h):
-        i=h
-    if(i<l):
-        i=l
+def limit(i,lo,hi):
+    if(i>hi):
+        i=hi
+    if(i<lo):
+        i=lo
     return i
 
 # This will work as long as the script is in the right place and the folder's
@@ -109,7 +109,7 @@ stuff={}
 starttime = time.time()
 
 # Go through all sectors.
-for n in range(len(xlist)):
+for n in xrange(len(xlist)):
     #if n > 500:
     #   break
     if n % 200 == 0:
@@ -171,10 +171,6 @@ for n in range(len(xlist)):
     ylist.sort()
 
     # Make a list of pixels of the sector that are to be looked for.
-    pixellist = []
-    for x in range(16):
-        for y in range(16):
-            pixellist.append((x,y))
 
     # Go through the Y axis from top to bottom.
     for ypos in reversed(ylist):
@@ -201,28 +197,31 @@ for n in range(len(xlist)):
 
         f.close()
 
+        pixelcount = 16*16
         if(len(mapdata)<4096):
             print "bad: " + xhex+zhex+"/"+yhex + " " + len(mapdata)
         else:
             chunkxpos=xpos*16
             chunkypos=ypos*16
             chunkzpos=zpos*16
-            for (x,z) in reversed(pixellist):
-                for y in reversed(range(16)):
-                    datapos=x+y*16+z*256
-                    if(ord(mapdata[datapos])!=254):
-                        try:
-                            pixellist.remove((x,z))
-                            # Memorize information on the type and height of
-                            # the block and for drawing the picture.
-                            stuff[(chunkxpos+x,chunkzpos+z)]=(chunkypos+y,ord(mapdata[datapos]))
-                            break
-                        except:
-                            print "strange block: " + xhex+zhex+"/"+yhex + " x: " + str(x) + " y: " + str(y) + " z: " + str(z) + " block: " + str(ord(mapdata[datapos]))
+            for x in reversed(xrange(16)):
+                for z in reversed(xrange(16)):
+                    for y in reversed(range(16)):
+                        datapos=x+y*16+z*256
+                        tmp = ord(mapdata[datapos])
+                        if(tmp != 254):
+                            try:
+                                pixelcount -= 1
+                                # Memorize information on the type and height of
+                                # the block and for drawing the picture.
+                                stuff[(chunkxpos+x,chunkzpos+z)]=(chunkypos+y,tmp)
+                                break
+                            except:
+                                print "strange block: " + xhex+zhex+"/"+yhex + " x: " + str(x) + " y: " + str(y) + " z: " + str(z) + " block: " + str(ord(mapdata[datapos]))
 
-        # After finding all the pixeld in the sector, we can move on to the
+        # After finding all the pixels in the sector, we can move on to the
         # next sector without having to continue the Y axis.
-        if(len(pixellist)==0):
+        if(pixelcount==0):
             break
 
 print "Drawing image"
