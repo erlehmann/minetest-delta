@@ -683,7 +683,7 @@ struct ItemSpec
 	items: a pointer to an array of 9 pointers to items
 	specs: a pointer to an array of 9 ItemSpecs
 */
-bool checkItemCombination(InventoryItem **items, ItemSpec *specs);
+bool checkItemCombination(InventoryItem **items, ItemSpec *specs, u8 size);
 
 #endif
 

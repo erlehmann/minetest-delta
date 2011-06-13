@@ -99,6 +99,7 @@ set(minetest_SRCS
 	clouds.cpp
 	clientobject.cpp
 	guiFurnaceMenu.cpp
+	guiWorkbenchMenu.cpp
 	guiMainMenu.cpp
 	guiKeyChangeMenu.cpp
 	guiMessageMenu.cpp

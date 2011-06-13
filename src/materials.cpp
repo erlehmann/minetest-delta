@@ -83,6 +83,7 @@ void initializeMaterialProperties()
 	setWoodLikeDiggingProperties(CONTENT_WOOD, 0.75);
 	setWoodLikeDiggingProperties(CONTENT_BOOKSHELF, 0.75);
 	setWoodLikeDiggingProperties(CONTENT_CHEST, 1.0);
+	setWoodLikeDiggingProperties(CONTENT_WORKBENCH, 1.0);
 
 	g_material_properties[CONTENT_SIGN_WALL].setDiggingProperties("",
 			DiggingProperties(true, 0.5, 0));
