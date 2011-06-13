@@ -1156,7 +1156,7 @@ void the_game(
 					"list", "current_player", "main",
 					v2s32(0, 3), v2s32(8, 4)));
 			draw_spec.push_back(GUIInventoryMenu::DrawSpec(
-					"current_player", "craft", "craft",
+					"list", "current_player", "craft",
 					v2s32(3, 0), v2s32(2, 2)));
 			draw_spec.push_back(GUIInventoryMenu::DrawSpec(
 					"list", "current_player", "craftresult",
