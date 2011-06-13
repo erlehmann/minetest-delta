@@ -247,14 +247,17 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 	InventoryList* rlist = m_inventory->getList("workbench_craftresult");
 	assert(rlist);
 
+	if (clist->getUsedSlots() == 0)
+		rlist->clearItems();
+
 	if (rlist->getUsedSlots() != 0)
 		return false;
 
 	if (m_crafted) {
 		// We have crafted something so we clear our clist
-        clist->clearItems();
-        m_crafted = false;
-        return false;
+		clist->clearItems();
+		m_crafted = false;
+		return false;
 	}
 
 	if (clist && rlist) {
