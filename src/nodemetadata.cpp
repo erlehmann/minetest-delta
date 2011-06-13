@@ -113,6 +113,7 @@ WorkbenchNodeMetadata::WorkbenchNodeMetadata() {
 	m_inventory = new Inventory();
 	m_inventory->addList("workbench_craft", 3 * 3);
 	m_inventory->addList("workbench_craftresult", 1);
+	m_crafted = false;
 }
 WorkbenchNodeMetadata::~WorkbenchNodeMetadata() {
 	delete m_inventory;
@@ -164,6 +165,13 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 
 	if (rlist->getUsedSlots() != 0)
 		return false;
+
+	if (m_crafted) {
+		// We have crafted something so we clear our clist
+        clist->clearItems();
+        m_crafted = false;
+        return false;
+	}
 
 	if (clist && rlist) {
 		InventoryItem *items[WORKBENCH_SIZE];
@@ -569,10 +577,10 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			}
 		}
 
+
 		// If we found something we can clear the list
 		if (found) {
-			//TODO: this craft immediately. This needs to be fixed
-			clist->clearItems();
+			m_crafted = true;
 		}
 	}
 	return true;
