@@ -130,6 +130,7 @@ public:
 private:
 	Inventory *m_inventory;
 	float m_step_accumulator;
+	bool m_crafted;
 };
 
 class FurnaceNodeMetadata : public NodeMetadata
