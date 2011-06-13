@@ -1803,6 +1803,16 @@ void the_game(
 							&g_menumgr, dest,
 							wtext))->drop();
 				}
+				if (meta && meta->typeId() == CONTENT_WORKBENCH
+										&& !random_input)
+				{
+					dstream << "Workbench node right-clicked" << std::endl;
+
+					GUIWorkbenchMenu *menu = new GUIWorkbenchMenu(guienv,
+					guiroot, -1, &g_menumgr, nodepos, &client);
+
+					menu->drop();
+				}
 				else
 				{
 					client.groundAction(1, nodepos, neighbourpos, g_selected_item);

@@ -72,6 +72,31 @@ private:
 	static core::map<u16, Factory> m_types;
 };
 
+
+class WorkbenchNodeMetadata: public NodeMetadata
+{
+public:
+	WorkbenchNodeMetadata();
+	~WorkbenchNodeMetadata();
+
+	static const u8 WORKBENCH_SIZE = 9;
+
+	virtual u16 typeId() const;
+	static NodeMetadata* create(std::istream &is);
+	virtual NodeMetadata* clone();
+	virtual void serializeBody(std::ostream &os);
+	virtual std::string infoText();
+	virtual Inventory* getInventory() {
+		return m_inventory;
+	}
+
+	virtual bool nodeRemovalDisabled();
+	virtual bool step(float dtime);
+
+private:
+	Inventory *m_inventory;
+	float m_step_accumulator;
+};
 /*
 	List of metadata of all the nodes of a block
 */

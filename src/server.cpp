@@ -3864,43 +3864,40 @@ void Server::SendBlocks(float dtime)
 /*
 	Something random
 */
-
-void Server::UpdateCrafting(u16 peer_id)
-{
+void Server::UpdateCrafting(u16 peer_id) {
 	DSTACK(__FUNCTION_NAME);
-	
+
 	Player* player = m_env.getPlayer(peer_id);
 	assert(player);
 
 	/*
-		Calculate crafting stuff
-	*/
-	if(g_settings.getBool("creative_mode") == false)
-	{
+	 Calculate crafting stuff
+	 */
+	if (g_settings.getBool("creative_mode") == false) {
+		// we can then optain the list with the id workbench_craft and workbench_craftresult
 		InventoryList *clist = player->inventory.getList("craft");
 		InventoryList *rlist = player->inventory.getList("craftresult");
 
-		if(rlist->getUsedSlots() == 0)
+		//TODO: only 2x2 reciepes here
+		if (rlist->getUsedSlots() == 0)
 			player->craftresult_is_preview = true;
 
-		if(rlist && player->craftresult_is_preview)
-		{
+		if (rlist && player->craftresult_is_preview) {
 			rlist->clearItems();
 		}
-		if(clist && rlist && player->craftresult_is_preview)
-		{
-			InventoryItem *items[9];
-			for(u16 i=0; i<9; i++)
-			{
+		if (clist && rlist && player->craftresult_is_preview) {
+			//TODO: get from PLAYER CONSTANT
+			InventoryItem *items[4];
+			for (u16 i = 0; i < 4; i++) {
 				items[i] = clist->getItem(i);
 			}
-			
+
 			// Get result of crafting grid
 			InventoryItem *result = craft_get_result(items);
 			if(result)
 				rlist->addItem(result);
 		}
-	
+
 	} // if creative_mode == false
 }
 
