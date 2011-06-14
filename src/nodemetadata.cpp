@@ -234,13 +234,14 @@ bool WorkbenchNodeMetadata::nodeRemovalDisabled() {
 }
 
 bool WorkbenchNodeMetadata::step(float dtime) {
-	// Update at a fixed frequency
-	const float interval = 0; // Can be instant
+	// This can be instant
+	/* Update at a fixed frequency
+	const float interval = 0.5;
 	m_step_accumulator += dtime;
 	if (m_step_accumulator < interval)
 		return false;
 	m_step_accumulator -= interval;
-	dtime = interval;
+	dtime = interval; */
 
 	InventoryList* clist = m_inventory->getList("workbench_craft");
 	assert(clist);
