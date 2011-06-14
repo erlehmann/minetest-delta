@@ -429,12 +429,6 @@ InventoryItem * InventoryList::addItem(InventoryItem *newitem)
 {
 	if(newitem == NULL)
 		return NULL;
-	
-	/*
-	 * We check if we a read only
-	 */
-	if(m_readOnly)
-		return newitem;
 
 	/*
 		First try to find if it could be added to some existing items
@@ -472,15 +466,9 @@ InventoryItem * InventoryList::addItem(u32 i, InventoryItem *newitem)
 {
 	if(newitem == NULL)
 		return NULL;
-	
-	/*
-	 * We check if we a read only
-	 */
-	if(m_readOnly)
-		return newitem;
 
 	//setDirty(true);
-	
+
 	// If it is an empty position, it's an easy job.
 	InventoryItem *to_item = getItem(i);
 	if(to_item == NULL)
@@ -759,6 +747,10 @@ void IMoveAction::apply(InventoryContext *c, InventoryManager *mgr)
 
 	InventoryList *list_from = inv_from->getList(from_list);
 	InventoryList *list_to = inv_to->getList(to_list);
+
+	// Check if destination is read only
+	if(list_to->m_readOnly)
+		return;
 
 	/*dstream<<"list_from="<<list_from<<" list_to="<<list_to
 			<<std::endl;*/
