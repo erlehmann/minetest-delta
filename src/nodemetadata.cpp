@@ -164,6 +164,11 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 	InventoryList* rlist = m_inventory->getList("workbench_craftresult");
 	assert(rlist);
 
+	// FIXME: This is a temporary workaround to avoid losing inventory if dropping it in the craft result area
+	// The correct fix however, would be to now allow dropping inventory into it, but just taking inventory from it
+	if(!m_crafted && rlist->getUsedSlots() != 0)
+		return false;
+
 	if (rlist->getUsedSlots() != 0)
 		m_crafted = false;
 
