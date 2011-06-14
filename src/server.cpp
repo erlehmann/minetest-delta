@@ -3627,6 +3627,9 @@ void Server::UpdateCrafting(u16 peer_id) {
 		InventoryList *clist = player->inventory.getList("craft");
 		InventoryList *rlist = player->inventory.getList("craftresult");
 
+		// TODO: Can this be put somewhere else, so it doesn't execute more than once?
+		rlist->setReadOnly(true); // Set craft result as read only
+
 		//TODO: only 2x2 reciepes here
 		if (rlist->getUsedSlots() == 0)
 			player->craftresult_is_preview = true;
