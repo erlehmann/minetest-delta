@@ -495,12 +495,13 @@ public:
 	void decrementMaterials(u16 count);
 
 	void print(std::ostream &o);
-	
+
+	bool m_readOnly;
+
 private:
 	core::array<InventoryItem*> m_items;
 	u32 m_size;
 	std::string m_name;
-	bool m_readOnly;
 	//bool m_dirty;
 };
 
