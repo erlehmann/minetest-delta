@@ -208,6 +208,7 @@ u16 WorkbenchNodeMetadata::typeId() const {
 NodeMetadata* WorkbenchNodeMetadata::create(std::istream &is) {
 	WorkbenchNodeMetadata *d = new WorkbenchNodeMetadata();
 	d->m_inventory->deSerialize(is);
+	d->m_inventory->getList("workbench_craftresult")->setReadOnly(true); // Set craft result as read only
 	return d;
 }
 NodeMetadata* WorkbenchNodeMetadata::clone() {
