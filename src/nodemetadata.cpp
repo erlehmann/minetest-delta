@@ -235,7 +235,7 @@ bool WorkbenchNodeMetadata::nodeRemovalDisabled() {
 
 bool WorkbenchNodeMetadata::step(float dtime) {
 	// Update at a fixed frequency
-	const float interval = 0.5;
+	const float interval = 0; // Can be instant
 	m_step_accumulator += dtime;
 	if (m_step_accumulator < interval)
 		return false;
