@@ -97,7 +97,6 @@ private:
 	Inventory *m_inventory;
 	float m_step_accumulator;
 	bool m_crafted;
-	bool m_found;
 };
 /*
 	List of metadata of all the nodes of a block
