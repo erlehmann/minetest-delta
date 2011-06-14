@@ -163,11 +163,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 	InventoryList* rlist = m_inventory->getList("workbench_craftresult");
 	assert(rlist);
 
-	if (clist->getUsedSlots() == 0)
+	// Don't allow obtaining the craft result if the crafting pattern has changed
+	if (!m_found)
 		rlist->clearItems();
 
 	if (rlist->getUsedSlots() != 0)
-		return false;
+		m_crafted = false;
 
 	if (m_crafted) {
 		// We have crafted something so we clear our clist
@@ -182,30 +183,30 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			items[i] = clist->getItem(i);
 		}
 
-		bool found = false;
+		m_found = false;
 
 		// Wood
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_TREE);
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_WOOD, 4));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Stick
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new CraftItem("Stick", 4));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Fence
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[3] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
@@ -215,12 +216,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[8] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_FENCE, 2));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Sign
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
@@ -232,23 +233,23 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				//rlist->addItem(new MapBlockObjectItem("Sign"));
 				rlist->addItem(new MaterialItem(CONTENT_SIGN_WALL, 1));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Torch
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_CRAFT, "lump_of_coal");
 			specs[3] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_TORCH, 4));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Wooden pick
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
@@ -257,12 +258,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("WPick", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Stone pick
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
@@ -271,12 +272,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("STPick", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Steel pick
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
@@ -285,12 +286,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("SteelPick", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Mese pick
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_MESE);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_MESE);
@@ -299,48 +300,48 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("MesePick", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Wooden shovel
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("WShovel", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Stone shovel
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("STShovel", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Steel shovel
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("SteelShovel", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Wooden axe
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
@@ -349,12 +350,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("WAxe", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Stone axe
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
@@ -363,12 +364,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("STAxe", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Steel axe
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
@@ -377,48 +378,48 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("SteelAxe", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Wooden sword
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("WSword", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Stone sword
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("STSword", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Steel sword
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[4] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new ToolItem("SteelSword", 0));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Chest
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
@@ -430,11 +431,11 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_CHEST, 1));
-				found = true;
+				m_found = true;
 			}
 		}
 		// Rail
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[1] = ItemSpec(ITEM_CRAFT, "Stick");
@@ -447,12 +448,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[8] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_RAIL, 15));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Workbench
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
@@ -460,12 +461,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_WORKBENCH, 1));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Furnace
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
@@ -477,12 +478,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_FURNACE, 1));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Steel block
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
@@ -495,12 +496,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[8] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_STEEL, 1));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Sandstone
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
 			specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
@@ -508,12 +509,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_SANDSTONE, 1));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Clay
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[3] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
 			specs[4] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
@@ -521,12 +522,12 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[7] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_CLAY, 1));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Brick
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[3] = ItemSpec(ITEM_CRAFT, "clay_brick");
 			specs[4] = ItemSpec(ITEM_CRAFT, "clay_brick");
@@ -534,36 +535,36 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[7] = ItemSpec(ITEM_CRAFT, "clay_brick");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_BRICK, 1));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Paper
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
 			specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
 			specs[5] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new CraftItem("paper", 1));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Book
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_CRAFT, "paper");
 			specs[4] = ItemSpec(ITEM_CRAFT, "paper");
 			specs[7] = ItemSpec(ITEM_CRAFT, "paper");
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new CraftItem("book", 1));
-				found = true;
+				m_found = true;
 			}
 		}
 
 		// Book shelf
-		if (!found) {
+		if (!m_found) {
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
@@ -576,13 +577,13 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
 				rlist->addItem(new MaterialItem(CONTENT_BOOKSHELF, 1));
-				found = true;
+				m_found = true;
 			}
 		}
 
 
 		// If we found something we can clear the list
-		if (found) {
+		if (m_found) {
 			m_crafted = true;
 		}
 	}
