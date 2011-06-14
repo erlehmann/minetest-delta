@@ -722,6 +722,8 @@ NodeMetadata* FurnaceNodeMetadata::create(std::istream &is)
 
 	d->m_inventory->deSerialize(is);
 
+	d->m_inventory->getList("dst")->setReadOnly(true); // Set result as read only
+
 	int temp;
 	is>>temp;
 	d->m_fuel_totaltime = (float)temp/10;
