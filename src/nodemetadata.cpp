@@ -163,17 +163,11 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 	InventoryList* rlist = m_inventory->getList("workbench_craftresult");
 	assert(rlist);
 
-	// FIXME: We need a way to check if the crafting pattern has changed. So if materials are added or removed,
-	// and the pattern no longer matches, the craft result is removed as well. However, at the same time,
-	// we need to limit the times the craft result is updated. Otherwise, adding 1 Wood in the crafting area
-	// can result in 99 Planks instead of 4 in the craft result. In the current stage, the crafting pattern
-	// checks for changes, but the item counts are wrong.
-
 	if (rlist->getUsedSlots() != 0)
 		m_crafted = false;
 
 	if (m_crafted) {
-		// We have crafted something so we decrement clist
+		// We have crafted something, so we decrement the clist
 		clist->decrementMaterials(1);
 		m_crafted = false;
 		return false;
@@ -585,18 +579,16 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			}
 		}
 
+		// If the craft result doesn't match the current crafting pattern, clear it
+		if(item != rlist->getItem(0))
+			rlist->clearItems();
+
 		if (found) {
-			// If we found something we can clear the list
 			m_crafted = true;
 
-			if(item != rlist->getItem(0))
-				rlist->clearItems();
+			// If the craft result has not been added yet, do so
 			if (rlist->getUsedSlots() == 0)
 				rlist->addItem(item);
-		}
-		else {
-			// Don't allow obtaining the craft result if the crafting pattern has changed
-			rlist->clearItems();
 		}
 	}
 	return true;
