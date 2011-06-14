@@ -488,6 +488,9 @@ public:
 	// Returns NULL if couldn't take any.
 	InventoryItem * takeItem(u32 i, u32 count);
 
+	// Sets the List read only
+	void setReadOnly(bool readOnly);
+
 	// Decrements amount of every material item
 	void decrementMaterials(u16 count);
 
@@ -497,6 +500,7 @@ private:
 	core::array<InventoryItem*> m_items;
 	u32 m_size;
 	std::string m_name;
+	bool m_readOnly;
 	//bool m_dirty;
 };
 

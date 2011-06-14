@@ -241,11 +241,11 @@ MapBlockObject * MapBlockObjectItem::createObject
 /*
 	Inventory
 */
-
 InventoryList::InventoryList(std::string name, u32 size)
 {
 	m_name = name;
 	m_size = size;
+	m_readOnly = false;
 	clearItems();
 	//m_dirty = false;
 }
@@ -431,6 +431,12 @@ InventoryItem * InventoryList::addItem(InventoryItem *newitem)
 		return NULL;
 	
 	/*
+	 * We check if we a read only
+	 */
+	if(m_readOnly)
+		return newitem;
+
+	/*
 		First try to find if it could be added to some existing items
 	*/
 	for(u32 i=0; i<m_items.size(); i++)
@@ -467,6 +473,12 @@ InventoryItem * InventoryList::addItem(u32 i, InventoryItem *newitem)
 	if(newitem == NULL)
 		return NULL;
 	
+	/*
+	 * We check if we a read only
+	 */
+	if(m_readOnly)
+		return newitem;
+
 	//setDirty(true);
 	
 	// If it is an empty position, it's an easy job.
@@ -547,6 +559,11 @@ InventoryItem * InventoryList::takeItem(u32 i, u32 count)
 	}
 	
 	return false;
+}
+
+void InventoryList::setReadOnly(bool readOnly)
+{
+	m_readOnly = readOnly;
 }
 
 void InventoryList::decrementMaterials(u16 count)
