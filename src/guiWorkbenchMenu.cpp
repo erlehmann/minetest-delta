@@ -44,9 +44,5 @@ GUIWorkbenchMenu::GUIWorkbenchMenu(gui::IGUIEnvironment* env,
 			"main", v2s32(0, 3), v2s32(8, 4)));
 
 	setDrawSpec(draw_spec);
-
-	Inventory *inv_to = m_invmgr->getInventory(m_c, workbench_inv_id);
-	InventoryList *list_to = inv_to->getList("workbench_craftresult");
-	list_to->setReadOnly(true);
 }
 
