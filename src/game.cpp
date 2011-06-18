@@ -1,6 +1,8 @@
 /*
 Minetest-c55
 Copyright (C) 2010-2011 celeron55, Perttu Ahola <celeron55@gmail.com>
+Copyright (C) 2011 Sebastian Rühl <https://launchpad.net/~sebastian-ruehl>
+Copyright (C) 2011 MirceaKitsune <https://github.com/MirceaKitsune>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
