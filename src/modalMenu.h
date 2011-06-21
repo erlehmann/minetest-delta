@@ -41,13 +41,13 @@ class GUIModalMenu : public gui::IGUIElement
 {
 public:
 	GUIModalMenu(gui::IGUIEnvironment* env,
-			gui::IGUIElement* parent, s32 id,
-			IMenuManager *menumgr):
+	             gui::IGUIElement* parent, s32 id,
+	             IMenuManager *menumgr):
 		IGUIElement(gui::EGUIET_ELEMENT, env, parent, id,
-				core::rect<s32>(0,0,100,100))
+		            core::rect<s32>(0,0,100,100))
 	{
 		//m_force_regenerate_gui = false;
-		
+
 		m_menumgr = menumgr;
 		m_allow_focus_removal = false;
 		m_screensize_old = v2u32(0,0);
@@ -75,7 +75,7 @@ public:
 	{
 		if(!IsVisible)
 			return;
-			
+
 		video::IVideoDriver* driver = Environment->getVideoDriver();
 		v2u32 screensize = driver->getScreenSize();
 		if(screensize != m_screensize_old /*|| m_force_regenerate_gui*/)
@@ -87,7 +87,7 @@ public:
 
 		drawMenu();
 	}
-	
+
 	/*
 		This should be called when the menu wants to quit.
 
@@ -107,13 +107,13 @@ public:
 		const core::list<gui::IGUIElement*> &children = getChildren();
 		core::list<gui::IGUIElement*> children_copy;
 		for(core::list<gui::IGUIElement*>::ConstIterator
-				i = children.begin(); i != children.end(); i++)
+		        i = children.begin(); i != children.end(); i++)
 		{
 			children_copy.push_back(*i);
 		}
 		for(core::list<gui::IGUIElement*>::Iterator
-				i = children_copy.begin();
-				i != children_copy.end(); i++)
+		        i = children_copy.begin();
+		        i != children_copy.end(); i++)
 		{
 			(*i)->remove();
 		}
@@ -121,7 +121,10 @@ public:
 
 	virtual void regenerateGui(v2u32 screensize) = 0;
 	virtual void drawMenu() = 0;
-	virtual bool OnEvent(const SEvent& event) { return false; };
+	virtual bool OnEvent(const SEvent& event)
+	{
+		return false;
+	};
 
 protected:
 	//bool m_force_regenerate_gui;

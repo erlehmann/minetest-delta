@@ -46,11 +46,11 @@ struct MainMenuData
 {
 	MainMenuData() :
 		// Client opts
-				fancy_trees(false), smooth_lighting(false),
-				// Server opts
-				creative_mode(false), enable_damage(false),
-				// Actions
-				delete_map(false)
+		fancy_trees(false), smooth_lighting(false),
+		// Server opts
+		creative_mode(false), enable_damage(false),
+		// Actions
+		delete_map(false)
 	{
 	}
 
@@ -74,8 +74,8 @@ class GUIMainMenu: public GUIModalMenu
 {
 public:
 	GUIMainMenu(gui::IGUIEnvironment* env, gui::IGUIElement* parent, s32 id,
-			IMenuManager *menumgr, MainMenuData *data,
-			IGameCallback *gamecallback);
+	            IMenuManager *menumgr, MainMenuData *data,
+	            IGameCallback *gamecallback);
 	~GUIMainMenu();
 
 	gui::IGUIEnvironment* env;

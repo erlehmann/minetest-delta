@@ -50,7 +50,7 @@ ClientActiveObject* ClientActiveObject::create(u8 type)
 	{
 		// If factory is not found, just return.
 		dstream<<"WARNING: ClientActiveObject: No factory for type="
-				<<type<<std::endl;
+		       <<type<<std::endl;
 		return NULL;
 	}
 
@@ -96,9 +96,9 @@ void TestCAO::addToScene(scene::ISceneManager *smgr)
 {
 	if(m_node != NULL)
 		return;
-	
+
 	video::IVideoDriver* driver = smgr->getVideoDriver();
-	
+
 	scene::SMesh *mesh = new scene::SMesh();
 	scene::IMeshBuffer *buf = new scene::SMeshBuffer();
 	video::SColor c(255,255,255,255);
@@ -115,7 +115,7 @@ void TestCAO::addToScene(scene::ISceneManager *smgr)
 	buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
 	buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
 	buf->getMaterial().setTexture
-			(0, driver->getTexture(getTexturePath("rat.png").c_str()));
+	(0, driver->getTexture(getTexturePath("rat.png").c_str()));
 	buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 	buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 	buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
@@ -213,9 +213,9 @@ void ItemCAO::addToScene(scene::ISceneManager *smgr)
 {
 	if(m_node != NULL)
 		return;
-	
+
 	video::IVideoDriver* driver = smgr->getVideoDriver();
-	
+
 	scene::SMesh *mesh = new scene::SMesh();
 	scene::IMeshBuffer *buf = new scene::SMeshBuffer();
 	video::SColor c(255,255,255,255);
@@ -238,7 +238,7 @@ void ItemCAO::addToScene(scene::ISceneManager *smgr)
 	//buf->getMaterial().setTexture(0, NULL);
 	// Initialize with the stick texture
 	buf->getMaterial().setTexture
-			(0, driver->getTexture(getTexturePath("stick.png").c_str()));
+	(0, driver->getTexture(getTexturePath("stick.png").c_str()));
 	buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 	buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 	buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
@@ -273,7 +273,7 @@ void ItemCAO::updateLight(u8 light_at_pos)
 	scene::IMesh *mesh = m_node->getMesh();
 	if(mesh == NULL)
 		return;
-	
+
 	u16 mc = mesh->getMeshBufferCount();
 	for(u16 j=0; j<mc; j++)
 	{
@@ -332,7 +332,7 @@ void ItemCAO::processMessage(const std::string &data)
 void ItemCAO::initialize(const std::string &data)
 {
 	dstream<<"ItemCAO: Got init data"<<std::endl;
-	
+
 	{
 		std::istringstream is(data, std::ios::binary);
 		// version
@@ -345,7 +345,7 @@ void ItemCAO::initialize(const std::string &data)
 		// inventorystring
 		m_inventorystring = deSerializeString(is);
 	}
-	
+
 	updateNodePos();
 
 	/*
@@ -359,7 +359,7 @@ void ItemCAO::initialize(const std::string &data)
 
 	if(mesh == NULL)
 		return;
-	
+
 	scene::IMeshBuffer *buf = mesh->getMeshBuffer(0);
 
 	if(buf == NULL)
@@ -368,12 +368,13 @@ void ItemCAO::initialize(const std::string &data)
 	// Create an inventory item to see what is its image
 	std::istringstream is(m_inventorystring, std::ios_base::binary);
 	video::ITexture *texture = NULL;
-	try{
+	try
+	{
 		InventoryItem *item = NULL;
 		item = InventoryItem::deSerialize(is);
 		dstream<<__FUNCTION_NAME<<": m_inventorystring=\""
-				<<m_inventorystring<<"\" -> item="<<item
-				<<std::endl;
+		       <<m_inventorystring<<"\" -> item="<<item
+		       <<std::endl;
 		if(item)
 		{
 			texture = item->getImage();
@@ -383,13 +384,13 @@ void ItemCAO::initialize(const std::string &data)
 	catch(SerializationError &e)
 	{
 		dstream<<"WARNING: "<<__FUNCTION_NAME
-				<<": error deSerializing inventorystring \""
-				<<m_inventorystring<<"\""<<std::endl;
+		       <<": error deSerializing inventorystring \""
+		       <<m_inventorystring<<"\""<<std::endl;
 	}
-	
+
 	// Set meshbuffer texture
 	buf->getMaterial().setTexture(0, texture);
-	
+
 }
 
 /*
@@ -424,9 +425,9 @@ void RatCAO::addToScene(scene::ISceneManager *smgr)
 {
 	if(m_node != NULL)
 		return;
-	
+
 	video::IVideoDriver* driver = smgr->getVideoDriver();
-	
+
 	scene::SMesh *mesh = new scene::SMesh();
 	scene::IMeshBuffer *buf = new scene::SMeshBuffer();
 	video::SColor c(255,255,255,255);
@@ -444,7 +445,7 @@ void RatCAO::addToScene(scene::ISceneManager *smgr)
 	buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
 	//buf->getMaterial().setTexture(0, NULL);
 	buf->getMaterial().setTexture
-			(0, driver->getTexture(getTexturePath("rat.png").c_str()));
+	(0, driver->getTexture(getTexturePath("rat.png").c_str()));
 	buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 	buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 	buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
@@ -479,7 +480,7 @@ void RatCAO::updateLight(u8 light_at_pos)
 	scene::IMesh *mesh = m_node->getMesh();
 	if(mesh == NULL)
 		return;
-	
+
 	u16 mc = mesh->getMeshBufferCount();
 	for(u16 j=0; j<mc; j++)
 	{
@@ -537,7 +538,7 @@ void RatCAO::processMessage(const std::string &data)
 void RatCAO::initialize(const std::string &data)
 {
 	//dstream<<"RatCAO: Got init data"<<std::endl;
-	
+
 	{
 		std::istringstream is(data, std::ios::binary);
 		// version
@@ -549,7 +550,7 @@ void RatCAO::initialize(const std::string &data)
 		m_position = readV3F1000(is);
 		pos_translator.init(m_position);
 	}
-	
+
 	updateNodePos();
 }
 
@@ -585,9 +586,9 @@ void Oerkki1CAO::addToScene(scene::ISceneManager *smgr)
 {
 	if(m_node != NULL)
 		return;
-	
+
 	video::IVideoDriver* driver = smgr->getVideoDriver();
-	
+
 	scene::SMesh *mesh = new scene::SMesh();
 	scene::IMeshBuffer *buf = new scene::SMeshBuffer();
 	video::SColor c(255,255,255,255);
@@ -605,7 +606,7 @@ void Oerkki1CAO::addToScene(scene::ISceneManager *smgr)
 	buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
 	//buf->getMaterial().setTexture(0, NULL);
 	buf->getMaterial().setTexture
-			(0, driver->getTexture(getTexturePath("oerkki1.png").c_str()));
+	(0, driver->getTexture(getTexturePath("oerkki1.png").c_str()));
 	buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 	buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 	buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
@@ -633,7 +634,7 @@ void Oerkki1CAO::updateLight(u8 light_at_pos)
 {
 	if(m_node == NULL)
 		return;
-	
+
 	if(light_at_pos <= 2)
 	{
 		m_node->setVisible(false);
@@ -648,7 +649,7 @@ void Oerkki1CAO::updateLight(u8 light_at_pos)
 	scene::IMesh *mesh = m_node->getMesh();
 	if(mesh == NULL)
 		return;
-	
+
 	u16 mc = mesh->getMeshBufferCount();
 	for(u16 j=0; j<mc; j++)
 	{
@@ -687,13 +688,13 @@ void Oerkki1CAO::step(float dtime, ClientEnvironment *env)
 
 	LocalPlayer *player = env->getLocalPlayer();
 	assert(player);
-	
+
 	v3f playerpos = player->getPosition();
 	v2f playerpos_2d(playerpos.X,playerpos.Z);
 	v2f objectpos_2d(m_position.X,m_position.Z);
 
 	if(fabs(m_position.Y - playerpos.Y) < 3.0*BS &&
-			objectpos_2d.getDistanceFrom(playerpos_2d) < 1.0*BS)
+	        objectpos_2d.getDistanceFrom(playerpos_2d) < 1.0*BS)
 	{
 		if(m_attack_interval.step(dtime, 0.5))
 		{
@@ -722,7 +723,7 @@ void Oerkki1CAO::processMessage(const std::string &data)
 void Oerkki1CAO::initialize(const std::string &data)
 {
 	//dstream<<"Oerkki1CAO: Got init data"<<std::endl;
-	
+
 	{
 		std::istringstream is(data, std::ios::binary);
 		// version
@@ -734,7 +735,7 @@ void Oerkki1CAO::initialize(const std::string &data)
 		m_position = readV3F1000(is);
 		pos_translator.init(m_position);
 	}
-	
+
 	updateNodePos();
 }
 

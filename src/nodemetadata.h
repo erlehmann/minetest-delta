@@ -32,7 +32,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 		- Burning time
 		- Item stack that is being heated
 		- Result item stack
-	
+
 	Sign:
 		- Text
 */
@@ -46,22 +46,34 @@ public:
 
 	NodeMetadata();
 	virtual ~NodeMetadata();
-	
+
 	static NodeMetadata* deSerialize(std::istream &is);
 	void serialize(std::ostream &os);
-	
+
 	// This usually is the CONTENT_ value
 	virtual u16 typeId() const = 0;
 	virtual NodeMetadata* clone() = 0;
 	virtual void serializeBody(std::ostream &os) = 0;
-	virtual std::string infoText() {return "";}
-	virtual Inventory* getInventory() {return NULL;}
+	virtual std::string infoText()
+	{
+		return "";
+	}
+	virtual Inventory* getInventory()
+	{
+		return NULL;
+	}
 	// This is called always after the inventory is modified, before
 	// the changes are copied elsewhere
-	virtual void inventoryModified(){}
+	virtual void inventoryModified() {}
 	// A step in time. Returns true if metadata changed.
-	virtual bool step(float dtime) {return false;}
-	virtual bool nodeRemovalDisabled(){return false;}
+	virtual bool step(float dtime)
+	{
+		return false;
+	}
+	virtual bool nodeRemovalDisabled()
+	{
+		return false;
+	}
 
 protected:
 	static void registerType(u16 id, Factory f);
@@ -74,15 +86,21 @@ class SignNodeMetadata : public NodeMetadata
 public:
 	SignNodeMetadata(std::string text);
 	//~SignNodeMetadata();
-	
+
 	virtual u16 typeId() const;
 	static NodeMetadata* create(std::istream &is);
 	virtual NodeMetadata* clone();
 	virtual void serializeBody(std::ostream &os);
 	virtual std::string infoText();
 
-	std::string getText(){ return m_text; }
-	void setText(std::string t){ m_text = t; }
+	std::string getText()
+	{
+		return m_text;
+	}
+	void setText(std::string t)
+	{
+		m_text = t;
+	}
 
 private:
 	std::string m_text;
@@ -93,16 +111,19 @@ class ChestNodeMetadata : public NodeMetadata
 public:
 	ChestNodeMetadata();
 	~ChestNodeMetadata();
-	
+
 	virtual u16 typeId() const;
 	static NodeMetadata* create(std::istream &is);
 	virtual NodeMetadata* clone();
 	virtual void serializeBody(std::ostream &os);
 	virtual std::string infoText();
-	virtual Inventory* getInventory() {return m_inventory;}
+	virtual Inventory* getInventory()
+	{
+		return m_inventory;
+	}
 
 	virtual bool nodeRemovalDisabled();
-	
+
 private:
 	Inventory *m_inventory;
 };
@@ -112,13 +133,16 @@ class FurnaceNodeMetadata : public NodeMetadata
 public:
 	FurnaceNodeMetadata();
 	~FurnaceNodeMetadata();
-	
+
 	virtual u16 typeId() const;
 	virtual NodeMetadata* clone();
 	static NodeMetadata* create(std::istream &is);
 	virtual void serializeBody(std::ostream &os);
 	virtual std::string infoText();
-	virtual Inventory* getInventory() {return m_inventory;}
+	virtual Inventory* getInventory()
+	{
+		return m_inventory;
+	}
 	virtual void inventoryModified();
 	virtual bool step(float dtime);
 
@@ -144,14 +168,14 @@ public:
 
 	void serialize(std::ostream &os);
 	void deSerialize(std::istream &is);
-	
+
 	// Get pointer to data
 	NodeMetadata* get(v3s16 p);
 	// Deletes data
 	void remove(v3s16 p);
 	// Deletes old data and sets a new one
 	void set(v3s16 p, NodeMetadata *d);
-	
+
 	// A step in time. Returns true if something changed.
 	bool step(float dtime);
 

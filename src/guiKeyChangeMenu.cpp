@@ -27,7 +27,7 @@
 #include <string>
 
 GUIKeyChangeMenu::GUIKeyChangeMenu(gui::IGUIEnvironment* env,
-		gui::IGUIElement* parent, s32 id, IMenuManager *menumgr) :
+                                   gui::IGUIElement* parent, s32 id, IMenuManager *menumgr) :
 	GUIModalMenu(env, parent, id, menumgr)
 {
 	activeKey = -1;
@@ -44,12 +44,12 @@ void GUIKeyChangeMenu::removeChildren()
 	const core::list<gui::IGUIElement*> &children = getChildren();
 	core::list<gui::IGUIElement*> children_copy;
 	for (core::list<gui::IGUIElement*>::ConstIterator i = children.begin(); i
-			!= children.end(); i++)
+	        != children.end(); i++)
 	{
 		children_copy.push_back(*i);
 	}
 	for (core::list<gui::IGUIElement*>::Iterator i = children_copy.begin(); i
-			!= children_copy.end(); i++)
+	        != children_copy.end(); i++)
 	{
 		(*i)->remove();
 	}
@@ -69,8 +69,8 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 	v2s32 size(620, 430);
 
 	core::rect < s32 > rect(screensize.X / 2 - size.X / 2,
-			screensize.Y / 2 - size.Y / 2, screensize.X / 2 + size.X / 2,
-			screensize.Y / 2 + size.Y / 2);
+	                        screensize.Y / 2 - size.Y / 2, screensize.X / 2 + size.X / 2,
+	                        screensize.Y / 2 + size.Y / 2);
 
 	DesiredRect = rect;
 	recalculateAbsolutePosition(false);
@@ -100,8 +100,8 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->forward = Environment->addButton(rect, this,
-				GUI_ID_KEY_FORWARD_BUTTON,
-				narrow_to_wide(KeyNames[key_forward]).c_str());
+		                                       GUI_ID_KEY_FORWARD_BUTTON,
+		                                       narrow_to_wide(KeyNames[key_forward]).c_str());
 	}
 
 	offset += v2s32(0, 25);
@@ -117,8 +117,8 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->backward = Environment->addButton(rect, this,
-				GUI_ID_KEY_BACKWARD_BUTTON,
-				narrow_to_wide(KeyNames[key_backward]).c_str());
+		                                        GUI_ID_KEY_BACKWARD_BUTTON,
+		                                        narrow_to_wide(KeyNames[key_backward]).c_str());
 	}
 	offset += v2s32(0, 25);
 	{
@@ -133,7 +133,7 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->left = Environment->addButton(rect, this, GUI_ID_KEY_LEFT_BUTTON,
-				narrow_to_wide(KeyNames[key_left]).c_str());
+		                                    narrow_to_wide(KeyNames[key_left]).c_str());
 	}
 	offset += v2s32(0, 25);
 	{
@@ -148,8 +148,8 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->right = Environment->addButton(rect, this,
-				GUI_ID_KEY_RIGHT_BUTTON,
-				narrow_to_wide(KeyNames[key_right]).c_str());
+		                                     GUI_ID_KEY_RIGHT_BUTTON,
+		                                     narrow_to_wide(KeyNames[key_right]).c_str());
 	}
 	offset += v2s32(0, 25);
 	{
@@ -164,7 +164,7 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->use = Environment->addButton(rect, this, GUI_ID_KEY_USE_BUTTON,
-				narrow_to_wide(KeyNames[key_use]).c_str());
+		                                   narrow_to_wide(KeyNames[key_use]).c_str());
 	}
 	offset += v2s32(0, 25);
 	{
@@ -179,8 +179,8 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->sneak = Environment->addButton(rect, this,
-				GUI_ID_KEY_SNEAK_BUTTON,
-				narrow_to_wide(KeyNames[key_sneak]).c_str());
+		                                     GUI_ID_KEY_SNEAK_BUTTON,
+		                                     narrow_to_wide(KeyNames[key_sneak]).c_str());
 	}
 	offset += v2s32(0, 25);
 	{
@@ -195,7 +195,7 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->jump = Environment->addButton(rect, this, GUI_ID_KEY_JUMP_BUTTON,
-				narrow_to_wide(KeyNames[key_jump]).c_str());
+		                                    narrow_to_wide(KeyNames[key_jump]).c_str());
 	}
 
 	offset += v2s32(0, 25);
@@ -211,8 +211,8 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->inventory = Environment->addButton(rect, this,
-				GUI_ID_KEY_INVENTORY_BUTTON,
-				narrow_to_wide(KeyNames[key_inventory]).c_str());
+		                  GUI_ID_KEY_INVENTORY_BUTTON,
+		                  narrow_to_wide(KeyNames[key_inventory]).c_str());
 	}
 	offset += v2s32(0, 25);
 	{
@@ -227,7 +227,7 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->chat = Environment->addButton(rect, this, GUI_ID_KEY_CHAT_BUTTON,
-				narrow_to_wide(KeyNames[key_chat]).c_str());
+		                                    narrow_to_wide(KeyNames[key_chat]).c_str());
 	}
 
 	//next col
@@ -244,7 +244,7 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->fly = Environment->addButton(rect, this, GUI_ID_KEY_FLY_BUTTON,
-				narrow_to_wide(KeyNames[key_fly]).c_str());
+		                                   narrow_to_wide(KeyNames[key_fly]).c_str());
 	}
 	offset += v2s32(0, 25);
 	{
@@ -259,7 +259,7 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->fast = Environment->addButton(rect, this, GUI_ID_KEY_FAST_BUTTON,
-				narrow_to_wide(KeyNames[key_fast]).c_str());
+		                                    narrow_to_wide(KeyNames[key_fast]).c_str());
 	}
 	offset += v2s32(0, 25);
 	{
@@ -274,8 +274,8 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->range = Environment->addButton(rect, this,
-				GUI_ID_KEY_RANGE_BUTTON,
-				narrow_to_wide(KeyNames[key_range]).c_str());
+		                                     GUI_ID_KEY_RANGE_BUTTON,
+		                                     narrow_to_wide(KeyNames[key_range]).c_str());
 	}
 
 	offset += v2s32(0, 25);
@@ -291,7 +291,7 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 		core::rect < s32 > rect(0, 0, 100, 30);
 		rect += topleft + v2s32(offset.X + 105, offset.Y - 5);
 		this->dump = Environment->addButton(rect, this, GUI_ID_KEY_DUMP_BUTTON,
-				narrow_to_wide(KeyNames[key_dump]).c_str());
+		                                    narrow_to_wide(KeyNames[key_dump]).c_str());
 	}
 	{
 		core::rect < s32 > rect(0, 0, 100, 30);
@@ -366,11 +366,11 @@ bool GUIKeyChangeMenu::resetMenu()
 		{
 		case GUI_ID_KEY_FORWARD_BUTTON:
 			this->forward->setText(
-					narrow_to_wide(KeyNames[key_forward]).c_str());
+			    narrow_to_wide(KeyNames[key_forward]).c_str());
 			break;
 		case GUI_ID_KEY_BACKWARD_BUTTON:
 			this->backward->setText(
-					narrow_to_wide(KeyNames[key_backward]).c_str());
+			    narrow_to_wide(KeyNames[key_backward]).c_str());
 			break;
 		case GUI_ID_KEY_LEFT_BUTTON:
 			this->left->setText(narrow_to_wide(KeyNames[key_left]).c_str());
@@ -386,7 +386,7 @@ bool GUIKeyChangeMenu::resetMenu()
 			break;
 		case GUI_ID_KEY_INVENTORY_BUTTON:
 			this->inventory->setText(
-					narrow_to_wide(KeyNames[key_inventory]).c_str());
+			    narrow_to_wide(KeyNames[key_inventory]).c_str());
 			break;
 		case GUI_ID_KEY_CHAT_BUTTON:
 			this->chat->setText(narrow_to_wide(KeyNames[key_chat]).c_str());
@@ -415,84 +415,84 @@ bool GUIKeyChangeMenu::resetMenu()
 bool GUIKeyChangeMenu::OnEvent(const SEvent& event)
 {
 	if (event.EventType == EET_KEY_INPUT_EVENT && activeKey >= 0
-			&& event.KeyInput.PressedDown)
+	        && event.KeyInput.PressedDown)
 	{
 		if (activeKey == GUI_ID_KEY_FORWARD_BUTTON)
 		{
 			this->forward->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_forward = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_BACKWARD_BUTTON)
 		{
 			this->backward->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_backward = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_LEFT_BUTTON)
 		{
 			this->left->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_left = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_RIGHT_BUTTON)
 		{
 			this->right->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_right = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_JUMP_BUTTON)
 		{
 			this->jump->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_jump = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_SNEAK_BUTTON)
 		{
 			this->sneak->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_sneak = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_INVENTORY_BUTTON)
 		{
 			this->inventory->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_inventory = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_CHAT_BUTTON)
 		{
 			this->chat->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_chat = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_RANGE_BUTTON)
 		{
 			this->range->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_range = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_FLY_BUTTON)
 		{
 			this->fly->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_fly = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_FAST_BUTTON)
 		{
 			this->fast->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_fast = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_USE_BUTTON)
 		{
 			this->use->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_use = event.KeyInput.Key;
 		}
 		else if (activeKey == GUI_ID_KEY_DUMP_BUTTON)
 		{
 			this->dump->setText(
-					narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
+			    narrow_to_wide(KeyNames[event.KeyInput.Key]).c_str());
 			this->key_dump = event.KeyInput.Key;
 		}
 
@@ -502,12 +502,12 @@ bool GUIKeyChangeMenu::OnEvent(const SEvent& event)
 	if (event.EventType == EET_GUI_EVENT)
 	{
 		if (event.GUIEvent.EventType == gui::EGET_ELEMENT_FOCUS_LOST
-				&& isVisible())
+		        && isVisible())
 		{
 			if (!canTakeFocus(event.GUIEvent.Element))
 			{
 				dstream << "GUIMainMenu: Not allowing focus change."
-						<< std::endl;
+				        << std::endl;
 				// Returning true disables focus change
 				return true;
 			}

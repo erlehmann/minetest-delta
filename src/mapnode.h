@@ -54,7 +54,7 @@ void init_content_inventory_texture_paths();
 
 	Anything that stores MapNodes doesn't have to preserve parameters
 	associated with this material.
-	
+
 	Doesn't create faces with anything and is considered being
 	out-of-map in the game map.
 */
@@ -71,7 +71,7 @@ void init_content_inventory_texture_paths();
 	Suggested materials:
 	- Gravel
 	- Sand
-	
+
 	New naming scheme:
 	- Material = irrlicht's Material class
 	- Content = (u8) content of a node
@@ -149,7 +149,7 @@ struct ContentFeatures
 		5: front
 	*/
 	TileSpec tiles[6];
-	
+
 	video::ITexture *inventory_texture;
 
 	bool is_ground_content;
@@ -173,11 +173,11 @@ struct ContentFeatures
 	// If true, node is equivalent to air. Torches are, air is. Water is not.
 	// Is used for example to check whether a mud block can have grass on.
 	bool air_equivalent;
-	
+
 	// Inventory item string as which the node appears in inventory when dug.
 	// Mineral overrides this.
 	std::string dug_item;
-	
+
 	// Initial metadata is cloned from this
 	NodeMetadata *initial_metadata;
 
@@ -204,11 +204,11 @@ struct ContentFeatures
 	}
 
 	~ContentFeatures();
-	
+
 	/*
 		Quickhands for simple materials
 	*/
-	
+
 	void setTexture(u16 i, std::string name, u8 alpha=255);
 
 	void setAllTextures(std::string name, u8 alpha=255)
@@ -232,9 +232,9 @@ struct ContentFeatures
 	}
 
 	void setInventoryTexture(std::string imgname);
-	
+
 	void setInventoryTextureCube(std::string top,
-			std::string left, std::string right);
+	                             std::string left, std::string right);
 };
 
 /*
@@ -363,14 +363,14 @@ inline u8 face_contents(u8 m1, u8 m2)
 {
 	if(m1 == CONTENT_IGNORE || m2 == CONTENT_IGNORE)
 		return 0;
-	
+
 	bool contents_differ = (m1 != m2);
-	
+
 	// Contents don't differ for different forms of same liquid
 	if(content_liquid(m1) && content_liquid(m2)
-			&& make_liquid_flowing(m1) == make_liquid_flowing(m2))
+	        && make_liquid_flowing(m1) == make_liquid_flowing(m2))
 		contents_differ = false;
-	
+
 	bool solidness_differs = (content_solidness(m1) != content_solidness(m2));
 	bool makes_face = contents_differ && solidness_differs;
 
@@ -404,7 +404,7 @@ inline u8 packDir(v3s16 dir)
 		b |= (1<<4);
 	else if(dir.Z < 0)
 		b |= (1<<5);
-	
+
 	return b;
 }
 inline v3s16 unpackDir(u8 b)
@@ -425,7 +425,7 @@ inline v3s16 unpackDir(u8 b)
 		d.Z = 1;
 	else if(b & (1<<5))
 		d.Z = -1;
-	
+
 	return d;
 }
 
@@ -463,7 +463,7 @@ struct MapNode
 		s8 param;
 		u8 param1;
 	};
-	
+
 	/*
 		The second parameter. Initialized to 0.
 		E.g. direction for torches and flowing water.
@@ -478,7 +478,7 @@ struct MapNode
 	{
 		*this = n;
 	}
-	
+
 	MapNode(u8 data=CONTENT_AIR, u8 a_param=0, u8 a_param2=0)
 	{
 		d = data;
@@ -497,20 +497,20 @@ struct MapNode
 	bool operator==(const MapNode &other)
 	{
 		return (d == other.d
-				&& param == other.param
-				&& param2 == other.param2);
+		        && param == other.param
+		        && param2 == other.param2);
 	}
 
 	bool light_propagates()
 	{
 		return light_propagates_content(d);
 	}
-	
+
 	bool sunlight_propagates()
 	{
 		return sunlight_propagates_content(d);
 	}
-	
+
 	u8 solidness()
 	{
 		return content_solidness(d);
@@ -523,7 +523,7 @@ struct MapNode
 		*/
 		if(d == CONTENT_TORCH)
 			return LIGHT_MAX;
-		
+
 		return 0;
 	}
 
@@ -566,14 +566,14 @@ struct MapNode
 			light = light_source();
 		return light;
 	}
-	
+
 	// 0 <= daylight_factor <= 1000
 	// 0 <= return value <= LIGHT_SUN
 	u8 getLightBlend(u32 daylight_factor)
 	{
 		u8 l = ((daylight_factor * getLight(LIGHTBANK_DAY)
-			+ (1000-daylight_factor) * getLight(LIGHTBANK_NIGHT))
-			)/1000;
+		         + (1000-daylight_factor) * getLight(LIGHTBANK_NIGHT))
+		       )/1000;
 		u8 max = LIGHT_MAX;
 		if(getLight(LIGHTBANK_DAY) == LIGHT_SUN)
 			max = LIGHT_SUN;
@@ -611,7 +611,7 @@ struct MapNode
 		else
 			assert(0);
 	}
-	
+
 	// In mapnode.cpp
 	TileSpec getTile(v3s16 dir);
 
@@ -626,7 +626,7 @@ struct MapNode
 	{
 		if(!ser_ver_supported(version))
 			throw VersionMismatchException("ERROR: MapNode format not supported");
-			
+
 		if(version == 0)
 			return 1;
 		else if(version <= 9)
@@ -638,7 +638,7 @@ struct MapNode
 	{
 		if(!ser_ver_supported(version))
 			throw VersionMismatchException("ERROR: MapNode format not supported");
-			
+
 		if(version == 0)
 		{
 			dest[0] = d;
@@ -659,7 +659,7 @@ struct MapNode
 	{
 		if(!ser_ver_supported(version))
 			throw VersionMismatchException("ERROR: MapNode format not supported");
-			
+
 		if(version == 0)
 		{
 			d = source[0];
@@ -692,7 +692,7 @@ struct MapNode
 		if(translate_to)
 		{
 			dstream<<"MapNode: WARNING: Translating "<<d<<" to "
-					<<translate_to->d<<std::endl;
+			       <<translate_to->d<<std::endl;
 			*this = *translate_to;
 		}
 	}

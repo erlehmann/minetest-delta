@@ -63,10 +63,10 @@ public:
 	core::list<Player*> getPlayers();
 	core::list<Player*> getPlayers(bool ignore_disconnected);
 	void printPlayers(std::ostream &o);
-	
+
 	//void setDayNightRatio(u32 r);
 	u32 getDayNightRatio();
-	
+
 	// 0-23999
 	virtual void setTimeOfDay(u32 time)
 	{
@@ -95,15 +95,17 @@ class ActiveBlockList
 {
 public:
 	void update(core::list<v3s16> &active_positions,
-			s16 radius,
-			core::map<v3s16, bool> &blocks_removed,
-			core::map<v3s16, bool> &blocks_added);
+	            s16 radius,
+	            core::map<v3s16, bool> &blocks_removed,
+	            core::map<v3s16, bool> &blocks_added);
 
-	bool contains(v3s16 p){
+	bool contains(v3s16 p)
+	{
 		return (m_list.find(p) != NULL);
 	}
 
-	void clear(){
+	void clear()
+	{
 		m_list.clear();
 	}
 
@@ -121,10 +123,13 @@ class ServerEnvironment;
 class ActiveBlockModifier
 {
 public:
-	ActiveBlockModifier(){};
-	virtual ~ActiveBlockModifier(){};
-	
-	virtual u32 getTriggerContentCount(){ return 1;}
+	ActiveBlockModifier() {};
+	virtual ~ActiveBlockModifier() {};
+
+	virtual u32 getTriggerContentCount()
+	{
+		return 1;
+	}
 	virtual u8 getTriggerContent(u32 i) = 0;
 	virtual float getActiveInterval() = 0;
 	virtual u32 getActiveChance() = 0;
@@ -163,7 +168,7 @@ public:
 	}
 
 	void step(f32 dtime);
-	
+
 	/*
 		Save players
 	*/
@@ -191,23 +196,23 @@ public:
 		Returns 0 if not added and thus deleted.
 	*/
 	u16 addActiveObject(ServerActiveObject *object);
-	
+
 	/*
 		Find out what new objects have been added to
 		inside a radius around a position
 	*/
 	void getAddedActiveObjects(v3s16 pos, s16 radius,
-			core::map<u16, bool> &current_objects,
-			core::map<u16, bool> &added_objects);
+	                           core::map<u16, bool> &current_objects,
+	                           core::map<u16, bool> &added_objects);
 
 	/*
 		Find out what new objects have been removed from
 		inside a radius around a position
 	*/
 	void getRemovedActiveObjects(v3s16 pos, s16 radius,
-			core::map<u16, bool> &current_objects,
-			core::map<u16, bool> &removed_objects);
-	
+	                             core::map<u16, bool> &current_objects,
+	                             core::map<u16, bool> &removed_objects);
+
 	/*
 		Get the next message emitted by some active object.
 		Returns a message with id=0 if no messages are available.
@@ -219,12 +224,12 @@ private:
 		Remove all objects that satisfy (m_removed && m_known_by_count==0)
 	*/
 	void removeRemovedObjects();
-	
+
 	/*
 		Convert stored objects from block to active
 	*/
 	void activateObjects(MapBlock *block);
-	
+
 	/*
 		Convert objects that are not in active blocks to static.
 
@@ -239,7 +244,7 @@ private:
 	/*
 		Member variables
 	*/
-	
+
 	// The map
 	ServerMap *m_map;
 	// Pointer to server (which is handling this environment)
@@ -284,10 +289,13 @@ enum ClientEnvEventType
 struct ClientEnvEvent
 {
 	ClientEnvEventType type;
-	union {
-		struct{
+	union
+	{
+		struct
+		{
 		} none;
-		struct{
+		struct
+		{
 			u8 amount;
 		} player_damage;
 	};
@@ -326,7 +334,7 @@ public:
 		if(getDayNightRatio() != old_dr)
 		{
 			dout_client<<DTIME<<"ClientEnvironment: DayNightRatio changed"
-					<<" -> expiring meshes"<<std::endl;
+			           <<" -> expiring meshes"<<std::endl;
 			expireMeshes(true);
 		}
 	}
@@ -334,7 +342,7 @@ public:
 	/*
 		ActiveObjects
 	*/
-	
+
 	ClientActiveObject* getActiveObject(u16 id);
 
 	/*
@@ -361,14 +369,14 @@ public:
 	/*
 		Client likes to call these
 	*/
-	
+
 	// Get all nearby objects
 	void getActiveObjects(v3f origin, f32 max_d,
-			core::array<DistanceSortedActiveObject> &dest);
-	
+	                      core::array<DistanceSortedActiveObject> &dest);
+
 	// Get event from queue. CEE_NONE is returned if queue is empty.
 	ClientEnvEvent getClientEvent();
-	
+
 private:
 	ClientMap *m_map;
 	scene::ISceneManager *m_smgr;

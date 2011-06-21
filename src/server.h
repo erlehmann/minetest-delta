@@ -71,14 +71,14 @@ public:
 			delete q;
 		}
 	}
-	
+
 	/*
 		peer_id=0 adds with nobody to send to
 	*/
 	void addBlock(u16 peer_id, v3s16 pos, u8 flags)
 	{
 		DSTACK(__FUNCTION_NAME);
-	
+
 		JMutexAutoLock lock(m_mutex);
 
 		if(peer_id != 0)
@@ -98,7 +98,7 @@ public:
 				}
 			}
 		}
-		
+
 		/*
 			Add the block
 		*/
@@ -128,7 +128,7 @@ public:
 		JMutexAutoLock lock(m_mutex);
 		return m_queue.size();
 	}
-	
+
 	u32 peerItemCount(u16 peer_id)
 	{
 		JMutexAutoLock lock(m_mutex);
@@ -208,7 +208,7 @@ u32 PIChecksum(core::list<PlayerInfo> &l);
 
 /*
 	Used for queueing and sorting block transfers in containers
-	
+
 	Lower priority number means higher priority.
 */
 struct PrioritySortedBlockTransfer
@@ -256,14 +256,14 @@ public:
 	~RemoteClient()
 	{
 	}
-	
+
 	/*
 		Finds block that should be sent next to the client.
 		Environment should be locked when this is called.
 		dtime is used for resetting send radius at slow interval
 	*/
 	void GetNextBlocks(Server *server, float dtime,
-			core::array<PrioritySortedBlockTransfer> &dest);
+	                   core::array<PrioritySortedBlockTransfer> &dest);
 
 	/*
 		Connection and environment should be locked when this is called.
@@ -271,10 +271,10 @@ public:
 		adds those blocks to active_blocks
 	*/
 	void SendObjectData(
-			Server *server,
-			float dtime,
-			core::map<v3s16, bool> &stepped_blocks
-		);
+	    Server *server,
+	    float dtime,
+	    core::map<v3s16, bool> &stepped_blocks
+	);
 
 	void GotBlock(v3s16 p);
 
@@ -287,7 +287,7 @@ public:
 	{
 		return m_blocks_sending.size();
 	}
-	
+
 	// Increments timeouts and removes timed-out blocks from list
 	// NOTE: This doesn't fix the server-not-sending-block bug
 	//       because it is related to emerging, not sending.
@@ -296,23 +296,23 @@ public:
 	void PrintInfo(std::ostream &o)
 	{
 		o<<"RemoteClient "<<peer_id<<": "
-				<<"m_blocks_sent.size()="<<m_blocks_sent.size()
-				<<", m_blocks_sending.size()="<<m_blocks_sending.size()
-				<<", m_nearest_unsent_d="<<m_nearest_unsent_d
-				<<", m_excess_gotblocks="<<m_excess_gotblocks
-				<<std::endl;
+		 <<"m_blocks_sent.size()="<<m_blocks_sent.size()
+		 <<", m_blocks_sending.size()="<<m_blocks_sending.size()
+		 <<", m_nearest_unsent_d="<<m_nearest_unsent_d
+		 <<", m_excess_gotblocks="<<m_excess_gotblocks
+		 <<std::endl;
 		m_excess_gotblocks = 0;
 	}
 
 	// Time from last placing or removing blocks
 	float m_time_from_building;
-	
+
 	/*JMutex m_dig_mutex;
 	float m_dig_time_remaining;
 	// -1 = not digging
 	s16 m_dig_tool_item;
 	v3s16 m_dig_position;*/
-	
+
 	/*
 		List of active objects that the client knows of.
 		Value is dummy.
@@ -325,7 +325,7 @@ private:
 		- These don't have to be sent again.
 		- A block is cleared from here when client says it has
 		  deleted it from it's memory
-		
+
 		Key is position, value is dummy.
 		No MapBlock* is stored here because the blocks can get deleted.
 	*/
@@ -333,7 +333,7 @@ private:
 	s16 m_nearest_unsent_d;
 	v3s16 m_last_center;
 	float m_nearest_unsent_reset_timer;
-	
+
 	/*
 		Blocks that are currently on the line.
 		This is used for throttling the sending of blocks.
@@ -352,14 +352,14 @@ private:
 		This is resetted by PrintInfo()
 	*/
 	u32 m_excess_gotblocks;
-	
+
 	// CPU usage optimization
 	u32 m_nothing_to_send_counter;
 	float m_nothing_to_send_pause_timer;
 };
 
 class Server : public con::PeerHandler, public MapEventReceiver,
-		public InventoryManager
+	public InventoryManager
 {
 public:
 	/*
@@ -367,7 +367,7 @@ public:
 	*/
 
 	Server(
-		std::string mapsavedir
+	    std::string mapsavedir
 	);
 	~Server();
 	void start(unsigned short port);
@@ -386,7 +386,7 @@ public:
 	{
 		return time_to_daynight_ratio(m_time_of_day.get());
 	}*/
-	
+
 	// Environment must be locked when called
 	void setTimeOfDay(u32 time)
 	{
@@ -398,7 +398,7 @@ public:
 	{
 		return m_shutdown_requested;
 	}
-	
+
 	/*
 		Shall be called with the environment locked.
 		This is accessed by the map, which is inside the environment,
@@ -432,14 +432,14 @@ private:
 	// As of now, these create and remove clients and players.
 	void peerAdded(con::Peer *peer);
 	void deletingPeer(con::Peer *peer, bool timeout);
-	
+
 	/*
 		Static send methods
 	*/
-	
+
 	static void SendHP(con::Connection &con, u16 peer_id, u8 hp);
 	static void SendAccessDenied(con::Connection &con, u16 peer_id);
-	
+
 	/*
 		Non-static send methods
 	*/
@@ -457,25 +457,25 @@ private:
 		far_d_nodes are ignored and their peer_ids are added to far_players
 	*/
 	void sendRemoveNode(v3s16 p, u16 ignore_id=0,
-			core::list<u16> *far_players=NULL, float far_d_nodes=100);
+	                    core::list<u16> *far_players=NULL, float far_d_nodes=100);
 	void sendAddNode(v3s16 p, MapNode n, u16 ignore_id=0,
-			core::list<u16> *far_players=NULL, float far_d_nodes=100);
-	
+	                 core::list<u16> *far_players=NULL, float far_d_nodes=100);
+
 	// Environment and Connection must be locked when called
 	void SendBlockNoLock(u16 peer_id, MapBlock *block, u8 ver);
-	
+
 	// Sends blocks to clients
 	void SendBlocks(float dtime);
 
 	/*
 		Something random
 	*/
-	
+
 	void UpdateCrafting(u16 peer_id);
-	
+
 	// When called, connection mutex should be locked
 	RemoteClient* getClient(u16 peer_id);
-	
+
 	/*
 		Get a player from memory or creates one.
 		If player is already connected, return NULL
@@ -485,7 +485,7 @@ private:
 		Call with env and con locked.
 	*/
 	Player *emergePlayer(const char *name, const char *password, u16 peer_id);
-	
+
 	// Locks environment and connection by its own
 	struct PeerChange;
 	void handlePeerChange(PeerChange &c);
@@ -494,31 +494,31 @@ private:
 	/*
 		Variables
 	*/
-	
+
 	// Some timers
 	float m_liquid_transform_timer;
 	float m_print_info_timer;
 	float m_objectdata_timer;
 	float m_emergethread_trigger_timer;
 	float m_savemap_timer;
-	
+
 	// NOTE: If connection and environment are both to be locked,
 	// environment shall be locked first.
 
 	// Environment
 	ServerEnvironment m_env;
 	JMutex m_env_mutex;
-	
+
 	// Connection
 	con::Connection m_con;
 	JMutex m_con_mutex;
 	// Connected clients (behind the con mutex)
 	core::map<u16, RemoteClient*> m_clients;
-	
+
 	/*
 		Threads
 	*/
-	
+
 	// A buffer for time steps
 	// step() increments and AsyncRunStep() run by m_thread reads it.
 	float m_step_dtime;
@@ -530,7 +530,7 @@ private:
 	EmergeThread m_emergethread;
 	// Queue of block coordinates to be processed by the emerge thread
 	BlockEmergeQueue m_emerge_queue;
-	
+
 	/*
 		Time related stuff
 	*/
@@ -543,7 +543,7 @@ private:
 	float m_time_of_day_send_timer;
 	// Uptime of server in seconds
 	MutexedVariable<double> m_uptime;
-	
+
 	/*
 		Peer change queue.
 		Queues stuff from peerAdded() and deletingPeer() to
@@ -570,7 +570,7 @@ private:
 	std::string m_mapsavedir;
 
 	bool m_shutdown_requested;
-	
+
 	/*
 		Map edit event queue. Automatically receives all map edits.
 		The constructor of this class registers us to receive them through

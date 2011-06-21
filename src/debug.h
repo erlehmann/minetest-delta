@@ -31,11 +31,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "exceptions.h"
 
 #ifdef _WIN32
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
-	#ifdef _MSC_VER
-		#include <eh.h>
-	#endif
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#ifdef _MSC_VER
+#include <eh.h>
+#endif
 #else
 #endif
 
@@ -82,7 +82,7 @@ public:
 			//TODO: Is this slow?
 			fflush(g_debugstreams[i]);
 		}
-		
+
 		return c;
 	}
 	int xsputn(const char *s, int n)
@@ -99,13 +99,14 @@ public:
 
 		return n;
 	}
-	
+
 private:
 	bool m_disable_stderr;
 };
 
 // This is used to redirect output to /dev/null
-class Nullstream : public std::ostream {
+class Nullstream : public std::ostream
+{
 public:
 	Nullstream():
 		std::ostream(0)
@@ -124,8 +125,8 @@ extern Nullstream dummyout;
 */
 
 __NORETURN extern void assert_fail(
-		const char *assertion, const char *file,
-		unsigned int line, const char *function);
+    const char *assertion, const char *file,
+    unsigned int line, const char *function);
 
 #define ASSERT(expr)\
 	((expr)\
@@ -145,7 +146,7 @@ struct DebugStack
 {
 	DebugStack(threadid_t id);
 	void print(FILE *file, bool everything);
-	
+
 	threadid_t threadid;
 	char stack[DEBUG_STACK_SIZE][DEBUG_STACK_TEXT_SIZE];
 	int stack_i; // Points to the lowest empty position
@@ -205,8 +206,8 @@ public:
 	void clear()
 	{
 		for(core::map<u16, u16>::Iterator
-				i = m_packets.getIterator();
-				i.atEnd() == false; i++)
+		        i = m_packets.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			i.getNode()->setValue(0);
 		}
@@ -215,12 +216,12 @@ public:
 	void print(std::ostream &o)
 	{
 		for(core::map<u16, u16>::Iterator
-				i = m_packets.getIterator();
-				i.atEnd() == false; i++)
+		        i = m_packets.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			o<<"cmd "<<i.getNode()->getKey()
-					<<" count "<<i.getNode()->getValue()
-					<<std::endl;
+			 <<" count "<<i.getNode()->getValue()
+			 <<std::endl;
 		}
 	}
 
@@ -234,16 +235,16 @@ private:
 */
 
 #if CATCH_UNHANDLED_EXCEPTIONS == 1
-	#define BEGIN_PORTABLE_DEBUG_EXCEPTION_HANDLER try{
-	#define END_PORTABLE_DEBUG_EXCEPTION_HANDLER\
+#define BEGIN_PORTABLE_DEBUG_EXCEPTION_HANDLER try{
+#define END_PORTABLE_DEBUG_EXCEPTION_HANDLER\
 		}catch(std::exception &e){\
 			dstream<<std::endl<<DTIME\
 					<<"ERROR: An unhandled exception occurred: "\
 					<<e.what()<<std::endl;\
 			assert(0);\
 		}
-	#ifdef _WIN32 // Windows
-		#ifdef _MSC_VER // MSVC
+#ifdef _WIN32 // Windows
+#ifdef _MSC_VER // MSVC
 void se_trans_func(unsigned int, EXCEPTION_POINTERS*);
 
 class FatalSystemException : public BaseException
@@ -253,28 +254,28 @@ public:
 		BaseException(s)
 	{}
 };
-			#define BEGIN_DEBUG_EXCEPTION_HANDLER \
+#define BEGIN_DEBUG_EXCEPTION_HANDLER \
 				BEGIN_PORTABLE_DEBUG_EXCEPTION_HANDLER\
 				_set_se_translator(se_trans_func);
 
-			#define END_DEBUG_EXCEPTION_HANDLER \
+#define END_DEBUG_EXCEPTION_HANDLER \
 				END_PORTABLE_DEBUG_EXCEPTION_HANDLER
-		#else // Probably mingw
-			#define BEGIN_DEBUG_EXCEPTION_HANDLER\
+#else // Probably mingw
+#define BEGIN_DEBUG_EXCEPTION_HANDLER\
 				BEGIN_PORTABLE_DEBUG_EXCEPTION_HANDLER
-			#define END_DEBUG_EXCEPTION_HANDLER\
+#define END_DEBUG_EXCEPTION_HANDLER\
 				END_PORTABLE_DEBUG_EXCEPTION_HANDLER
-		#endif
-	#else // Posix
-		#define BEGIN_DEBUG_EXCEPTION_HANDLER\
+#endif
+#else // Posix
+#define BEGIN_DEBUG_EXCEPTION_HANDLER\
 			BEGIN_PORTABLE_DEBUG_EXCEPTION_HANDLER
-		#define END_DEBUG_EXCEPTION_HANDLER\
+#define END_DEBUG_EXCEPTION_HANDLER\
 			END_PORTABLE_DEBUG_EXCEPTION_HANDLER
-	#endif
+#endif
 #else
-	// Dummy ones
-	#define BEGIN_DEBUG_EXCEPTION_HANDLER
-	#define END_DEBUG_EXCEPTION_HANDLER
+// Dummy ones
+#define BEGIN_DEBUG_EXCEPTION_HANDLER
+#define END_DEBUG_EXCEPTION_HANDLER
 #endif
 
 #endif // DEBUG_HEADER

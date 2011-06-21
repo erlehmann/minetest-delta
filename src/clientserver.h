@@ -33,7 +33,7 @@ enum ToClientCommand
 
 		[0] u16 TOSERVER_INIT
 		[2] u8 deployed version
-		[3] v3s16 player's position + v3f(0,BS/2,0) floatToInt'd 
+		[3] v3s16 player's position + v3f(0,BS/2,0) floatToInt'd
 		([4] u64 map seed (new as of 2011-02-27))
 
 		NOTE: The position in here is deprecated; position is
@@ -43,7 +43,7 @@ enum ToClientCommand
 	TOCLIENT_BLOCKDATA = 0x20, //TODO: Multiple blocks
 	TOCLIENT_ADDNODE = 0x21,
 	TOCLIENT_REMOVENODE = 0x22,
-	
+
 	TOCLIENT_PLAYERPOS = 0x23, // Obsolete
 	/*
 		[0] u16 command
@@ -64,7 +64,7 @@ enum ToClientCommand
 		[N] u16 peer_id
 		[N] char[20] name
 	*/
-	
+
 	TOCLIENT_OPT_BLOCK_NOT_FOUND = 0x25, // Obsolete
 
 	TOCLIENT_SECTORMETA = 0x26, // Obsolete
@@ -79,7 +79,7 @@ enum ToClientCommand
 		[0] u16 command
 		[2] serialized inventory
 	*/
-	
+
 	TOCLIENT_OBJECTDATA = 0x28,
 	/*
 		Sent as unreliable.
@@ -125,7 +125,7 @@ enum ToClientCommand
 			string initialization data
 		}
 	*/
-	
+
 	TOCLIENT_ACTIVE_OBJECT_MESSAGES = 0x32,
 	/*
 		u16 command
@@ -239,7 +239,7 @@ enum ToServerCommand
 		2: stop digging (all parameters ignored)
 		3: digging completed
 	*/
-	
+
 	TOSERVER_RELEASE = 0x29, // Obsolete
 
 	TOSERVER_SIGNTEXT = 0x30, // Old signs
@@ -279,7 +279,7 @@ enum ToServerCommand
 		[3] u16 id
 		[5] u16 item
 	*/
-	
+
 	TOSERVER_DAMAGE = 0x35,
 	/*
 		u16 command

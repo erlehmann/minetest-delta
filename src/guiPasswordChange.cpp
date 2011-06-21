@@ -30,10 +30,10 @@ const int ID_change = 259;
 const int ID_message = 260;
 
 GUIPasswordChange::GUIPasswordChange(gui::IGUIEnvironment* env,
-		gui::IGUIElement* parent, s32 id,
-		IMenuManager *menumgr,
-		Client* client
-):
+                                     gui::IGUIElement* parent, s32 id,
+                                     IMenuManager *menumgr,
+                                     Client* client
+                                    ):
 	GUIModalMenu(env, parent, id, menumgr),
 	m_client(client)
 {
@@ -74,17 +74,17 @@ void GUIPasswordChange::regenerateGui(v2u32 screensize)
 		Remove stuff
 	*/
 	removeChildren();
-	
+
 	/*
 		Calculate new sizes and positions
 	*/
 	core::rect<s32> rect(
-			screensize.X/2 - 580/2,
-			screensize.Y/2 - 300/2,
-			screensize.X/2 + 580/2,
-			screensize.Y/2 + 300/2
+	    screensize.X/2 - 580/2,
+	    screensize.Y/2 - 300/2,
+	    screensize.X/2 + 580/2,
+	    screensize.Y/2 + 300/2
 	);
-	
+
 	DesiredRect = rect;
 	recalculateAbsolutePosition(false);
 
@@ -105,8 +105,8 @@ void GUIPasswordChange::regenerateGui(v2u32 screensize)
 	{
 		core::rect<s32> rect(0, 0, 230, 30);
 		rect += topleft_client + v2s32(160, ypos);
-		gui::IGUIEditBox *e = 
-		Environment->addEditBox(L"", rect, true, this, ID_oldPassword);
+		gui::IGUIEditBox *e =
+		    Environment->addEditBox(L"", rect, true, this, ID_oldPassword);
 		Environment->setFocus(e);
 		e->setPasswordBox(true);
 	}
@@ -120,8 +120,8 @@ void GUIPasswordChange::regenerateGui(v2u32 screensize)
 	{
 		core::rect<s32> rect(0, 0, 230, 30);
 		rect += topleft_client + v2s32(160, ypos);
-		gui::IGUIEditBox *e = 
-		Environment->addEditBox(L"", rect, true, this, ID_newPassword1);
+		gui::IGUIEditBox *e =
+		    Environment->addEditBox(L"", rect, true, this, ID_newPassword1);
 		e->setPasswordBox(true);
 	}
 	ypos += 50;
@@ -134,8 +134,8 @@ void GUIPasswordChange::regenerateGui(v2u32 screensize)
 	{
 		core::rect<s32> rect(0, 0, 230, 30);
 		rect += topleft_client + v2s32(160, ypos);
-		gui::IGUIEditBox *e = 
-		Environment->addEditBox(L"", rect, true, this, ID_newPassword2);
+		gui::IGUIEditBox *e =
+		    Environment->addEditBox(L"", rect, true, this, ID_newPassword2);
 		e->setPasswordBox(true);
 	}
 
@@ -151,8 +151,8 @@ void GUIPasswordChange::regenerateGui(v2u32 screensize)
 		core::rect<s32> rect(0, 0, 300, 20);
 		rect += topleft_client + v2s32(35, ypos);
 		const wchar_t *text = L"Passwords do not match!";
-		IGUIElement *e = 
-		Environment->addStaticText(text, rect, false, true, this, ID_message);
+		IGUIElement *e =
+		    Environment->addStaticText(text, rect, false, true, this, ID_message);
 		e->setVisible(false);
 	}
 
@@ -164,7 +164,7 @@ void GUIPasswordChange::drawMenu()
 	if (!skin)
 		return;
 	video::IVideoDriver* driver = Environment->getVideoDriver();
-	
+
 	video::SColor bgcolor(140,0,0,0);
 	driver->draw2DRectangle(bgcolor, AbsoluteRect, &AbsoluteClippingRect);
 
@@ -173,25 +173,25 @@ void GUIPasswordChange::drawMenu()
 
 bool GUIPasswordChange::acceptInput()
 {
-		std::wstring oldpass;
-		std::wstring newpass;
-		gui::IGUIElement *e;
-		e = getElementFromId(ID_oldPassword);
+	std::wstring oldpass;
+	std::wstring newpass;
+	gui::IGUIElement *e;
+	e = getElementFromId(ID_oldPassword);
+	if(e != NULL)
+		oldpass = e->getText();
+	e = getElementFromId(ID_newPassword1);
+	if(e != NULL)
+		newpass = e->getText();
+	e = getElementFromId(ID_newPassword2);
+	if(e != NULL && newpass != e->getText())
+	{
+		e = getElementFromId(ID_message);
 		if(e != NULL)
-			oldpass = e->getText();
-		e = getElementFromId(ID_newPassword1);
-		if(e != NULL)
-			newpass = e->getText();
-		e = getElementFromId(ID_newPassword2);
-		if(e != NULL && newpass != e->getText())
-		{
-			e = getElementFromId(ID_message);
-			if(e != NULL)
-				e->setVisible(true);
-			return false;
-		}
-		m_client->sendChangePassword(oldpass, newpass);
-		return true;
+			e->setVisible(true);
+		return false;
+	}
+	m_client->sendChangePassword(oldpass, newpass);
+	return true;
 }
 
 bool GUIPasswordChange::OnEvent(const SEvent& event)
@@ -213,12 +213,12 @@ bool GUIPasswordChange::OnEvent(const SEvent& event)
 	if(event.EventType==EET_GUI_EVENT)
 	{
 		if(event.GUIEvent.EventType==gui::EGET_ELEMENT_FOCUS_LOST
-				&& isVisible())
+		        && isVisible())
 		{
 			if(!canTakeFocus(event.GUIEvent.Element))
 			{
 				dstream<<"GUIPasswordChange: Not allowing focus change."
-						<<std::endl;
+				       <<std::endl;
 				// Returning true disables focus change
 				return true;
 			}

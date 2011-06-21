@@ -57,12 +57,12 @@ struct AtlasPointer
 	u16 tiled; // X-wise tiling count. If 0, width of atlas is width of image.
 
 	AtlasPointer(
-			u16 id_,
-			video::ITexture *atlas_=NULL,
-			v2f pos_=v2f(0,0),
-			v2f size_=v2f(1,1),
-			u16 tiled_=1
-		):
+	    u16 id_,
+	    video::ITexture *atlas_=NULL,
+	    v2f pos_=v2f(0,0),
+	    v2f size_=v2f(1,1),
+	    u16 tiled_=1
+	):
 		id(id_),
 		atlas(atlas_),
 		pos(pos_),
@@ -74,8 +74,8 @@ struct AtlasPointer
 	bool operator==(const AtlasPointer &other)
 	{
 		return (
-			id == other.id
-		);
+		           id == other.id
+		       );
 		/*return (
 			id == other.id &&
 			atlas == other.atlas &&
@@ -85,10 +85,22 @@ struct AtlasPointer
 		);*/
 	}
 
-	float x0(){ return pos.X; }
-	float x1(){ return pos.X + size.X; }
-	float y0(){ return pos.Y; }
-	float y1(){ return pos.Y + size.Y; }
+	float x0()
+	{
+		return pos.X;
+	}
+	float x1()
+	{
+		return pos.X + size.X;
+	}
+	float y0()
+	{
+		return pos.Y;
+	}
+	float y1()
+	{
+		return pos.Y + size.Y;
+	}
 };
 
 /*
@@ -104,12 +116,12 @@ struct SourceAtlasPointer
 	v2u32 intsize;
 
 	SourceAtlasPointer(
-			const std::string &name_,
-			AtlasPointer a_=AtlasPointer(0, NULL),
-			video::IImage *atlas_img_=NULL,
-			v2s32 intpos_=v2s32(0,0),
-			v2u32 intsize_=v2u32(0,0)
-		):
+	    const std::string &name_,
+	    AtlasPointer a_=AtlasPointer(0, NULL),
+	    video::IImage *atlas_img_=NULL,
+	    v2s32 intpos_=v2s32(0,0),
+	    v2u32 intsize_=v2u32(0,0)
+	):
 		name(name_),
 		a(a_),
 		atlas_img(atlas_img_),
@@ -125,16 +137,32 @@ struct SourceAtlasPointer
 class ITextureSource
 {
 public:
-	ITextureSource(){}
-	virtual ~ITextureSource(){}
-	virtual u32 getTextureId(const std::string &name){return 0;}
-	virtual u32 getTextureIdDirect(const std::string &name){return 0;}
-	virtual std::string getTextureName(u32 id){return "";}
-	virtual AtlasPointer getTexture(u32 id){return AtlasPointer(0);}
+	ITextureSource() {}
+	virtual ~ITextureSource() {}
+	virtual u32 getTextureId(const std::string &name)
+	{
+		return 0;
+	}
+	virtual u32 getTextureIdDirect(const std::string &name)
+	{
+		return 0;
+	}
+	virtual std::string getTextureName(u32 id)
+	{
+		return "";
+	}
+	virtual AtlasPointer getTexture(u32 id)
+	{
+		return AtlasPointer(0);
+	}
 	virtual AtlasPointer getTexture(const std::string &name)
-		{return AtlasPointer(0);}
+	{
+		return AtlasPointer(0);
+	}
 	virtual video::ITexture* getTextureRaw(const std::string &name)
-		{return NULL;}
+	{
+		return NULL;
+	}
 };
 
 /*
@@ -152,7 +180,7 @@ public:
 		Shall be called from the main thread.
 	*/
 	void processQueue();
-	
+
 	/*
 		Example case:
 		Now, assume a texture with the id 1 exists, and has the name
@@ -182,14 +210,14 @@ public:
 		  getTextureId("stone.png^mineral1^crack0")
 
 	*/
-	
+
 	/*
 		Gets a texture id from cache or
 		- if main thread, from getTextureIdDirect
 		- if other thread, adds to request queue and waits for main thread
 	*/
 	u32 getTextureId(const std::string &name);
-	
+
 	/*
 		Example names:
 		"stone.png"
@@ -221,12 +249,12 @@ public:
 		for processing.
 	*/
 	AtlasPointer getTexture(u32 id);
-	
+
 	AtlasPointer getTexture(const std::string &name)
 	{
 		return getTexture(getTextureId(name));
 	}
-	
+
 	// Gets a separate texture
 	video::ITexture* getTextureRaw(const std::string &name)
 	{
@@ -238,16 +266,16 @@ private:
 	/*
 		Build the main texture atlas which contains most of the
 		textures.
-		
+
 		This is called by the constructor.
 	*/
 	void buildMainAtlas();
-	
+
 	// The id of the thread that is allowed to use irrlicht directly
 	threadid_t m_main_thread;
 	// The irrlicht device
 	IrrlichtDevice *m_device;
-	
+
 	// A texture id is index in this array.
 	// The first position contains a NULL texture.
 	core::array<SourceAtlasPointer> m_atlaspointer_cache;
@@ -255,7 +283,7 @@ private:
 	core::map<std::string, u32> m_name_to_id;
 	// The two former containers are behind this mutex
 	JMutex m_atlaspointer_cache_mutex;
-	
+
 	// Main texture atlas. This is filled at startup and is then not touched.
 	video::IImage *m_main_atlas_image;
 	video::ITexture *m_main_atlas_texture;
@@ -264,7 +292,8 @@ private:
 	RequestQueue<std::string, u32, u8, u8> m_get_texture_queue;
 };
 
-enum MaterialType{
+enum MaterialType
+{
 	MATERIAL_ALPHA_NONE,
 	MATERIAL_ALPHA_VERTEX,
 	MATERIAL_ALPHA_SIMPLE, // >127 = opaque
@@ -287,8 +316,8 @@ struct TileSpec
 		// Use this so that leaves don't need a separate material
 		//material_type(MATERIAL_ALPHA_SIMPLE),
 		material_flags(
-			//0 // <- DEBUG, Use the one below
-			MATERIAL_FLAG_BACKFACE_CULLING
+		    //0 // <- DEBUG, Use the one below
+		    MATERIAL_FLAG_BACKFACE_CULLING
 		)
 	{
 	}
@@ -296,20 +325,20 @@ struct TileSpec
 	bool operator==(TileSpec &other)
 	{
 		return (
-			texture == other.texture &&
-			alpha == other.alpha &&
-			material_type == other.material_type &&
-			material_flags == other.material_flags
-		);
+		           texture == other.texture &&
+		           alpha == other.alpha &&
+		           material_type == other.material_type &&
+		           material_flags == other.material_flags
+		       );
 	}
-	
+
 	// Sets everything else except the texture in the material
 	void applyMaterialOptions(video::SMaterial &material)
 	{
 		if(alpha != 255 && material_type != MATERIAL_ALPHA_VERTEX)
 			dstream<<"WARNING: TileSpec: alpha != 255 "
-					"but not MATERIAL_ALPHA_VERTEX"
-					<<std::endl;
+			       "but not MATERIAL_ALPHA_VERTEX"
+			       <<std::endl;
 
 		if(material_type == MATERIAL_ALPHA_NONE)
 			material.MaterialType = video::EMT_SOLID;
@@ -322,14 +351,14 @@ struct TileSpec
 
 		material.BackfaceCulling = (material_flags & MATERIAL_FLAG_BACKFACE_CULLING) ? true : false;
 	}
-	
+
 	// NOTE: Deprecated, i guess?
 	void setTexturePos(u8 tx_, u8 ty_, u8 tw_, u8 th_)
 	{
 		texture.pos = v2f((float)tx_/256.0, (float)ty_/256.0);
 		texture.size = v2f(((float)tw_ + 1.0)/256.0, ((float)th_ + 1.0)/256.0);
 	}
-	
+
 	AtlasPointer texture;
 	// Vertex alpha
 	u8 alpha;

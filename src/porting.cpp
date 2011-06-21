@@ -42,17 +42,17 @@ bool * signal_handler_killstatus(void)
 }
 
 #if !defined(_WIN32) // POSIX
-	#include <signal.h>
+#include <signal.h>
 
 void sigint_handler(int sig)
 {
 	if(g_killed == false)
 	{
 		dstream<<DTIME<<"INFO: sigint_handler(): "
-				<<"Ctrl-C pressed, shutting down."<<std::endl;
-		
+		       <<"Ctrl-C pressed, shutting down."<<std::endl;
+
 		dstream<<DTIME<<"INFO: sigint_handler(): "
-				<<"Printing debug stacks"<<std::endl;
+		       <<"Printing debug stacks"<<std::endl;
 		debug_stacks_print();
 
 		g_killed = true;
@@ -109,13 +109,13 @@ void initializePaths()
 	/*
 		Windows
 	*/
-	#if defined(_WIN32)
-		#include <windows.h>
+#if defined(_WIN32)
+#include <windows.h>
 
 	const DWORD buflen = 1000;
 	char buf[buflen];
 	DWORD len;
-	
+
 	// Find path of executable and set path_data relative to it
 	len = GetModuleFileName(GetModuleHandle(NULL), buf, buflen);
 	assert(len < buflen);
@@ -123,41 +123,41 @@ void initializePaths()
 
 	// Use "./bin/../data"
 	path_data = std::string(buf) + "/../data";
-		
+
 	// Use "./bin/../"
 	path_userdata = std::string(buf) + "/../";
 
 	/*
 		Linux
 	*/
-	#elif defined(linux)
-		#include <unistd.h>
-	
+#elif defined(linux)
+#include <unistd.h>
+
 	char buf[BUFSIZ];
 	memset(buf, 0, BUFSIZ);
 	// Get path to executable
 	assert(readlink("/proc/self/exe", buf, BUFSIZ-1) != -1);
-	
+
 	pathRemoveFile(buf, '/');
 
 	// Use "./bin/../data"
 	path_data = std::string(buf) + "/../data";
-		
+
 	// Use "./bin/../"
 	path_userdata = std::string(buf) + "/../";
-	
+
 	/*
 		OS X
 	*/
-	#elif defined(__APPLE__)
-	
+#elif defined(__APPLE__)
+
 	//TODO: Get path of executable. This assumes working directory is bin/
 	dstream<<"WARNING: Relative path not properly supported on OS X"
-			<<std::endl;
+	       <<std::endl;
 	path_data = std::string("../data");
 	path_userdata = std::string("../");
 
-	#endif
+#endif
 
 #else // RUN_IN_PLACE
 
@@ -170,22 +170,22 @@ void initializePaths()
 	/*
 		Windows
 	*/
-	#if defined(_WIN32)
-		#include <windows.h>
+#if defined(_WIN32)
+#include <windows.h>
 
 	const DWORD buflen = 1000;
 	char buf[buflen];
 	DWORD len;
-	
+
 	// Find path of executable and set path_data relative to it
 	len = GetModuleFileName(GetModuleHandle(NULL), buf, buflen);
 	assert(len < buflen);
 	pathRemoveFile(buf, '\\');
-	
+
 	// Use "./bin/../data"
 	path_data = std::string(buf) + "/../data";
 	//path_data = std::string(buf) + "/../share/" + APPNAME;
-		
+
 	// Use "C:\Documents and Settings\user\Application Data\<APPNAME>"
 	len = GetEnvironmentVariable("APPDATA", buf, buflen);
 	assert(len < buflen);
@@ -194,31 +194,31 @@ void initializePaths()
 	/*
 		Linux
 	*/
-	#elif defined(linux)
-		#include <unistd.h>
-	
+#elif defined(linux)
+#include <unistd.h>
+
 	char buf[BUFSIZ];
 	memset(buf, 0, BUFSIZ);
 	// Get path to executable
 	assert(readlink("/proc/self/exe", buf, BUFSIZ-1) != -1);
-	
+
 	pathRemoveFile(buf, '/');
 
 	path_data = std::string(buf) + "/../share/" + APPNAME;
 	//path_data = std::string(INSTALL_PREFIX) + "/share/" + APPNAME;
-	
+
 	path_userdata = std::string(getenv("HOME")) + "/." + APPNAME;
 
 	/*
 		OS X
 	*/
-	#elif defined(__APPLE__)
-		#include <unistd.h>
+#elif defined(__APPLE__)
+#include <unistd.h>
 
 	path_userdata = std::string(getenv("HOME")) + "/Library/Application Support/" + APPNAME;
 	path_data = std::string("minetest-mac.app/Contents/Resources/data/");
 
-	#endif
+#endif
 
 #endif // RUN_IN_PLACE
 

@@ -34,12 +34,12 @@ class GUITextInputMenu : public GUIModalMenu
 {
 public:
 	GUITextInputMenu(gui::IGUIEnvironment* env,
-			gui::IGUIElement* parent, s32 id,
-			IMenuManager *menumgr,
-			TextDest *dest,
-			std::wstring initial_text);
+	                 gui::IGUIElement* parent, s32 id,
+	                 IMenuManager *menumgr,
+	                 TextDest *dest,
+	                 std::wstring initial_text);
 	~GUITextInputMenu();
-	
+
 	void removeChildren();
 	/*
 		Remove and re-add (or reposition) stuff
@@ -51,7 +51,7 @@ public:
 	void acceptInput();
 
 	bool OnEvent(const SEvent& event);
-	
+
 private:
 	TextDest *m_dest;
 	std::wstring m_initial_text;

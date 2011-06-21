@@ -26,7 +26,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #define PLAYERNAME_SIZE 20
 #define PASSWORD_SIZE 28       // Maximum password length. Allows for
-                               // base64-encoded SHA-1.
+// base64-encoded SHA-1.
 
 #define PLAYERNAME_ALLOWED_CHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.,"
 
@@ -39,9 +39,9 @@ const u64 PRIV_TELEPORT = 2;         // Can teleport
 const u64 PRIV_SETTIME = 4;          // Can set the time
 const u64 PRIV_PRIVS = 8;            // Can grant and revoke privileges
 const u64 PRIV_SERVER = 16;          // Can manage the server (e.g. shutodwn
-                                     // ,settings)
+// ,settings)
 const u64 PRIV_SHOUT = 32;           // Can broadcast chat messages to all
-                                     // players
+// players
 
 // Default privileges - these can be overriden for new players using the
 // config option "default_privs" - however, this value still applies for
@@ -84,7 +84,7 @@ public:
 	{
 		m_speed = speed;
 	}
-	
+
 	// Y direction is ignored
 	void accelerate(v3f target_speed, f32 max_increase);
 
@@ -141,11 +141,11 @@ public:
 	virtual bool isLocal() const = 0;
 
 	virtual void updateLight(u8 light_at_pos) {};
-	
+
 	// NOTE: Use peer_id == 0 for disconnected
 	/*virtual bool isClientConnected() { return false; }
 	virtual void setClientConnected(bool) {}*/
-	
+
 	/*
 		serialize() writes a bunch of text that can contain
 		any characters except a '\0', and such an ending that
@@ -160,7 +160,7 @@ public:
 	// This is more stable and defines the maximum speed of the player
 	bool in_water_stable;
 	bool swimming_up;
-	
+
 	Inventory inventory;
 
 	bool craftresult_is_preview;
@@ -206,7 +206,7 @@ public:
 	virtual void move(f32 dtime, Map &map, f32 pos_max_d)
 	{
 	}
-	
+
 private:
 };
 
@@ -220,10 +220,10 @@ class RemotePlayer : public Player, public scene::ISceneNode
 {
 public:
 	RemotePlayer(
-		scene::ISceneNode* parent=NULL,
-		IrrlichtDevice *device=NULL,
-		s32 id=0);
-	
+	    scene::ISceneNode* parent=NULL,
+	    IrrlichtDevice *device=NULL,
+	    s32 id=0);
+
 	virtual ~RemotePlayer();
 
 	/*
@@ -242,7 +242,7 @@ public:
 	{
 		// Do nothing
 	}
-	
+
 	virtual const core::aabbox3d<f32>& getBoundingBox() const
 	{
 		return m_box;
@@ -251,15 +251,15 @@ public:
 	void setPosition(v3f position)
 	{
 		m_oldpos = m_showpos;
-		
+
 		if(m_pos_animation_time < 0.001 || m_pos_animation_time > 1.0)
 			m_pos_animation_time = m_pos_animation_time_counter;
 		else
 			m_pos_animation_time = m_pos_animation_time * 0.9
-					+ m_pos_animation_time_counter * 0.1;
+			                       + m_pos_animation_time_counter * 0.1;
 		m_pos_animation_time_counter = 0;
 		m_pos_animation_counter = 0;
-		
+
 		Player::setPosition(position);
 		//ISceneNode::setPosition(position);
 	}
@@ -286,7 +286,7 @@ public:
 		video::SColor color(255,li,li,li);
 
 		scene::IMesh *mesh = m_node->getMesh();
-		
+
 		u16 mc = mesh->getMeshBufferCount();
 		for(u16 j=0; j<mc; j++)
 		{
@@ -299,7 +299,7 @@ public:
 			}
 		}
 	}
-	
+
 	void move(f32 dtime, Map &map, f32 pos_max_d);
 
 private:
@@ -332,15 +332,15 @@ struct PlayerControl
 		yaw = 0;
 	}
 	PlayerControl(
-		bool a_up,
-		bool a_down,
-		bool a_left,
-		bool a_right,
-		bool a_jump,
-		bool a_aux1,
-		bool a_sneak,
-		float a_pitch,
-		float a_yaw
+	    bool a_up,
+	    bool a_down,
+	    bool a_left,
+	    bool a_right,
+	    bool a_jump,
+	    bool a_aux1,
+	    bool a_sneak,
+	    float a_pitch,
+	    float a_yaw
 	)
 	{
 		up = a_up;
@@ -376,11 +376,11 @@ public:
 	}
 
 	void move(f32 dtime, Map &map, f32 pos_max_d,
-			core::list<CollisionInfo> *collision_info);
+	          core::list<CollisionInfo> *collision_info);
 	void move(f32 dtime, Map &map, f32 pos_max_d);
 
 	void applyControl(float dtime);
-	
+
 	PlayerControl control;
 
 private:

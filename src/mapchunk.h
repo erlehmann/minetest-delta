@@ -26,7 +26,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 // These should fit in 8 bits, as they are saved as such.
-enum{
+enum
+{
 	GENERATED_FULLY = 0,
 	GENERATED_PARTLY = 10,
 	GENERATED_NOT = 20
@@ -47,8 +48,14 @@ public:
 		GENERATED_PARTLY = partly generated
 		GENERATED_NOT = not generated
 	*/
-	u16 getGenLevel(){ return m_generation_level; }
-	void setGenLevel(u16 lev){ m_generation_level = lev; }
+	u16 getGenLevel()
+	{
+		return m_generation_level;
+	}
+	void setGenLevel(u16 lev)
+	{
+		m_generation_level = lev;
+	}
 
 	void serialize(std::ostream &os, u8 version)
 	{
@@ -59,8 +66,14 @@ public:
 		is.read((char*)&m_generation_level, 1);
 	}
 
-	bool isModified(){ return m_modified; }
-	void setModified(bool modified){ m_modified = modified; }
+	bool isModified()
+	{
+		return m_modified;
+	}
+	void setModified(bool modified)
+	{
+		m_modified = modified;
+	}
 
 private:
 	u8 m_generation_level;

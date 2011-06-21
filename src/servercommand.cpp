@@ -23,13 +23,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "utility.h"
 
 void cmd_status(std::wostringstream &os,
-	ServerCommandContext *ctx)
+                ServerCommandContext *ctx)
 {
 	os<<ctx->server->getStatusString();
 }
 
 void cmd_privs(std::wostringstream &os,
-	ServerCommandContext *ctx)
+               ServerCommandContext *ctx)
 {
 	if(ctx->parms.size() == 1)
 	{
@@ -44,19 +44,19 @@ void cmd_privs(std::wostringstream &os,
 		os<<L"-!- You don't have permission to do that";
 		return;
 	}
-		
+
 	Player *tp = ctx->env->getPlayer(wide_to_narrow(ctx->parms[1]).c_str());
 	if(tp == NULL)
 	{
 		os<<L"-!- No such player";
 		return;
 	}
-	
+
 	os<<L"-!- " + privsToString(tp->privs);
 }
 
 void cmd_grantrevoke(std::wostringstream &os,
-	ServerCommandContext *ctx)
+                     ServerCommandContext *ctx)
 {
 	if(ctx->parms.size() != 3)
 	{
@@ -88,13 +88,13 @@ void cmd_grantrevoke(std::wostringstream &os,
 		tp->privs |= newprivs;
 	else
 		tp->privs &= ~newprivs;
-	
+
 	os<<L"-!- Privileges change to ";
 	os<<privsToString(tp->privs);
 }
 
 void cmd_time(std::wostringstream &os,
-	ServerCommandContext *ctx)
+              ServerCommandContext *ctx)
 {
 	if(ctx->parms.size() != 2)
 	{
@@ -114,7 +114,7 @@ void cmd_time(std::wostringstream &os,
 }
 
 void cmd_shutdown(std::wostringstream &os,
-	ServerCommandContext *ctx)
+                  ServerCommandContext *ctx)
 {
 	if((ctx->privs & PRIV_SERVER) ==0)
 	{
@@ -123,15 +123,15 @@ void cmd_shutdown(std::wostringstream &os,
 	}
 
 	dstream<<DTIME<<" Server: Operator requested shutdown."
-		<<std::endl;
+	       <<std::endl;
 	ctx->server->requestShutdown();
-					
+
 	os<<L"*** Server shutting down (operator request)";
 	ctx->flags |= 2;
 }
 
 void cmd_setting(std::wostringstream &os,
-	ServerCommandContext *ctx)
+                 ServerCommandContext *ctx)
 {
 	if((ctx->privs & PRIV_SERVER) ==0)
 	{
@@ -145,7 +145,7 @@ void cmd_setting(std::wostringstream &os,
 }
 
 void cmd_teleport(std::wostringstream &os,
-	ServerCommandContext *ctx)
+                  ServerCommandContext *ctx)
 {
 	if((ctx->privs & PRIV_TELEPORT) ==0)
 	{

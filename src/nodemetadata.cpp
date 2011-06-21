@@ -44,10 +44,10 @@ NodeMetadata* NodeMetadata::deSerialize(std::istream &is)
 	u8 buf[2];
 	is.read((char*)buf, 2);
 	s16 id = readS16(buf);
-	
+
 	// Read data
 	std::string data = deSerializeString(is);
-	
+
 	// Find factory function
 	core::map<u16, Factory>::Node *n;
 	n = m_types.find(id);
@@ -55,15 +55,15 @@ NodeMetadata* NodeMetadata::deSerialize(std::istream &is)
 	{
 		// If factory is not found, just return.
 		dstream<<"WARNING: NodeMetadata: No factory for typeId="
-				<<id<<std::endl;
+		       <<id<<std::endl;
 		return NULL;
 	}
-	
+
 	// Try to load the metadata. If it fails, just return.
 	try
 	{
 		std::istringstream iss(data, std::ios_base::binary);
-		
+
 		Factory f = n->getValue();
 		NodeMetadata *meta = (*f)(iss);
 		return meta;
@@ -80,7 +80,7 @@ void NodeMetadata::serialize(std::ostream &os)
 	u8 buf[2];
 	writeU16(buf, typeId());
 	os.write((char*)buf, 2);
-	
+
 	std::ostringstream oss(std::ios_base::binary);
 	serializeBody(oss);
 	os<<serializeString(oss.str());
@@ -139,7 +139,7 @@ ChestNodeMetadata proto_ChestNodeMetadata;
 ChestNodeMetadata::ChestNodeMetadata()
 {
 	NodeMetadata::registerType(typeId(), create);
-	
+
 	m_inventory = new Inventory();
 	m_inventory->addList("0", 8*4);
 }
@@ -194,7 +194,7 @@ FurnaceNodeMetadata proto_FurnaceNodeMetadata;
 FurnaceNodeMetadata::FurnaceNodeMetadata()
 {
 	NodeMetadata::registerType(typeId(), create);
-	
+
 	m_inventory = new Inventory();
 	m_inventory->addList("fuel", 1);
 	m_inventory->addList("src", 1);
@@ -277,14 +277,14 @@ bool FurnaceNodeMetadata::step(float dtime)
 	dtime = interval;
 
 	//dstream<<"Furnace step dtime="<<dtime<<std::endl;
-	
+
 	InventoryList *dst_list = m_inventory->getList("dst");
 	assert(dst_list);
 
 	InventoryList *src_list = m_inventory->getList("src");
 	assert(src_list);
 	InventoryItem *src_item = src_list->getItem(0);
-	
+
 	// Start only if there are free slots in dst, so that it can
 	// accomodate any result item
 	if(dst_list->getFreeSlots() > 0 && src_item && src_item->isCookable())
@@ -303,7 +303,7 @@ bool FurnaceNodeMetadata::step(float dtime)
 		m_fuel_time += dtime;
 		m_src_time += dtime;
 		if(m_src_time >= m_src_totaltime && m_src_totaltime > 0.001
-				&& src_item)
+		        && src_item)
 		{
 			InventoryItem *cookresult = src_item->createCookResult();
 			dst_list->addItem(cookresult);
@@ -313,12 +313,12 @@ bool FurnaceNodeMetadata::step(float dtime)
 		}
 		return true;
 	}
-	
+
 	if(src_item == NULL || m_src_totaltime < 0.001)
 	{
 		return false;
 	}
-	
+
 	bool changed = false;
 
 	//dstream<<"Furnace is out of fuel"<<std::endl;
@@ -363,7 +363,7 @@ bool FurnaceNodeMetadata::step(float dtime)
 void NodeMetadataList::serialize(std::ostream &os)
 {
 	u8 buf[6];
-	
+
 	u16 version = 1;
 	writeU16(buf, version);
 	os.write((char*)buf, 2);
@@ -373,39 +373,39 @@ void NodeMetadataList::serialize(std::ostream &os)
 	os.write((char*)buf, 2);
 
 	for(core::map<v3s16, NodeMetadata*>::Iterator
-			i = m_data.getIterator();
-			i.atEnd()==false; i++)
+	        i = m_data.getIterator();
+	        i.atEnd()==false; i++)
 	{
 		v3s16 p = i.getNode()->getKey();
 		NodeMetadata *data = i.getNode()->getValue();
-		
+
 		u16 p16 = p.Z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + p.Y*MAP_BLOCKSIZE + p.X;
 		writeU16(buf, p16);
 		os.write((char*)buf, 2);
 
 		data->serialize(os);
 	}
-	
+
 }
 void NodeMetadataList::deSerialize(std::istream &is)
 {
 	m_data.clear();
 
 	u8 buf[6];
-	
+
 	is.read((char*)buf, 2);
 	u16 version = readU16(buf);
 
 	if(version > 1)
 	{
 		dstream<<__FUNCTION_NAME<<": version "<<version<<" not supported"
-				<<std::endl;
+		       <<std::endl;
 		throw SerializationError("NodeMetadataList::deSerialize");
 	}
-	
+
 	is.read((char*)buf, 2);
 	u16 count = readU16(buf);
-	
+
 	for(u16 i=0; i<count; i++)
 	{
 		is.read((char*)buf, 2);
@@ -417,18 +417,18 @@ void NodeMetadataList::deSerialize(std::istream &is)
 		p.Y += p16 / MAP_BLOCKSIZE;
 		p16 -= p.Y * MAP_BLOCKSIZE;
 		p.X += p16;
-		
+
 		NodeMetadata *data = NodeMetadata::deSerialize(is);
 
 		if(data == NULL)
 			continue;
-		
+
 		if(m_data.find(p))
 		{
 			dstream<<"WARNING: NodeMetadataList::deSerialize(): "
-					<<"already set data at position"
-					<<"("<<p.X<<","<<p.Y<<","<<p.Z<<"): Ignoring."
-					<<std::endl;
+			       <<"already set data at position"
+			       <<"("<<p.X<<","<<p.Y<<","<<p.Z<<"): Ignoring."
+			       <<std::endl;
 			delete data;
 			continue;
 		}
@@ -436,12 +436,12 @@ void NodeMetadataList::deSerialize(std::istream &is)
 		m_data.insert(p, data);
 	}
 }
-	
+
 NodeMetadataList::~NodeMetadataList()
 {
 	for(core::map<v3s16, NodeMetadata*>::Iterator
-			i = m_data.getIterator();
-			i.atEnd()==false; i++)
+	        i = m_data.getIterator();
+	        i.atEnd()==false; i++)
 	{
 		delete i.getNode()->getValue();
 	}
@@ -476,8 +476,8 @@ bool NodeMetadataList::step(float dtime)
 {
 	bool something_changed = false;
 	for(core::map<v3s16, NodeMetadata*>::Iterator
-			i = m_data.getIterator();
-			i.atEnd()==false; i++)
+	        i = m_data.getIterator();
+	        i.atEnd()==false; i++)
 	{
 		v3s16 p = i.getNode()->getKey();
 		NodeMetadata *meta = i.getNode()->getValue();

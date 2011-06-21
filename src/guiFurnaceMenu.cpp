@@ -21,14 +21,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "client.h"
 
 GUIFurnaceMenu::GUIFurnaceMenu(
-		gui::IGUIEnvironment* env,
-		gui::IGUIElement* parent, s32 id,
-		IMenuManager *menumgr,
-		v3s16 nodepos,
-		Client *client
-		):
+    gui::IGUIEnvironment* env,
+    gui::IGUIElement* parent, s32 id,
+    IMenuManager *menumgr,
+    v3s16 nodepos,
+    Client *client
+):
 	GUIInventoryMenu(env, parent, id, menumgr, v2s16(8,9),
-			client->getInventoryContext(), client),
+	                 client->getInventoryContext(), client),
 	m_nodepos(nodepos),
 	m_client(client)
 {
@@ -42,17 +42,17 @@ GUIFurnaceMenu::GUIFurnaceMenu(
 
 	core::array<GUIInventoryMenu::DrawSpec> draw_spec;
 	draw_spec.push_back(GUIInventoryMenu::DrawSpec(
-			"list", furnace_inv_id, "fuel",
-			v2s32(2, 3), v2s32(1, 1)));
+	                        "list", furnace_inv_id, "fuel",
+	                        v2s32(2, 3), v2s32(1, 1)));
 	draw_spec.push_back(GUIInventoryMenu::DrawSpec(
-			"list", furnace_inv_id, "src",
-			v2s32(2, 1), v2s32(1, 1)));
+	                        "list", furnace_inv_id, "src",
+	                        v2s32(2, 1), v2s32(1, 1)));
 	draw_spec.push_back(GUIInventoryMenu::DrawSpec(
-			"list", furnace_inv_id, "dst",
-			v2s32(5, 1), v2s32(2, 2)));
+	                        "list", furnace_inv_id, "dst",
+	                        v2s32(5, 1), v2s32(2, 2)));
 	draw_spec.push_back(GUIInventoryMenu::DrawSpec(
-			"list", "current_player", "main",
-			v2s32(0, 5), v2s32(8, 4)));
+	                        "list", "current_player", "main",
+	                        v2s32(0, 5), v2s32(8, 4)));
 	setDrawSpec(draw_spec);
 }
 

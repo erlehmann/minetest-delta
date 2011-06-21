@@ -28,14 +28,14 @@ class GUIFurnaceMenu : public GUIInventoryMenu
 {
 public:
 	GUIFurnaceMenu(
-			gui::IGUIEnvironment* env,
-			gui::IGUIElement* parent, s32 id,
-			IMenuManager *menumgr,
-			v3s16 nodepos,
-			Client *client
-			);
+	    gui::IGUIEnvironment* env,
+	    gui::IGUIElement* parent, s32 id,
+	    IMenuManager *menumgr,
+	    v3s16 nodepos,
+	    Client *client
+	);
 private:
-	
+
 	v3s16 m_nodepos;
 	Client *m_client;
 };

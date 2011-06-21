@@ -50,7 +50,7 @@ InventoryItem* InventoryItem::deSerialize(std::istream &is)
 	// Read name
 	std::string name;
 	std::getline(is, name, ' ');
-	
+
 	if(name == "MaterialItem")
 	{
 		// u16 reads directly as a number (u8 doesn't)
@@ -151,7 +151,7 @@ video::ITexture * CraftItem::getImage()
 {
 	if(g_texturesource == NULL)
 		return NULL;
-	
+
 	std::string name;
 
 	if(m_subname == "Stick")
@@ -174,7 +174,7 @@ video::ITexture * CraftItem::getImage()
 		name = "rat.png";
 	else
 		name = "cloud.png";
-	
+
 	// Get such a texture
 	return g_texturesource->getTextureRaw(name);
 }
@@ -234,7 +234,7 @@ video::ITexture * MapBlockObjectItem::getImage()
 {
 	if(m_inventorystring.substr(0,3) == "Rat")
 		return g_texturesource->getTextureRaw("rat.png");
-	
+
 	if(m_inventorystring.substr(0,4) == "Sign")
 		return g_texturesource->getTextureRaw("sign.png");
 
@@ -245,7 +245,7 @@ std::string MapBlockObjectItem::getText()
 {
 	if(m_inventorystring.substr(0,3) == "Rat")
 		return "";
-	
+
 	if(m_inventorystring.substr(0,4) == "Sign")
 		return "";
 
@@ -253,12 +253,12 @@ std::string MapBlockObjectItem::getText()
 }
 
 MapBlockObject * MapBlockObjectItem::createObject
-		(v3f pos, f32 player_yaw, f32 player_pitch)
+(v3f pos, f32 player_yaw, f32 player_pitch)
 {
 	std::istringstream is(m_inventorystring);
 	std::string name;
 	std::getline(is, name, ' ');
-	
+
 	if(name == "None")
 	{
 		return NULL;
@@ -286,8 +286,8 @@ MapBlockObject * MapBlockObjectItem::createObject
 		*/
 		//assert(0);
 		dstream<<__FUNCTION_NAME<<": WARNING: Ignoring ItemObj "
-				<<"because an item-object should never be inside "
-				<<"an object-item."<<std::endl;
+		       <<"because an item-object should never be inside "
+		       <<"an object-item."<<std::endl;
 		return NULL;
 	}
 	else
@@ -338,7 +338,7 @@ void InventoryList::clearItems()
 void InventoryList::serialize(std::ostream &os)
 {
 	//os.imbue(std::locale("C"));
-	
+
 	for(u32 i=0; i<m_items.size(); i++)
 	{
 		InventoryItem *item = m_items[i];
@@ -487,7 +487,7 @@ InventoryItem * InventoryList::addItem(InventoryItem *newitem)
 {
 	if(newitem == NULL)
 		return NULL;
-	
+
 	/*
 		First try to find if it could be added to some existing items
 	*/
@@ -524,9 +524,9 @@ InventoryItem * InventoryList::addItem(u32 i, InventoryItem *newitem)
 {
 	if(newitem == NULL)
 		return NULL;
-	
+
 	//setDirty(true);
-	
+
 	// If it is an empty position, it's an easy job.
 	InventoryItem *to_item = m_items[i];
 	if(to_item == NULL)
@@ -534,11 +534,11 @@ InventoryItem * InventoryList::addItem(u32 i, InventoryItem *newitem)
 		m_items[i] = newitem;
 		return NULL;
 	}
-	
+
 	// If not addable, return the item
 	if(newitem->addableTo(to_item) == false)
 		return newitem;
-	
+
 	// If the item fits fully in the slot, add counter and delete it
 	if(newitem->getCount() <= to_item->freeSpace())
 	{
@@ -565,11 +565,11 @@ bool InventoryList::itemFits(u32 i, InventoryItem *newitem)
 	{
 		return true;
 	}
-	
+
 	// If not addable, return the item
 	if(newitem->addableTo(to_item) == false)
 		return false;
-	
+
 	// If the item fits fully in the slot, add counter and delete it
 	if(newitem->getCount() <= to_item->freeSpace())
 	{
@@ -583,14 +583,14 @@ InventoryItem * InventoryList::takeItem(u32 i, u32 count)
 {
 	if(count == 0)
 		return NULL;
-	
+
 	//setDirty(true);
 
 	InventoryItem *item = m_items[i];
 	// If it is an empty position, return NULL
 	if(item == NULL)
 		return NULL;
-	
+
 	if(count >= item->getCount())
 	{
 		// Get the item by swapping NULL to its place
@@ -603,7 +603,7 @@ InventoryItem * InventoryList::takeItem(u32 i, u32 count)
 		item2->setCount(count);
 		return item2;
 	}
-	
+
 	return false;
 }
 
@@ -794,7 +794,7 @@ void IMoveAction::apply(InventoryContext *c, InventoryManager *mgr)
 	if(!inv_from || !inv_to)
 	{
 		dstream<<__FUNCTION_NAME<<": Operation not allowed "
-				<<"(inventories not found)"<<std::endl;
+		       <<"(inventories not found)"<<std::endl;
 		return;
 	}
 
@@ -809,22 +809,22 @@ void IMoveAction::apply(InventoryContext *c, InventoryManager *mgr)
 	if(list_to)
 		dstream<<" list_to->getItem(to_i)="<<list_to->getItem(to_i)
 				<<std::endl;*/
-	
+
 	/*
 		If a list doesn't exist or the source item doesn't exist
 	*/
 	if(!list_from || !list_to)
 	{
 		dstream<<__FUNCTION_NAME<<": Operation not allowed "
-				<<"(a list doesn't exist)"
-				<<std::endl;
+		       <<"(a list doesn't exist)"
+		       <<std::endl;
 		return;
 	}
 	if(list_from->getItem(from_i) == NULL)
 	{
 		dstream<<__FUNCTION_NAME<<": Operation not allowed "
-				<<"(the source item doesn't exist)"
-				<<std::endl;
+		       <<"(the source item doesn't exist)"
+		       <<std::endl;
 		return;
 	}
 	/*
@@ -833,10 +833,10 @@ void IMoveAction::apply(InventoryContext *c, InventoryManager *mgr)
 	if(inv_from == inv_to && list_from == list_to && from_i == to_i)
 	{
 		dstream<<__FUNCTION_NAME<<": Operation not allowed "
-				<<"(source and the destination slots are the same)"<<std::endl;
+		       <<"(source and the destination slots are the same)"<<std::endl;
 		return;
 	}
-	
+
 	// Take item from source list
 	InventoryItem *item1 = NULL;
 	if(count == 0)
@@ -853,7 +853,7 @@ void IMoveAction::apply(InventoryContext *c, InventoryManager *mgr)
 	{
 		// If olditem is returned, nothing was added.
 		bool nothing_added = (item1 == olditem);
-		
+
 		// If something else is returned, part of the item was left unadded.
 		// Add the other part back to the source item
 		list_from->addItem(from_i, item1);
@@ -890,7 +890,7 @@ bool ItemSpec::checkItem(InventoryItem *item)
 			return false;
 		return true;
 	}
-	
+
 	// There should be an item
 	if(item == NULL)
 		return false;
@@ -938,23 +938,23 @@ bool checkItemCombination(InventoryItem **items, ItemSpec *specs)
 	u16 items_min_y = 100;
 	u16 items_max_y = 100;
 	for(u16 y=0; y<3; y++)
-	for(u16 x=0; x<3; x++)
-	{
-		if(items[y*3 + x] == NULL)
-			continue;
-		if(items_min_x == 100 || x < items_min_x)
-			items_min_x = x;
-		if(items_min_y == 100 || y < items_min_y)
-			items_min_y = y;
-		if(items_max_x == 100 || x > items_max_x)
-			items_max_x = x;
-		if(items_max_y == 100 || y > items_max_y)
-			items_max_y = y;
-	}
+		for(u16 x=0; x<3; x++)
+		{
+			if(items[y*3 + x] == NULL)
+				continue;
+			if(items_min_x == 100 || x < items_min_x)
+				items_min_x = x;
+			if(items_min_y == 100 || y < items_min_y)
+				items_min_y = y;
+			if(items_max_x == 100 || x > items_max_x)
+				items_max_x = x;
+			if(items_max_y == 100 || y > items_max_y)
+				items_max_y = y;
+		}
 	// No items at all, just return false
 	if(items_min_x == 100)
 		return false;
-	
+
 	u16 items_w = items_max_x - items_min_x + 1;
 	u16 items_h = items_max_y - items_min_y + 1;
 
@@ -963,19 +963,19 @@ bool checkItemCombination(InventoryItem **items, ItemSpec *specs)
 	u16 specs_min_y = 100;
 	u16 specs_max_y = 100;
 	for(u16 y=0; y<3; y++)
-	for(u16 x=0; x<3; x++)
-	{
-		if(specs[y*3 + x].type == ITEM_NONE)
-			continue;
-		if(specs_min_x == 100 || x < specs_min_x)
-			specs_min_x = x;
-		if(specs_min_y == 100 || y < specs_min_y)
-			specs_min_y = y;
-		if(specs_max_x == 100 || x > specs_max_x)
-			specs_max_x = x;
-		if(specs_max_y == 100 || y > specs_max_y)
-			specs_max_y = y;
-	}
+		for(u16 x=0; x<3; x++)
+		{
+			if(specs[y*3 + x].type == ITEM_NONE)
+				continue;
+			if(specs_min_x == 100 || x < specs_min_x)
+				specs_min_x = x;
+			if(specs_min_y == 100 || y < specs_min_y)
+				specs_min_y = y;
+			if(specs_max_x == 100 || x > specs_max_x)
+				specs_max_x = x;
+			if(specs_max_y == 100 || y > specs_max_y)
+				specs_max_y = y;
+		}
 	// No specs at all, just return false
 	if(specs_min_x == 100)
 		return false;
@@ -988,20 +988,20 @@ bool checkItemCombination(InventoryItem **items, ItemSpec *specs)
 		return false;
 
 	for(u16 y=0; y<specs_h; y++)
-	for(u16 x=0; x<specs_w; x++)
-	{
-		u16 items_x = items_min_x + x;
-		u16 items_y = items_min_y + y;
-		u16 specs_x = specs_min_x + x;
-		u16 specs_y = specs_min_y + y;
-		InventoryItem *item = items[items_y * 3 + items_x];
-		ItemSpec &spec = specs[specs_y * 3 + specs_x];
+		for(u16 x=0; x<specs_w; x++)
+		{
+			u16 items_x = items_min_x + x;
+			u16 items_y = items_min_y + y;
+			u16 specs_x = specs_min_x + x;
+			u16 specs_y = specs_min_y + y;
+			InventoryItem *item = items[items_y * 3 + items_x];
+			ItemSpec &spec = specs[specs_y * 3 + specs_x];
 
-		if(spec.checkItem(item) == false)
-			return false;
-	}
+			if(spec.checkItem(item) == false)
+				return false;
+		}
 
 	return true;
 }
-	
+
 //END

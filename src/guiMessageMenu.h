@@ -29,7 +29,7 @@ class GUIMessageMenu: public GUIModalMenu
 {
 public:
 	GUIMessageMenu(gui::IGUIEnvironment* env, gui::IGUIElement* parent, s32 id,
-			IMenuManager *menumgr, std::wstring message_text);
+	               IMenuManager *menumgr, std::wstring message_text);
 	~GUIMessageMenu();
 
 	void removeChildren();

@@ -35,11 +35,11 @@ class GUIPauseMenu : public GUIModalMenu
 {
 public:
 	GUIPauseMenu(gui::IGUIEnvironment* env,
-			gui::IGUIElement* parent, s32 id,
-			IGameCallback *gamecallback,
-			IMenuManager *menumgr);
+	             gui::IGUIElement* parent, s32 id,
+	             IGameCallback *gamecallback,
+	             IMenuManager *menumgr);
 	~GUIPauseMenu();
-	
+
 	void removeChildren();
 	/*
 		Remove and re-add (or reposition) stuff
@@ -49,7 +49,7 @@ public:
 	void drawMenu();
 
 	bool OnEvent(const SEvent& event);
-	
+
 private:
 	IGameCallback *m_gamecallback;
 };

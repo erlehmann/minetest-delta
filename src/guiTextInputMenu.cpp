@@ -23,11 +23,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <string>
 
 GUITextInputMenu::GUITextInputMenu(gui::IGUIEnvironment* env,
-		gui::IGUIElement* parent, s32 id,
-		IMenuManager *menumgr,
-		TextDest *dest,
-		std::wstring initial_text
-):
+                                   gui::IGUIElement* parent, s32 id,
+                                   IMenuManager *menumgr,
+                                   TextDest *dest,
+                                   std::wstring initial_text
+                                  ):
 	GUIModalMenu(env, parent, id, menumgr),
 	m_dest(dest),
 	m_initial_text(initial_text)
@@ -76,17 +76,17 @@ void GUITextInputMenu::regenerateGui(v2u32 screensize)
 		Remove stuff
 	*/
 	removeChildren();
-	
+
 	/*
 		Calculate new sizes and positions
 	*/
 	core::rect<s32> rect(
-			screensize.X/2 - 580/2,
-			screensize.Y/2 - 300/2,
-			screensize.X/2 + 580/2,
-			screensize.Y/2 + 300/2
+	    screensize.X/2 - 580/2,
+	    screensize.Y/2 - 300/2,
+	    screensize.X/2 + 580/2,
+	    screensize.Y/2 + 300/2
 	);
-	
+
 	DesiredRect = rect;
 	recalculateAbsolutePosition(false);
 
@@ -98,8 +98,8 @@ void GUITextInputMenu::regenerateGui(v2u32 screensize)
 	{
 		core::rect<s32> rect(0, 0, 300, 30);
 		rect = rect + v2s32(size.X/2-300/2, size.Y/2-30/2-25);
-		gui::IGUIElement *e = 
-		Environment->addEditBox(text.c_str(), rect, true, this, 256);
+		gui::IGUIElement *e =
+		    Environment->addEditBox(text.c_str(), rect, true, this, 256);
 		Environment->setFocus(e);
 	}
 	{
@@ -115,7 +115,7 @@ void GUITextInputMenu::drawMenu()
 	if (!skin)
 		return;
 	video::IVideoDriver* driver = Environment->getVideoDriver();
-	
+
 	video::SColor bgcolor(140,0,0,0);
 	driver->draw2DRectangle(bgcolor, AbsoluteRect, &AbsoluteClippingRect);
 
@@ -155,12 +155,12 @@ bool GUITextInputMenu::OnEvent(const SEvent& event)
 	if(event.EventType==EET_GUI_EVENT)
 	{
 		if(event.GUIEvent.EventType==gui::EGET_ELEMENT_FOCUS_LOST
-				&& isVisible())
+		        && isVisible())
 		{
 			if(!canTakeFocus(event.GUIEvent.Element))
 			{
 				dstream<<"GUITextInputMenu: Not allowing focus change."
-						<<std::endl;
+				       <<std::endl;
 				// Returning true disables focus change
 				return true;
 			}

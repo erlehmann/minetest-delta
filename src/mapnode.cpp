@@ -41,7 +41,7 @@ void ContentFeatures::setTexture(u16 i, std::string name, u8 alpha)
 	{
 		tiles[i].texture = g_texturesource->getTexture(name);
 	}
-	
+
 	if(alpha != 255)
 	{
 		tiles[i].alpha = alpha;
@@ -56,18 +56,18 @@ void ContentFeatures::setInventoryTexture(std::string imgname)
 {
 	if(g_texturesource == NULL)
 		return;
-	
+
 	imgname += "^[forcesingle";
-	
+
 	inventory_texture = g_texturesource->getTextureRaw(imgname);
 }
 
 void ContentFeatures::setInventoryTextureCube(std::string top,
-		std::string left, std::string right)
+        std::string left, std::string right)
 {
 	if(g_texturesource == NULL)
 		return;
-	
+
 	str_replace_char(top, '^', '&');
 	str_replace_char(left, '^', '&');
 	str_replace_char(right, '^', '&');
@@ -97,14 +97,14 @@ void init_mapnode()
 	if(g_texturesource == NULL)
 	{
 		dstream<<"INFO: Initial run of init_mapnode with "
-				"g_texturesource=NULL. If this segfaults, "
-				"there is a bug with something not checking for "
-				"the NULL value."<<std::endl;
+		       "g_texturesource=NULL. If this segfaults, "
+		       "there is a bug with something not checking for "
+		       "the NULL value."<<std::endl;
 	}
 	else
 	{
 		dstream<<"INFO: Full run of init_mapnode with "
-				"g_texturesource!=NULL"<<std::endl;
+		       "g_texturesource!=NULL"<<std::endl;
 	}
 
 	// Read some settings
@@ -114,7 +114,7 @@ void init_mapnode()
 	/*
 		Initialize content feature table
 	*/
-	
+
 	/*
 		Set initial material type to same in all tiles, so that the
 		same material can be used in more stuff.
@@ -136,7 +136,7 @@ void init_mapnode()
 		for(u16 j=0; j<6; j++)
 			f->tiles[j].material_type = initial_material_type;
 	}
-	
+
 	u8 i;
 	ContentFeatures *f = NULL;
 
@@ -147,7 +147,7 @@ void init_mapnode()
 	f->param_type = CPT_MINERAL;
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(CONTENT_COBBLE)+" 1";
-	
+
 	i = CONTENT_GRASS;
 	f = &g_content_features[i];
 	f->setAllTextures("mud.png^grass_side.png");
@@ -156,7 +156,7 @@ void init_mapnode()
 	f->param_type = CPT_MINERAL;
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(CONTENT_MUD)+" 1";
-	
+
 	i = CONTENT_GRASS_FOOTSTEPS;
 	f = &g_content_features[i];
 	f->setAllTextures("mud.png^grass_side.png");
@@ -165,7 +165,7 @@ void init_mapnode()
 	f->param_type = CPT_MINERAL;
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(CONTENT_MUD)+" 1";
-	
+
 	i = CONTENT_MUD;
 	f = &g_content_features[i];
 	f->setAllTextures("mud.png");
@@ -173,14 +173,14 @@ void init_mapnode()
 	f->param_type = CPT_MINERAL;
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
-	
+
 	i = CONTENT_SAND;
 	f = &g_content_features[i];
 	f->setAllTextures("sand.png");
 	f->param_type = CPT_MINERAL;
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
-	
+
 	i = CONTENT_SANDSTONE;
 	f = &g_content_features[i];
 	f->setAllTextures("sandstone.png");
@@ -188,7 +188,7 @@ void init_mapnode()
 	f->param_type = CPT_MINERAL;
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(CONTENT_SAND)+" 1";
-	
+
 	i = CONTENT_CLAY;
 	f = &g_content_features[i];
 	f->setAllTextures("clay.png");
@@ -196,7 +196,7 @@ void init_mapnode()
 	f->param_type = CPT_MINERAL;
 	f->is_ground_content = true;
 	f->dug_item = std::string("CraftItem lump_of_clay 4");
-	
+
 	i = CONTENT_BRICK;
 	f = &g_content_features[i];
 	f->setAllTextures("brick.png");
@@ -204,7 +204,7 @@ void init_mapnode()
 	f->param_type = CPT_MINERAL;
 	f->is_ground_content = true;
 	f->dug_item = std::string("CraftItem clay_brick 4");
-	
+
 	i = CONTENT_TREE;
 	f = &g_content_features[i];
 	f->setAllTextures("tree.png");
@@ -213,7 +213,7 @@ void init_mapnode()
 	f->param_type = CPT_MINERAL;
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
-	
+
 	i = CONTENT_LEAVES;
 	f = &g_content_features[i];
 	f->light_propagates = true;
@@ -251,9 +251,9 @@ void init_mapnode()
 	f->solidness = 0; // drawn separately, makes no faces
 	f->walkable = false;
 
- 	i = CONTENT_BOOKSHELF;
- 	f = &g_content_features[i];
- 	f->setAllTextures("bookshelf.png");
+	i = CONTENT_BOOKSHELF;
+	f = &g_content_features[i];
+	f->setAllTextures("bookshelf.png");
 	f->setTexture(0, "wood.png");
 	f->setTexture(1, "wood.png");
 	// FIXME: setInventoryTextureCube() only cares for the first texture
@@ -298,25 +298,25 @@ void init_mapnode()
 	//f->translate_to = new MapNode(CONTENT_STONE, MINERAL_COAL);
 	f->setAllTextures("stone.png^mineral_coal.png");
 	f->is_ground_content = true;
-	
+
 	i = CONTENT_WOOD;
 	f = &g_content_features[i];
 	f->setAllTextures("wood.png");
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
-	
+
 	i = CONTENT_MESE;
 	f = &g_content_features[i];
 	f->setAllTextures("mese.png");
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
-	
+
 	i = CONTENT_CLOUD;
 	f = &g_content_features[i];
 	f->setAllTextures("cloud.png");
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
-	
+
 	i = CONTENT_AIR;
 	f = &g_content_features[i];
 	f->param_type = CPT_LIGHT;
@@ -328,7 +328,7 @@ void init_mapnode()
 	f->diggable = false;
 	f->buildable_to = true;
 	f->air_equivalent = true;
-	
+
 	i = CONTENT_WATER;
 	f = &g_content_features[i];
 	f->setInventoryTextureCube("water.png", "water.png", "water.png");
@@ -340,7 +340,7 @@ void init_mapnode()
 	f->diggable = false;
 	f->buildable_to = true;
 	f->liquid_type = LIQUID_FLOWING;
-	
+
 	i = CONTENT_WATERSOURCE;
 	f = &g_content_features[i];
 	f->setInventoryTexture("water.png");
@@ -355,7 +355,7 @@ void init_mapnode()
 		TileSpec t;
 		if(g_texturesource)
 			t.texture = g_texturesource->getTexture("water.png");
-		
+
 		t.alpha = WATER_ALPHA;
 		t.material_type = MATERIAL_ALPHA_VERTEX;
 		t.material_flags &= ~MATERIAL_FLAG_BACKFACE_CULLING;
@@ -369,7 +369,7 @@ void init_mapnode()
 	f->buildable_to = true;
 	f->liquid_type = LIQUID_SOURCE;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
-	
+
 	i = CONTENT_TORCH;
 	f = &g_content_features[i];
 	f->setInventoryTexture("torch_on_floor.png");
@@ -381,7 +381,7 @@ void init_mapnode()
 	f->wall_mounted = true;
 	f->air_equivalent = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
-	
+
 	i = CONTENT_SIGN_WALL;
 	f = &g_content_features[i];
 	f->setInventoryTexture("sign_wall.png");
@@ -395,7 +395,7 @@ void init_mapnode()
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
 	if(f->initial_metadata == NULL)
 		f->initial_metadata = new SignNodeMetadata("Some sign");
-	
+
 	i = CONTENT_CHEST;
 	f = &g_content_features[i];
 	f->param_type = CPT_FACEDIR_SIMPLE;
@@ -408,7 +408,7 @@ void init_mapnode()
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
 	if(f->initial_metadata == NULL)
 		f->initial_metadata = new ChestNodeMetadata();
-	
+
 	i = CONTENT_FURNACE;
 	f = &g_content_features[i];
 	f->param_type = CPT_FACEDIR_SIMPLE;
@@ -419,7 +419,7 @@ void init_mapnode()
 	f->dug_item = std::string("MaterialItem ")+itos(CONTENT_COBBLE)+" 6";
 	if(f->initial_metadata == NULL)
 		f->initial_metadata = new FurnaceNodeMetadata();
-	
+
 	i = CONTENT_COBBLE;
 	f = &g_content_features[i];
 	f->setAllTextures("cobble.png");
@@ -427,16 +427,16 @@ void init_mapnode()
 	f->param_type = CPT_NONE;
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
-	
+
 	i = CONTENT_STEEL;
 	f = &g_content_features[i];
 	f->setAllTextures("steel_block.png");
 	f->setInventoryTextureCube("steel_block.png", "steel_block.png",
-			"steel_block.png");
+	                           "steel_block.png");
 	f->param_type = CPT_NONE;
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
-	
+
 	// NOTE: Remember to add frequently used stuff to the texture atlas in tile.cpp
 }
 
@@ -467,11 +467,11 @@ TileSpec MapNode::getTile(v3s16 dir)
 {
 	if(content_features(d).param_type == CPT_FACEDIR_SIMPLE)
 		dir = facedir_rotate(param1, dir);
-	
+
 	TileSpec spec;
-	
+
 	s32 dir_i = -1;
-	
+
 	if(dir == v3s16(0,0,0))
 		dir_i = -1;
 	else if(dir == v3s16(0,1,0))
@@ -486,13 +486,13 @@ TileSpec MapNode::getTile(v3s16 dir)
 		dir_i = 4;
 	else if(dir == v3s16(0,0,-1))
 		dir_i = 5;
-	
+
 	if(dir_i == -1)
 		// Non-directional
 		spec = content_features(d).tiles[0];
-	else 
+	else
 		spec = content_features(d).tiles[dir_i];
-	
+
 	/*
 		If it contains some mineral, change texture id
 	*/

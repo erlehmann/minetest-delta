@@ -57,7 +57,7 @@ public:
 	}
 
 	void setDiggingProperties(const std::string toolname,
-			const DiggingProperties &prop)
+	                          const DiggingProperties &prop)
 	{
 		m_digging_properties[toolname] = prop;
 	}

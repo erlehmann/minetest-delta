@@ -30,15 +30,15 @@
 #define JMUTEX_H
 
 #if (defined(WIN32) || defined(_WIN32_WCE))
-	#ifndef _WIN32_WCE
-		#include <process.h>
-	#endif // _WIN32_WCE
-	#include <winsock2.h>
-	#include <windows.h>
-	// CriticalSection is way faster than the alternative
-	#define JMUTEX_CRITICALSECTION
+#ifndef _WIN32_WCE
+#include <process.h>
+#endif // _WIN32_WCE
+#include <winsock2.h>
+#include <windows.h>
+// CriticalSection is way faster than the alternative
+#define JMUTEX_CRITICALSECTION
 #else // using pthread
-	#include <pthread.h>
+#include <pthread.h>
 #endif // WIN32
 
 #define ERR_JMUTEX_ALREADYINIT						-1
@@ -53,7 +53,10 @@ public:
 	int Init();
 	int Lock();
 	int Unlock();
-	bool IsInitialized() 						{ return initialized; }
+	bool IsInitialized()
+	{
+		return initialized;
+	}
 private:
 #if (defined(WIN32) || defined(_WIN32_WCE))
 #ifdef JMUTEX_CRITICALSECTION

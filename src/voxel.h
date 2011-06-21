@@ -68,7 +68,7 @@ public:
 		MaxEdge(p)
 	{
 	}
-	
+
 	/*
 		Modifying methods
 	*/
@@ -102,14 +102,14 @@ public:
 		if(p.Y > MaxEdge.Y) MaxEdge.Y = p.Y;
 		if(p.Z > MaxEdge.Z) MaxEdge.Z = p.Z;
 	}
-	
+
 	// Pad with d nodes
 	void pad(v3s16 d)
 	{
 		MinEdge -= d;
 		MaxEdge += d;
 	}
-	
+
 	/*void operator+=(v3s16 off)
 	{
 		MinEdge += off;
@@ -143,18 +143,18 @@ public:
 			return false;
 
 		return(
-			a.MinEdge.X >= MinEdge.X && a.MaxEdge.X <= MaxEdge.X &&
-			a.MinEdge.Y >= MinEdge.Y && a.MaxEdge.Y <= MaxEdge.Y &&
-			a.MinEdge.Z >= MinEdge.Z && a.MaxEdge.Z <= MaxEdge.Z
-		);
+		          a.MinEdge.X >= MinEdge.X && a.MaxEdge.X <= MaxEdge.X &&
+		          a.MinEdge.Y >= MinEdge.Y && a.MaxEdge.Y <= MaxEdge.Y &&
+		          a.MinEdge.Z >= MinEdge.Z && a.MaxEdge.Z <= MaxEdge.Z
+		      );
 	}
 	bool contains(v3s16 p) const
 	{
 		return(
-			p.X >= MinEdge.X && p.X <= MaxEdge.X &&
-			p.Y >= MinEdge.Y && p.Y <= MaxEdge.Y &&
-			p.Z >= MinEdge.Z && p.Z <= MaxEdge.Z
-		);
+		          p.X >= MinEdge.X && p.X <= MaxEdge.X &&
+		          p.Y >= MinEdge.Y && p.Y <= MaxEdge.Y &&
+		          p.Z >= MinEdge.Z && p.Z <= MaxEdge.Z
+		      );
 	}
 	bool contains(s32 i) const
 	{
@@ -163,7 +163,7 @@ public:
 	bool operator==(const VoxelArea &other) const
 	{
 		return (MinEdge == other.MinEdge
-				&& MaxEdge == other.MaxEdge);
+		        && MaxEdge == other.MaxEdge);
 	}
 
 	VoxelArea operator+(v3s16 off) const
@@ -198,7 +198,7 @@ public:
 		}
 
 		assert(contains(a));
-		
+
 		// Take back area, XY inclusive
 		{
 			v3s16 min(MinEdge.X, MinEdge.Y, a.MaxEdge.Z+1);
@@ -254,7 +254,7 @@ public:
 		}
 
 	}
-	
+
 	/*
 		Translates position from virtual coordinates to array index
 	*/
@@ -270,7 +270,7 @@ public:
 	{
 		return index(p.X, p.Y, p.Z);
 	}
-	
+
 	// Translate index in the X coordinate
 	void add_x(const v3s16 &extent, u32 &i, s16 a)
 	{
@@ -338,7 +338,7 @@ class VoxelManipulator /*: public NodeContainer*/
 public:
 	VoxelManipulator();
 	virtual ~VoxelManipulator();
-	
+
 	/*
 		Virtuals from NodeContainer
 	*/
@@ -363,10 +363,10 @@ public:
 		if(m_flags[m_area.index(p)] & VOXELFLAG_INEXISTENT)
 		{
 			dstream<<"EXCEPT: VoxelManipulator::getNode(): "
-					<<"p=("<<p.X<<","<<p.Y<<","<<p.Z<<")"
-					<<", index="<<m_area.index(p)
-					<<", flags="<<(int)m_flags[m_area.index(p)]
-					<<" is inexistent"<<std::endl;
+			       <<"p=("<<p.X<<","<<p.Y<<","<<p.Z<<")"
+			       <<", index="<<m_area.index(p)
+			       <<", flags="<<(int)m_flags[m_area.index(p)]
+			       <<" is inexistent"<<std::endl;
 			throw InvalidPositionException
 			("VoxelManipulator: getNode: inexistent");
 		}
@@ -391,10 +391,10 @@ public:
 		if(m_flags[m_area.index(p)] & VOXELFLAG_INEXISTENT)
 		{
 			dstream<<"EXCEPT: VoxelManipulator::getNode(): "
-					<<"p=("<<p.X<<","<<p.Y<<","<<p.Z<<")"
-					<<", index="<<m_area.index(p)
-					<<", flags="<<(int)m_flags[m_area.index(p)]
-					<<" is inexistent"<<std::endl;
+			       <<"p=("<<p.X<<","<<p.Y<<","<<p.Z<<")"
+			       <<", index="<<m_area.index(p)
+			       <<", flags="<<(int)m_flags[m_area.index(p)]
+			       <<" is inexistent"<<std::endl;
 			throw InvalidPositionException
 			("VoxelManipulator: getNode: inexistent");
 		}
@@ -404,7 +404,7 @@ public:
 	void setNode(v3s16 p, MapNode &n)
 	{
 		emerge(p);
-		
+
 		m_data[m_area.index(p)] = n;
 		m_flags[m_area.index(p)] &= ~VOXELFLAG_INEXISTENT;
 		m_flags[m_area.index(p)] &= ~VOXELFLAG_NOT_LOADED;
@@ -430,10 +430,10 @@ public:
 		//dstream<<"operator[] p=("<<p.X<<","<<p.Y<<","<<p.Z<<")"<<std::endl;
 		if(isValidPosition(p) == false)
 			emerge(VoxelArea(p));
-		
+
 		return m_data[m_area.index(p)];
 	}*/
-	
+
 	/*
 		Set stuff if available without an emerge.
 		Return false if failed.
@@ -466,7 +466,7 @@ public:
 	virtual void clear();
 
 	void print(std::ostream &o, VoxelPrintMode mode=VOXELPRINT_MATERIAL);
-	
+
 	void addArea(VoxelArea area);
 
 	/*
@@ -474,32 +474,32 @@ public:
 		dst_area.getExtent() <= src_area.getExtent()
 	*/
 	void copyFrom(MapNode *src, VoxelArea src_area,
-			v3s16 from_pos, v3s16 to_pos, v3s16 size);
-	
+	              v3s16 from_pos, v3s16 to_pos, v3s16 size);
+
 	// Copy data
 	void copyTo(MapNode *dst, VoxelArea dst_area,
-			v3s16 dst_pos, v3s16 from_pos, v3s16 size);
+	            v3s16 dst_pos, v3s16 from_pos, v3s16 size);
 
 	/*
 		Algorithms
 	*/
 
 	void clearFlag(u8 flag);
-	
+
 	void unspreadLight(enum LightBank bank, v3s16 p, u8 oldlight,
-			core::map<v3s16, bool> & light_sources);
+	                   core::map<v3s16, bool> & light_sources);
 	void unspreadLight(enum LightBank bank,
-			core::map<v3s16, u8> & from_nodes,
-			core::map<v3s16, bool> & light_sources);
-	
+	                   core::map<v3s16, u8> & from_nodes,
+	                   core::map<v3s16, bool> & light_sources);
+
 	void spreadLight(enum LightBank bank, v3s16 p);
 	void spreadLight(enum LightBank bank,
-			core::map<v3s16, bool> & from_nodes);
-	
+	                 core::map<v3s16, bool> & from_nodes);
+
 	/*
 		Virtual functions
 	*/
-	
+
 	/*
 		Get the contents of the requested area from somewhere.
 		Shall touch only nodes that have VOXELFLAG_NOT_LOADED
@@ -512,15 +512,15 @@ public:
 		//dstream<<"emerge p=("<<p.X<<","<<p.Y<<","<<p.Z<<")"<<std::endl;
 		addArea(a);
 		for(s32 z=a.MinEdge.Z; z<=a.MaxEdge.Z; z++)
-		for(s32 y=a.MinEdge.Y; y<=a.MaxEdge.Y; y++)
-		for(s32 x=a.MinEdge.X; x<=a.MaxEdge.X; x++)
-		{
-			s32 i = m_area.index(x,y,z);
-			// Don't touch nodes that have already been loaded
-			if(!(m_flags[i] & VOXELFLAG_NOT_LOADED))
-				continue;
-			m_flags[i] = VOXELFLAG_INEXISTENT;
-		}
+			for(s32 y=a.MinEdge.Y; y<=a.MaxEdge.Y; y++)
+				for(s32 x=a.MinEdge.X; x<=a.MaxEdge.X; x++)
+				{
+					s32 i = m_area.index(x,y,z);
+					// Don't touch nodes that have already been loaded
+					if(!(m_flags[i] & VOXELFLAG_NOT_LOADED))
+						continue;
+					m_flags[i] = VOXELFLAG_INEXISTENT;
+				}
 	}
 
 	/*
@@ -533,7 +533,7 @@ public:
 		MaxEdge is 1 higher than maximum allowed position
 	*/
 	VoxelArea m_area;
-	
+
 	/*
 		NULL if data size is 0 (extent (0,0,0))
 		Data is stored as [z*h*w + y*h + x]
@@ -544,7 +544,7 @@ public:
 		Flags of all nodes
 	*/
 	u8 *m_flags;
-	
+
 	//TODO: Use these or remove them
 	//TODO: Would these make any speed improvement?
 	//bool m_pressure_route_valid;

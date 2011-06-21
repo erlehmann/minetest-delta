@@ -49,7 +49,7 @@ struct QueuedMeshUpdate
 		ack_block_to_server(false)
 	{
 	}
-	
+
 	~QueuedMeshUpdate()
 	{
 		if(data)
@@ -79,7 +79,7 @@ public:
 			delete q;
 		}
 	}
-	
+
 	/*
 		peer_id=0 adds with nobody to send to
 	*/
@@ -88,7 +88,7 @@ public:
 		DSTACK(__FUNCTION_NAME);
 
 		assert(data);
-	
+
 		JMutexAutoLock lock(m_mutex);
 
 		/*
@@ -109,7 +109,7 @@ public:
 				return;
 			}
 		}
-		
+
 		/*
 			Add the block
 		*/
@@ -139,7 +139,7 @@ public:
 		JMutexAutoLock lock(m_mutex);
 		return m_queue.size();
 	}
-	
+
 private:
 	core::list<QueuedMeshUpdate*> m_queue;
 	JMutex m_mutex;
@@ -184,13 +184,17 @@ enum ClientEventType
 struct ClientEvent
 {
 	ClientEventType type;
-	union{
-		struct{
+	union
+	{
+		struct
+		{
 		} none;
-		struct{
+		struct
+		{
 			u8 amount;
 		} player_damage;
-		struct{
+		struct
+		{
 			f32 pitch;
 			f32 yaw;
 		} player_force_move;
@@ -205,12 +209,12 @@ public:
 	*/
 
 	Client(
-			IrrlichtDevice *device,
-			const char *playername,
-			std::string password,
-			MapDrawControl &control
-			);
-	
+	    IrrlichtDevice *device,
+	    const char *playername,
+	    std::string password,
+	    MapDrawControl &control
+	);
+
 	~Client();
 	/*
 		The name of the local player should already be set when
@@ -247,7 +251,7 @@ public:
 	//IncomingPacket getPacket();
 
 	void groundAction(u8 action, v3s16 nodepos_undersurface,
-			v3s16 nodepos_oversurface, u16 item);
+	                  v3s16 nodepos_oversurface, u16 item);
 	void clickObject(u8 button, v3s16 blockpos, s16 id, u16 item);
 	void clickActiveObject(u8 button, u16 id, u16 item);
 
@@ -256,16 +260,16 @@ public:
 	void sendInventoryAction(InventoryAction *a);
 	void sendChatMessage(const std::wstring &message);
 	void sendChangePassword(const std::wstring oldpassword,
-		const std::wstring newpassword);
+	                        const std::wstring newpassword);
 	void sendDamage(u8 damage);
-	
+
 	// locks envlock
 	void removeNode(v3s16 p);
 	// locks envlock
 	void addNode(v3s16 p, MapNode n);
-	
+
 	void updateCamera(v3f pos, v3f dir);
-	
+
 	// Returns InvalidPositionException if not found
 	MapNode getNode(v3s16 p);
 	// Wrapper to Map
@@ -274,13 +278,13 @@ public:
 	v3f getPlayerPosition();
 
 	void setPlayerControl(PlayerControl &control);
-	
+
 	// Returns true if the inventory of the local player has been
 	// updated from the server. If it is true, it is set to false.
 	bool getLocalInventoryUpdated();
 	// Copies the inventory of the local player to parameter
 	void getLocalInventory(Inventory &dst);
-	
+
 	InventoryContext *getInventoryContext();
 
 	Inventory* getInventory(InventoryContext *c, std::string id);
@@ -289,17 +293,17 @@ public:
 	// Gets closest object pointed by the shootline
 	// Returns NULL if not found
 	MapBlockObject * getSelectedObject(
-			f32 max_d,
-			v3f from_pos_f_on_map,
-			core::line3d<f32> shootline_on_map
+	    f32 max_d,
+	    v3f from_pos_f_on_map,
+	    core::line3d<f32> shootline_on_map
 	);
 
 	// Gets closest object pointed by the shootline
 	// Returns NULL if not found
 	ClientActiveObject * getSelectedActiveObject(
-			f32 max_d,
-			v3f from_pos_f_on_map,
-			core::line3d<f32> shootline_on_map
+	    f32 max_d,
+	    v3f from_pos_f_on_map,
+	    core::line3d<f32> shootline_on_map
 	);
 
 	// Prints a line or two of info
@@ -310,7 +314,7 @@ public:
 	u16 getHP();
 
 	//void updateSomeExpiredMeshes();
-	
+
 	void setTempMod(v3s16 p, NodeMod mod)
 	{
 		//JMutexAutoLock envlock(m_env_mutex); //bulk comment-out
@@ -318,11 +322,11 @@ public:
 
 		core::map<v3s16, MapBlock*> affected_blocks;
 		((ClientMap&)m_env.getMap()).setTempMod(p, mod,
-				&affected_blocks);
+		                                        &affected_blocks);
 
 		for(core::map<v3s16, MapBlock*>::Iterator
-				i = affected_blocks.getIterator();
-				i.atEnd() == false; i++)
+		        i = affected_blocks.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			i.getNode()->getValue()->updateMesh(m_env.getDayNightRatio());
 		}
@@ -334,11 +338,11 @@ public:
 
 		core::map<v3s16, MapBlock*> affected_blocks;
 		((ClientMap&)m_env.getMap()).clearTempMod(p,
-				&affected_blocks);
+		        &affected_blocks);
 
 		for(core::map<v3s16, MapBlock*>::Iterator
-				i = affected_blocks.getIterator();
-				i.atEnd() == false; i++)
+		        i = affected_blocks.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			i.getNode()->getValue()->updateMesh(m_env.getDayNightRatio());
 		}
@@ -368,10 +372,13 @@ public:
 		assert(player != NULL);
 		std::wstring name = narrow_to_wide(player->getName());
 		m_chat_queue.push_back(
-				(std::wstring)L"<"+name+L"> "+message);
+		    (std::wstring)L"<"+name+L"> "+message);
 	}
 
-	u64 getMapSeed(){ return m_map_seed; }
+	u64 getMapSeed()
+	{
+		return m_map_seed;
+	}
 
 	void addUpdateMeshTask(v3s16 blockpos, bool ack_to_server=false);
 	// Including blocks at appropriate edges
@@ -379,25 +386,25 @@ public:
 
 	// Get event from queue. CE_NONE is returned if queue is empty.
 	ClientEvent getClientEvent();
-	
+
 	inline bool accessDenied()
 	{
 		return m_access_denied;
 	}
 
 private:
-	
+
 	// Virtual methods from con::PeerHandler
 	void peerAdded(con::Peer *peer);
 	void deletingPeer(con::Peer *peer, bool timeout);
-	
+
 	void ReceiveAll();
 	void Receive();
-	
+
 	void sendPlayerPos();
 	// This sends the player's current name etc to the server
 	void sendPlayerInfo();
-	
+
 	float m_packetcounter_timer;
 	float m_delete_unused_sectors_timer;
 	float m_connection_reinit_timer;
@@ -406,16 +413,16 @@ private:
 	float m_ignore_damage_timer; // Used after server moves player
 
 	MeshUpdateThread m_mesh_update_thread;
-	
+
 	ClientEnvironment m_env;
-	
+
 	con::Connection m_con;
 
 	IrrlichtDevice *m_device;
 
 	v3f camera_position;
 	v3f camera_direction;
-	
+
 	// Server serialization version
 	u8 m_server_ser_ver;
 
@@ -425,19 +432,19 @@ private:
 	core::map<v3s16, bool> m_active_blocks;
 
 	PacketCounter m_packetcounter;
-	
+
 	// Received from the server. 0-23999
 	u32 m_time_of_day;
-	
+
 	// 0 <= m_daynight_i < DAYNIGHT_CACHE_COUNT
 	//s32 m_daynight_i;
 	//u32 m_daynight_ratio;
 
 	Queue<std::wstring> m_chat_queue;
-	
+
 	// The seed returned by the server in TOCLIENT_INIT is stored here
 	u64 m_map_seed;
-	
+
 	std::string m_password;
 	bool m_access_denied;
 

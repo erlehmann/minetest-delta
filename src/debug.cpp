@@ -37,16 +37,16 @@ void debugstreams_init(bool disable_stderr, const char *filename)
 
 	if(filename)
 		g_debugstreams[1] = fopen(filename, "a");
-		
+
 	if(g_debugstreams[1])
 	{
 		fprintf(g_debugstreams[1], "\n\n-------------\n");
 		fprintf(g_debugstreams[1],     "  Separator  \n");
 		fprintf(g_debugstreams[1],     "-------------\n\n");
 	}
-	
+
 	DEBUGPRINT("Debug streams initialized, disable_stderr=%d\n",
-			disable_stderr);
+	           disable_stderr);
 }
 
 void debugstreams_deinit()
@@ -66,13 +66,13 @@ Nullstream dummyout;
 */
 
 void assert_fail(const char *assertion, const char *file,
-		unsigned int line, const char *function)
+                 unsigned int line, const char *function)
 {
 	DEBUGPRINT("\nIn thread %x:\n"
-			"%s:%d: %s: Assertion '%s' failed.\n",
-			(unsigned int)get_current_thread_id(),
-			file, line, function, assertion);
-	
+	           "%s:%d: %s: Assertion '%s' failed.\n",
+	           (unsigned int)get_current_thread_id(),
+	           file, line, function, assertion);
+
 	debug_stacks_print();
 
 	if(g_debugstreams[1])
@@ -96,7 +96,7 @@ DebugStack::DebugStack(threadid_t id)
 void DebugStack::print(FILE *file, bool everything)
 {
 	fprintf(file, "DEBUG STACK FOR THREAD %x:\n",
-			(unsigned int)threadid);
+	        (unsigned int)threadid);
 
 	for(int i=0; i<stack_max_i; i++)
 	{
@@ -129,8 +129,8 @@ void debug_stacks_print()
 	DEBUGPRINT("Debug stacks:\n");
 
 	for(core::map<threadid_t, DebugStack*>::Iterator
-			i = g_debug_stacks.getIterator();
-			i.atEnd() == false; i++)
+	        i = g_debug_stacks.getIterator();
+	        i.atEnd() == false; i++)
 	{
 		DebugStack *stack = i.getNode()->getValue();
 
@@ -171,7 +171,7 @@ DebugStacker::DebugStacker(const char *text)
 		m_overflowed = false;
 
 		snprintf(m_stack->stack[m_stack->stack_i],
-				DEBUG_STACK_TEXT_SIZE, "%s", text);
+		         DEBUG_STACK_TEXT_SIZE, "%s", text);
 		m_stack->stack_i++;
 		if(m_stack->stack_i > m_stack->stack_max_i)
 			m_stack->stack_max_i = m_stack->stack_i;
@@ -181,10 +181,10 @@ DebugStacker::DebugStacker(const char *text)
 DebugStacker::~DebugStacker()
 {
 	JMutexAutoLock lock(g_debug_stacks_mutex);
-	
+
 	if(m_overflowed == true)
 		return;
-	
+
 	m_stack->stack_i--;
 
 	if(m_stack->stack_i == 0)
@@ -207,9 +207,9 @@ void se_trans_func(unsigned int u, EXCEPTION_POINTERS* pExp)
 	{
 		PEXCEPTION_RECORD r = pExp->ExceptionRecord;
 		dstream<<"Access violation at "<<r->ExceptionAddress
-				<<" write?="<<r->ExceptionInformation[0]
-				<<" address="<<r->ExceptionInformation[1]
-				<<std::endl;
+		       <<" write?="<<r->ExceptionInformation[0]
+		       <<" address="<<r->ExceptionInformation[1]
+		       <<std::endl;
 		throw FatalSystemException
 		("Access violation");
 	}

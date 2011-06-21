@@ -62,7 +62,7 @@ public:
 	{
 		return m_block;
 	}
-	
+
 	// Writes id, pos and typeId
 	void serializeBase(std::ostream &os, u8 version)
 	{
@@ -71,7 +71,7 @@ public:
 		// id
 		writeS16(buf, m_id);
 		os.write((char*)buf, 2);
-		
+
 		// position
 		// stored as x1000/BS v3s16
 		v3s16 pos_i(m_pos.X*1000/BS, m_pos.Y*1000/BS, m_pos.Z*1000/BS);
@@ -82,7 +82,7 @@ public:
 		writeU16(buf, getTypeId());
 		os.write((char*)buf, 2);
 	}
-	
+
 	// Position where the object is drawn relative to block
 	virtual v3f getRelativeShowPos()
 	{
@@ -100,8 +100,8 @@ public:
 			return false;
 
 		core::aabbox3d<f32> offsetted_box(
-				m_selection_box->MinEdge + m_pos,
-				m_selection_box->MaxEdge + m_pos
+		    m_selection_box->MinEdge + m_pos,
+		    m_selection_box->MaxEdge + m_pos
 		);
 
 		return offsetted_box.intersectsWithLine(shootline);
@@ -112,13 +112,13 @@ public:
 		v3f absolute_pos = getAbsolutePos();
 
 		core::aabbox3d<f32> box(
-				m_selection_box->MinEdge + absolute_pos,
-				m_selection_box->MaxEdge + absolute_pos
+		    m_selection_box->MinEdge + absolute_pos,
+		    m_selection_box->MaxEdge + absolute_pos
 		);
 
 		return box;
 	}
-	
+
 	/*
 		Implementation interface
 	*/
@@ -129,20 +129,25 @@ public:
 	// Shall read parameters from stream
 	virtual void update(std::istream &is, u8 version) = 0;
 
-	virtual std::string getInventoryString() { return "None"; }
-	
+	virtual std::string getInventoryString()
+	{
+		return "None";
+	}
+
 	// Reimplementation shall call this.
 	virtual void updatePos(v3f pos)
 	{
 		m_pos = pos;
 	}
-	
+
 	// Shall move the object around, modify it and possibly delete it.
 	// Typical dtimes are 0.2 and 10000.
 	// A return value of true requests deletion of the object by the caller.
 	// NOTE: Only server calls this.
 	virtual bool serverStep(float dtime, u32 daynight_ratio)
-	{ return false; };
+	{
+		return false;
+	};
 
 #ifdef SERVER
 	void clientStep(float dtime) {};
@@ -162,17 +167,20 @@ public:
 	// Should return silently if there is nothing to remove
 	// NOTE: This has to be called before calling destructor
 	virtual void removeFromScene() = 0;
-	
+
 	// 0 <= light_at_pos <= LIGHT_SUN
 	virtual void updateLight(u8 light_at_pos) {};
 #endif
 
-	virtual std::string infoText() { return ""; }
-	
+	virtual std::string infoText()
+	{
+		return "";
+	}
+
 	// Shall be left NULL if doesn't collide
 	// Position is relative to m_pos in block
 	core::aabbox3d<f32> * m_collision_box;
-	
+
 	// Shall be left NULL if can't be selected
 	core::aabbox3d<f32> * m_selection_box;
 
@@ -205,7 +213,7 @@ public:
 		if(m_selection_box)
 			delete m_selection_box;
 	}
-	
+
 	/*
 		Implementation interface
 	*/
@@ -229,12 +237,12 @@ public:
 	/*
 		Special methods
 	*/
-	
+
 	void setSelectionBox(core::aabbox3d<f32> box)
 	{
 		m_selection_box = new core::aabbox3d<f32>(box);
 	}
-	
+
 protected:
 };
 #endif
@@ -255,11 +263,11 @@ public:
 	virtual ~MovingObject()
 	{
 	}
-	
+
 	/*
 		Implementation interface
 	*/
-	
+
 	virtual u16 getTypeId() const = 0;
 
 	virtual void serialize(std::ostream &os, u8 version)
@@ -277,33 +285,33 @@ public:
 	virtual void update(std::istream &is, u8 version)
 	{
 		u8 buf[6];
-		
+
 		// Read speed
 		// stored as x100/BS v3s16
 		is.read((char*)buf, 6);
 		v3s16 speed_i = readV3S16(buf);
 		v3f speed((f32)speed_i.X/100*BS,
-				(f32)speed_i.Y/100*BS,
-				(f32)speed_i.Z/100*BS);
+		          (f32)speed_i.Y/100*BS,
+		          (f32)speed_i.Z/100*BS);
 
 		m_speed = speed;
 	}
-	
+
 	// Reimplementation shall call this.
 	virtual void updatePos(v3f pos)
 	{
 		m_oldpos = m_showpos;
 		m_pos = pos;
-		
+
 		if(m_pos_animation_time < 0.001 || m_pos_animation_time > 1.0)
 			m_pos_animation_time = m_pos_animation_time_counter;
 		else
 			m_pos_animation_time = m_pos_animation_time * 0.9
-					+ m_pos_animation_time_counter * 0.1;
+			                       + m_pos_animation_time_counter * 0.1;
 		m_pos_animation_time_counter = 0;
 		m_pos_animation_counter = 0;
 	}
-	
+
 	// Position where the object is drawn relative to block
 	virtual v3f getRelativeShowPos()
 	{
@@ -313,23 +321,25 @@ public:
 	v3f getAbsoluteShowPos();
 
 	virtual bool serverStep(float dtime, u32 daynight_ratio)
-	{ return false; };
+	{
+		return false;
+	};
 	virtual void clientStep(float dtime)
 	{};
-	
+
 	/*virtual void addToScene(scene::ISceneManager *smgr) = 0;
 	virtual void removeFromScene() = 0;*/
 
 	/*
 		Special methods
 	*/
-	
+
 	// Move with collision detection, server side
 	void move(float dtime, v3f acceleration);
 
 	// Move from old position to new position, client side
 	void simpleMove(float dtime);
-	
+
 protected:
 	v3f m_speed;
 	bool m_touching_ground;
@@ -350,13 +360,13 @@ public:
 		m_node(NULL)
 	{
 		m_selection_box = new core::aabbox3d<f32>
-				(-BS*0.4,-BS*0.5,-BS*0.4, BS*0.4,BS*0.5,BS*0.4);
+		(-BS*0.4,-BS*0.5,-BS*0.4, BS*0.4,BS*0.5,BS*0.4);
 	}
 	virtual ~SignObject()
 	{
 		delete m_selection_box;
 	}
-	
+
 	/*
 		Implementation interface
 	*/
@@ -376,7 +386,7 @@ public:
 		// Write text length
 		writeU16(buf, m_text.size());
 		os.write((char*)buf, 2);
-		
+
 		// Write text
 		os.write(m_text.c_str(), m_text.size());
 	}
@@ -412,57 +422,59 @@ public:
 	{
 		if(m_node != NULL)
 			return;
-		
+
 		video::IVideoDriver* driver = smgr->getVideoDriver();
-		
+
 		scene::SMesh *mesh = new scene::SMesh();
-		{ // Front
-		scene::IMeshBuffer *buf = new scene::SMeshBuffer();
-		video::SColor c(255,255,255,255);
-		video::S3DVertex vertices[4] =
 		{
-			video::S3DVertex(BS/2,-BS/2,0, 0,0,0, c, 0,1),
-			video::S3DVertex(-BS/2,-BS/2,0, 0,0,0, c, 1,1),
-			video::S3DVertex(-BS/2,BS/2,0, 0,0,0, c, 1,0),
-			video::S3DVertex(BS/2,BS/2,0, 0,0,0, c, 0,0),
-		};
-		u16 indices[] = {0,1,2,2,3,0};
-		buf->append(vertices, 4, indices, 6);
-		// Set material
-		buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
-		//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
-		buf->getMaterial().setTexture
-				(0, driver->getTexture(getTexturePath("sign.png").c_str()));
-		buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
-		buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
-		buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
-		// Add to mesh
-		mesh->addMeshBuffer(buf);
-		buf->drop();
+			// Front
+			scene::IMeshBuffer *buf = new scene::SMeshBuffer();
+			video::SColor c(255,255,255,255);
+			video::S3DVertex vertices[4] =
+			{
+				video::S3DVertex(BS/2,-BS/2,0, 0,0,0, c, 0,1),
+				video::S3DVertex(-BS/2,-BS/2,0, 0,0,0, c, 1,1),
+				video::S3DVertex(-BS/2,BS/2,0, 0,0,0, c, 1,0),
+				video::S3DVertex(BS/2,BS/2,0, 0,0,0, c, 0,0),
+			};
+			u16 indices[] = {0,1,2,2,3,0};
+			buf->append(vertices, 4, indices, 6);
+			// Set material
+			buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
+			//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
+			buf->getMaterial().setTexture
+			(0, driver->getTexture(getTexturePath("sign.png").c_str()));
+			buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
+			buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
+			buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+			// Add to mesh
+			mesh->addMeshBuffer(buf);
+			buf->drop();
 		}
-		{ // Back
-		scene::IMeshBuffer *buf = new scene::SMeshBuffer();
-		video::SColor c(255,255,255,255);
-		video::S3DVertex vertices[4] =
 		{
-			video::S3DVertex(-BS/2,-BS/2,0, 0,0,0, c, 0,1),
-			video::S3DVertex(BS/2,-BS/2,0, 0,0,0, c, 1,1),
-			video::S3DVertex(BS/2,BS/2,0, 0,0,0, c, 1,0),
-			video::S3DVertex(-BS/2,BS/2,0, 0,0,0, c, 0,0),
-		};
-		u16 indices[] = {0,1,2,2,3,0};
-		buf->append(vertices, 4, indices, 6);
-		// Set material
-		buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
-		//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
-		buf->getMaterial().setTexture
-				(0, driver->getTexture(getTexturePath("sign_back.png").c_str()));
-		buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
-		buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
-		buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
-		// Add to mesh
-		mesh->addMeshBuffer(buf);
-		buf->drop();
+			// Back
+			scene::IMeshBuffer *buf = new scene::SMeshBuffer();
+			video::SColor c(255,255,255,255);
+			video::S3DVertex vertices[4] =
+			{
+				video::S3DVertex(-BS/2,-BS/2,0, 0,0,0, c, 0,1),
+				video::S3DVertex(BS/2,-BS/2,0, 0,0,0, c, 1,1),
+				video::S3DVertex(BS/2,BS/2,0, 0,0,0, c, 1,0),
+				video::S3DVertex(-BS/2,BS/2,0, 0,0,0, c, 0,0),
+			};
+			u16 indices[] = {0,1,2,2,3,0};
+			buf->append(vertices, 4, indices, 6);
+			// Set material
+			buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
+			//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
+			buf->getMaterial().setTexture
+			(0, driver->getTexture(getTexturePath("sign_back.png").c_str()));
+			buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
+			buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
+			buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+			// Add to mesh
+			mesh->addMeshBuffer(buf);
+			buf->drop();
 		}
 		m_node = smgr->addMeshSceneNode(mesh, NULL);
 		mesh->drop();
@@ -486,7 +498,7 @@ public:
 		video::SColor color(255,li,li,li);
 
 		scene::IMesh *mesh = m_node->getMesh();
-		
+
 		u16 mc = mesh->getMeshBufferCount();
 		for(u16 j=0; j<mc; j++)
 		{
@@ -545,7 +557,7 @@ public:
 
 		setBlockChanged();
 	}
-	
+
 protected:
 	scene::IMeshSceneNode *m_node;
 	std::string m_text;
@@ -560,10 +572,10 @@ public:
 		m_node(NULL)
 	{
 		m_collision_box = new core::aabbox3d<f32>
-				(-BS*0.3,-BS*.25,-BS*0.3, BS*0.3,BS*0.25,BS*0.3);
+		(-BS*0.3,-BS*.25,-BS*0.3, BS*0.3,BS*0.25,BS*0.3);
 		m_selection_box = new core::aabbox3d<f32>
-				(-BS*0.3,-BS*.25,-BS*0.3, BS*0.3,BS*0.25,BS*0.3);
-		
+		(-BS*0.3,-BS*.25,-BS*0.3, BS*0.3,BS*0.25,BS*0.3);
+
 		m_yaw = 0;
 		m_counter1 = 0;
 		m_counter2 = 0;
@@ -574,7 +586,7 @@ public:
 		delete m_collision_box;
 		delete m_selection_box;
 	}
-	
+
 	/*
 		Implementation interface
 	*/
@@ -596,7 +608,7 @@ public:
 	{
 		MovingObject::update(is, version);
 		u8 buf[2];
-		
+
 		// Read yaw * 10
 		is.read((char*)buf, 2);
 		s16 yaw_i = readS16(buf);
@@ -657,7 +669,7 @@ public:
 
 		updateNodePos();
 	}
-	
+
 	virtual void addToScene(scene::ISceneManager *smgr);
 
 	virtual void removeFromScene()
@@ -678,7 +690,7 @@ public:
 		video::SColor color(255,li,li,li);
 
 		scene::IMesh *mesh = m_node->getMesh();
-		
+
 		u16 mc = mesh->getMeshBufferCount();
 		for(u16 j=0; j<mc; j++)
 		{
@@ -691,7 +703,7 @@ public:
 			}
 		}
 	}
-	
+
 #endif
 
 	virtual std::string getInventoryString()
@@ -704,7 +716,7 @@ public:
 	/*
 		Special methods
 	*/
-	
+
 	void updateNodePos()
 	{
 		if(m_node == NULL)
@@ -713,7 +725,7 @@ public:
 		m_node->setPosition(getAbsoluteShowPos());
 		m_node->setRotation(v3f(0, -m_yaw+180, 0));
 	}
-	
+
 protected:
 	scene::IMeshSceneNode *m_node;
 	float m_yaw;
@@ -740,14 +752,14 @@ public:
 		/*m_selection_box = new core::aabbox3d<f32>
 				(-BS*0.4,-BS*0.5,-BS*0.4, BS*0.4,BS*0.5,BS*0.4);*/
 		m_selection_box = new core::aabbox3d<f32>
-				(-BS/3,-BS/2,-BS/3, BS/3,-BS/2+BS*2/3,BS/3);
+		(-BS/3,-BS/2,-BS/3, BS/3,-BS/2+BS*2/3,BS/3);
 		m_yaw = 0.0;
 	}
 	virtual ~ItemObject()
 	{
 		delete m_selection_box;
 	}
-	
+
 	/*
 		Implementation interface
 	*/
@@ -763,7 +775,7 @@ public:
 		// Write text length
 		writeU16(buf, m_itemstring.size());
 		os.write((char*)buf, 2);
-		
+
 		// Write text
 		os.write(m_itemstring.c_str(), m_itemstring.size());
 	}
@@ -783,7 +795,7 @@ public:
 			is.read((char*)buf, 1);
 			m_itemstring += buf[0];
 		}
-		
+
 #ifndef SERVER
 		if(m_itemstring != old_itemstring && m_node)
 		{
@@ -799,7 +811,7 @@ public:
 				buf->getMaterial().setTexture(0, texture);
 			}
 		}
-		
+
 		updateSceneNode();
 #endif
 	}
@@ -818,9 +830,9 @@ public:
 
 		updateSceneNode();
 	}
-	
+
 	virtual void addToScene(scene::ISceneManager *smgr);
-	
+
 	virtual void removeFromScene()
 	{
 		if(m_node != NULL)
@@ -838,7 +850,7 @@ public:
 		video::SColor color(255,li,li,li);
 
 		scene::IMesh *mesh = m_node->getMesh();
-		
+
 		u16 mc = mesh->getMeshBufferCount();
 		for(u16 j=0; j<mc; j++)
 		{
@@ -868,7 +880,7 @@ public:
 	*/
 
 	InventoryItem * createInventoryItem();
-	
+
 #ifndef SERVER
 	video::ITexture * getItemImage();
 
@@ -911,7 +923,7 @@ public:
 		m_yaw(0)
 	{
 		m_collision_box = new core::aabbox3d<f32>
-				(-BS*0.3,-BS*.25,-BS*0.3, BS*0.3,BS*0.25,BS*0.3);
+		(-BS*0.3,-BS*.25,-BS*0.3, BS*0.3,BS*0.25,BS*0.3);
 		/*m_selection_box = new core::aabbox3d<f32>
 				(-BS*0.3,-BS*.25,-BS*0.3, BS*0.3,BS*0.25,BS*0.3);*/
 	}
@@ -922,7 +934,7 @@ public:
 		if(m_selection_box)
 			delete m_selection_box;
 	}
-	
+
 	/*
 		Implementation interface
 	*/
@@ -938,7 +950,7 @@ public:
 	{
 		MovingObject::update(is, version);
 		u8 buf[2];
-		
+
 		// Read yaw * 10
 		is.read((char*)buf, 2);
 		s16 yaw_i = readS16(buf);
@@ -963,7 +975,7 @@ public:
 
 		updateNodePos();
 	}
-	
+
 	virtual void addToScene(scene::ISceneManager *smgr);
 
 	virtual void removeFromScene()
@@ -984,7 +996,7 @@ public:
 		video::SColor color(255,li,li,li);
 
 		scene::IMesh *mesh = m_node->getMesh();
-		
+
 		u16 mc = mesh->getMeshBufferCount();
 		for(u16 j=0; j<mc; j++)
 		{
@@ -997,13 +1009,13 @@ public:
 			}
 		}
 	}
-	
+
 #endif
 
 	/*
 		Special methods
 	*/
-	
+
 	void updateNodePos()
 	{
 		if(m_node == NULL)
@@ -1012,7 +1024,7 @@ public:
 		m_node->setPosition(getAbsoluteShowPos());
 		m_node->setRotation(v3f(0, -m_yaw+180, 0));
 	}
-	
+
 protected:
 	scene::IMeshSceneNode *m_node;
 	float m_yaw;
@@ -1027,7 +1039,7 @@ struct DistanceSortedObject
 		obj = a_obj;
 		d = a_d;
 	}
-	
+
 	MapBlockObject *obj;
 	f32 d;
 
@@ -1050,7 +1062,7 @@ public:
 	// Creates, updates and deletes objects.
 	// If smgr!=NULL, new objects are added to the scene
 	void update(std::istream &is, u8 version, scene::ISceneManager *smgr,
-			u32 daynight_ratio);
+	            u32 daynight_ratio);
 
 	// Finds a new unique id
 	s16 getFreeId() throw(ContainerFullException);
@@ -1060,7 +1072,7 @@ public:
 		The block pointer member is set to this block.
 	*/
 	void add(MapBlockObject *object)
-			throw(ContainerFullException, AlreadyExistsException);
+	throw(ContainerFullException, AlreadyExistsException);
 
 	// Deletes and removes all objects
 	void clear();
@@ -1091,11 +1103,11 @@ public:
 	// Wraps an object that wants to move onto this block from an another
 	// Returns true if wrapping was impossible
 	bool wrapObject(MapBlockObject *object);
-	
+
 	// origin is relative to block
 	void getObjects(v3f origin, f32 max_d,
-			core::array<DistanceSortedObject> &dest);
-	
+	                core::array<DistanceSortedObject> &dest);
+
 	// Number of objects
 	s32 getCount()
 	{
