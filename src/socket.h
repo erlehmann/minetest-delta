@@ -21,26 +21,26 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define SOCKET_HEADER
 
 #ifdef _WIN32
-	#define WIN32_LEAN_AND_MEAN
-	// Without this some of the network functions are not found on mingw
-	#ifndef _WIN32_WINNT
-		#define _WIN32_WINNT 0x0501
-	#endif
-	#include <windows.h>
-	#include <winsock2.h>
-	#include <ws2tcpip.h>
-	#ifdef _MSC_VER
-		#pragma comment(lib, "ws2_32.lib")
-	#endif
+#define WIN32_LEAN_AND_MEAN
+// Without this some of the network functions are not found on mingw
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
+#endif
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#ifdef _MSC_VER
+#pragma comment(lib, "ws2_32.lib")
+#endif
 typedef SOCKET socket_t;
 typedef int socklen_t;
 #else
-	#include <sys/types.h>
-	#include <sys/socket.h>
-	#include <netinet/in.h>
-	#include <fcntl.h>
-	#include <netdb.h>
-	#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <unistd.h>
 typedef int socket_t;
 #endif
 
@@ -84,8 +84,8 @@ public:
 	Address();
 	Address(unsigned int address, unsigned short port);
 	Address(unsigned int a, unsigned int b,
-			unsigned int c, unsigned int d,
-			unsigned short port);
+	        unsigned int c, unsigned int d,
+	        unsigned short port);
 	bool operator==(Address &address);
 	bool operator!=(Address &address);
 	void Resolve(const char *name);
@@ -93,7 +93,7 @@ public:
 	unsigned short getPort() const;
 	void setAddress(unsigned int address);
 	void setAddress(unsigned int a, unsigned int b,
-			unsigned int c, unsigned int d);
+	                unsigned int c, unsigned int d);
 	void setPort(unsigned short port);
 	void print(std::ostream *s) const;
 	void print() const;

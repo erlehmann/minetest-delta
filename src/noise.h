@@ -21,7 +21,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define NOISE_HEADER
 
 double easeCurve(double t);
- 
+
 // Return value: -1 ... 1
 double noise2d(int x, int y, int seed);
 double noise3d(int x, int y, int z, int seed);
@@ -30,29 +30,29 @@ double noise2d_gradient(double x, double y, int seed);
 double noise3d_gradient(double x, double y, double z, int seed);
 
 double noise2d_perlin(double x, double y, int seed,
-		int octaves, double persistence);
+                      int octaves, double persistence);
 
 double noise2d_perlin_abs(double x, double y, int seed,
-		int octaves, double persistence);
+                          int octaves, double persistence);
 
 double noise3d_perlin(double x, double y, double z, int seed,
-		int octaves, double persistence);
+                      int octaves, double persistence);
 
 double noise3d_perlin_abs(double x, double y, double z, int seed,
-		int octaves, double persistence);
+                          int octaves, double persistence);
 
 class NoiseBuffer
 {
 public:
 	NoiseBuffer();
 	~NoiseBuffer();
-	
+
 	void clear();
 	void create(int seed, int octaves, double persistence,
-			double pos_scale,
-			double first_x, double first_y, double first_z,
-			double last_x, double last_y, double last_z,
-			double samplelength_x, double samplelength_y, double samplelength_z);
+	            double pos_scale,
+	            double first_x, double first_y, double first_z,
+	            double last_x, double last_y, double last_z,
+	            double samplelength_x, double samplelength_y, double samplelength_z);
 
 	void intSet(int x, int y, int z, double d);
 	double intGet(int x, int y, int z);

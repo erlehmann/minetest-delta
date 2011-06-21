@@ -23,10 +23,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <string>
 
 GUIMessageMenu::GUIMessageMenu(gui::IGUIEnvironment* env,
-		gui::IGUIElement* parent, s32 id,
-		IMenuManager *menumgr,
-		std::wstring message_text
-):
+                               gui::IGUIElement* parent, s32 id,
+                               IMenuManager *menumgr,
+                               std::wstring message_text
+                              ):
 	GUIModalMenu(env, parent, id, menumgr),
 	m_message_text(message_text),
 	m_status(false)
@@ -58,17 +58,17 @@ void GUIMessageMenu::regenerateGui(v2u32 screensize)
 		Remove stuff
 	*/
 	removeChildren();
-	
+
 	/*
 		Calculate new sizes and positions
 	*/
 	core::rect<s32> rect(
-			screensize.X/2 - 580/2,
-			screensize.Y/2 - 300/2,
-			screensize.X/2 + 580/2,
-			screensize.Y/2 + 300/2
+	    screensize.X/2 - 580/2,
+	    screensize.Y/2 - 300/2,
+	    screensize.X/2 + 580/2,
+	    screensize.Y/2 + 300/2
 	);
-	
+
 	DesiredRect = rect;
 	recalculateAbsolutePosition(false);
 
@@ -81,13 +81,13 @@ void GUIMessageMenu::regenerateGui(v2u32 screensize)
 		core::rect<s32> rect(0, 0, 400, 50);
 		rect = rect + v2s32(size.X/2-400/2, size.Y/2-50/2-25);
 		Environment->addStaticText(m_message_text.c_str(), rect, false,
-				true, this, 256);
+		                           true, this, 256);
 	}
 	{
 		core::rect<s32> rect(0, 0, 140, 30);
 		rect = rect + v2s32(size.X/2-140/2, size.Y/2-30/2+25);
-		gui::IGUIElement *e = 
-		Environment->addButton(rect, this, 257, L"Proceed");
+		gui::IGUIElement *e =
+		    Environment->addButton(rect, this, 257, L"Proceed");
 		Environment->setFocus(e);
 	}
 }
@@ -98,7 +98,7 @@ void GUIMessageMenu::drawMenu()
 	if (!skin)
 		return;
 	video::IVideoDriver* driver = Environment->getVideoDriver();
-	
+
 	video::SColor bgcolor(140,0,0,0);
 	driver->draw2DRectangle(bgcolor, AbsoluteRect, &AbsoluteClippingRect);
 
@@ -125,12 +125,12 @@ bool GUIMessageMenu::OnEvent(const SEvent& event)
 	if(event.EventType==EET_GUI_EVENT)
 	{
 		if(event.GUIEvent.EventType==gui::EGET_ELEMENT_FOCUS_LOST
-				&& isVisible())
+		        && isVisible())
 		{
 			if(!canTakeFocus(event.GUIEvent.Element))
 			{
 				dstream<<"GUIMessageMenu: Not allowing focus change."
-						<<std::endl;
+				       <<std::endl;
 				// Returning true disables focus change
 				return true;
 			}

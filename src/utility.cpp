@@ -147,13 +147,13 @@ static unsigned long next = 1;
 /* RAND_MAX assumed to be 32767 */
 int myrand(void)
 {
-   next = next * 1103515245 + 12345;
-   return((unsigned)(next/65536) % 32768);
+	next = next * 1103515245 + 12345;
+	return((unsigned)(next/65536) % 32768);
 }
 
 void mysrand(unsigned seed)
 {
-   next = seed;
+	next = seed;
 }
 
 /*
@@ -163,15 +163,15 @@ void mysrand(unsigned seed)
 	range: viewing range
 */
 bool isBlockInSight(v3s16 blockpos_b, v3f camera_pos, v3f camera_dir, f32 range,
-		f32 *distance_ptr)
+                    f32 *distance_ptr)
 {
 	v3s16 blockpos_nodes = blockpos_b * MAP_BLOCKSIZE;
-	
+
 	// Block center position
 	v3f blockpos(
-			((float)blockpos_nodes.X + MAP_BLOCKSIZE/2) * BS,
-			((float)blockpos_nodes.Y + MAP_BLOCKSIZE/2) * BS,
-			((float)blockpos_nodes.Z + MAP_BLOCKSIZE/2) * BS
+	    ((float)blockpos_nodes.X + MAP_BLOCKSIZE/2) * BS,
+	    ((float)blockpos_nodes.Y + MAP_BLOCKSIZE/2) * BS,
+	    ((float)blockpos_nodes.Z + MAP_BLOCKSIZE/2) * BS
 	);
 
 	// Block position relative to camera
@@ -185,7 +185,7 @@ bool isBlockInSight(v3s16 blockpos_b, v3f camera_pos, v3f camera_dir, f32 range,
 
 	if(distance_ptr)
 		*distance_ptr = d;
-	
+
 	// If block is very close, it is always in sight
 	if(d < 1.44*1.44*MAP_BLOCKSIZE*BS/2)
 		return true;
@@ -196,7 +196,7 @@ bool isBlockInSight(v3s16 blockpos_b, v3f camera_pos, v3f camera_dir, f32 range,
 
 	// Maximum radius of a block
 	f32 block_max_radius = 0.5*1.44*1.44*MAP_BLOCKSIZE*BS;
-	
+
 	// If block is (nearly) touching the camera, don't
 	// bother validating further (that is, render it anyway)
 	if(d > block_max_radius * 1.5)
@@ -204,7 +204,7 @@ bool isBlockInSight(v3s16 blockpos_b, v3f camera_pos, v3f camera_dir, f32 range,
 		// Cosine of the angle between the camera direction
 		// and the block direction (camera_dir is an unit vector)
 		f32 cosangle = dforward / d;
-		
+
 		// Compensate for the size of the block
 		// (as the block has to be shown even if it's a bit off FOV)
 		// This is an estimate.

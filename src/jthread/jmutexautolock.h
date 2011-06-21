@@ -34,8 +34,14 @@
 class JMutexAutoLock
 {
 public:
-	JMutexAutoLock(JMutex &m) : mutex(m)						{ mutex.Lock(); }
-	~JMutexAutoLock()								{ mutex.Unlock(); }
+	JMutexAutoLock(JMutex &m) : mutex(m)
+	{
+		mutex.Lock();
+	}
+	~JMutexAutoLock()
+	{
+		mutex.Unlock();
+	}
 private:
 	JMutex &mutex;
 };

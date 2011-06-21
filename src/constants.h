@@ -53,7 +53,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define FOV_ANGLE (PI/2.5)
 
 // The absolute working limit is (2^15 - viewing_range).
-// I really don't want to make every algorithm to check if it's 
+// I really don't want to make every algorithm to check if it's
 // going near the limit or not, so this is lower.
 #define MAP_GENERATION_LIMIT (31000)
 
@@ -87,9 +87,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // Assert will be called on such an event.
 // In debug mode, leave these for the debugger and don't catch them.
 #ifdef NDEBUG
-	#define CATCH_UNHANDLED_EXCEPTIONS 1
+#define CATCH_UNHANDLED_EXCEPTIONS 1
 #else
-	#define CATCH_UNHANDLED_EXCEPTIONS 0
+#define CATCH_UNHANDLED_EXCEPTIONS 0
 #endif
 
 /*

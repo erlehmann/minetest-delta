@@ -20,36 +20,37 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "serialization.h"
 #include "utility.h"
 #ifdef _WIN32
-	#define ZLIB_WINAPI
+#define ZLIB_WINAPI
 #endif
 #include "zlib.h"
 
 /* report a zlib or i/o error */
 void zerr(int ret)
-{   
-    fputs("zerr: ", stderr);
-    switch (ret) {
-    case Z_ERRNO:
-        if (ferror(stdin))
-            fputs("error reading stdin\n", stderr);
-        if (ferror(stdout))
-            fputs("error writing stdout\n", stderr);
-        break;
-    case Z_STREAM_ERROR:
-        fputs("invalid compression level\n", stderr);
-        break;
-    case Z_DATA_ERROR:
-        fputs("invalid or incomplete deflate data\n", stderr);
-        break;
-    case Z_MEM_ERROR:
-        fputs("out of memory\n", stderr);
-        break;
-    case Z_VERSION_ERROR:
-        fputs("zlib version mismatch!\n", stderr);
+{
+	fputs("zerr: ", stderr);
+	switch (ret)
+	{
+	case Z_ERRNO:
+		if (ferror(stdin))
+			fputs("error reading stdin\n", stderr);
+		if (ferror(stdout))
+			fputs("error writing stdout\n", stderr);
+		break;
+	case Z_STREAM_ERROR:
+		fputs("invalid compression level\n", stderr);
+		break;
+	case Z_DATA_ERROR:
+		fputs("invalid or incomplete deflate data\n", stderr);
+		break;
+	case Z_MEM_ERROR:
+		fputs("out of memory\n", stderr);
+		break;
+	case Z_VERSION_ERROR:
+		fputs("zlib version mismatch!\n", stderr);
 		break;
 	default:
 		dstream<<"return value = "<<ret<<"\n";
-    }
+	}
 }
 
 void compressZlib(SharedBuffer<u8> data, std::ostream &os)
@@ -69,9 +70,9 @@ void compressZlib(SharedBuffer<u8> data, std::ostream &os)
 	ret = deflateInit(&z, -1);
 	if(ret != Z_OK)
 		throw SerializationError("compressZlib: deflateInit failed");
-	
+
 	z.avail_in = 0;
-	
+
 	for(;;)
 	{
 		int flush = Z_NO_FLUSH;
@@ -91,7 +92,7 @@ void compressZlib(SharedBuffer<u8> data, std::ostream &os)
 			break;
 		status = deflate(&z, flush);
 		if(status == Z_NEED_DICT || status == Z_DATA_ERROR
-				|| status == Z_MEM_ERROR)
+		        || status == Z_MEM_ERROR)
 		{
 			zerr(status);
 			throw SerializationError("compressZlib: deflate failed");
@@ -129,9 +130,9 @@ void decompressZlib(std::istream &is, std::ostream &os)
 	ret = inflateInit(&z);
 	if(ret != Z_OK)
 		throw SerializationError("compressZlib: inflateInit failed");
-	
+
 	z.avail_in = 0;
-	
+
 	//dstream<<"initial fail="<<is.fail()<<" bad="<<is.bad()<<std::endl;
 
 	for(;;)
@@ -151,7 +152,7 @@ void decompressZlib(std::istream &is, std::ostream &os)
 			//dstream<<"z.avail_in == 0"<<std::endl;
 			break;
 		}
-			
+
 		//dstream<<"1 z.avail_in="<<z.avail_in<<std::endl;
 		status = inflate(&z, Z_NO_FLUSH);
 		//dstream<<"2 z.avail_in="<<z.avail_in<<std::endl;
@@ -159,7 +160,7 @@ void decompressZlib(std::istream &is, std::ostream &os)
 		//dstream<<"bytes_read="<<bytes_read<<std::endl;
 
 		if(status == Z_NEED_DICT || status == Z_DATA_ERROR
-				|| status == Z_MEM_ERROR)
+		        || status == Z_MEM_ERROR)
 		{
 			zerr(status);
 			throw SerializationError("compressZlib: inflate failed");
@@ -171,7 +172,7 @@ void decompressZlib(std::istream &is, std::ostream &os)
 		if(status == Z_STREAM_END)
 		{
 			//dstream<<"Z_STREAM_END"<<std::endl;
-			
+
 			//dstream<<"z.avail_in="<<z.avail_in<<std::endl;
 			//dstream<<"fail="<<is.fail()<<" bad="<<is.bad()<<std::endl;
 			// Unget all the data that inflate didn't take
@@ -185,7 +186,7 @@ void decompressZlib(std::istream &is, std::ostream &os)
 					throw SerializationError("compressZlib: unget failed");
 				}
 			}
-			
+
 			break;
 		}
 	}
@@ -203,21 +204,21 @@ void compress(SharedBuffer<u8> data, std::ostream &os, u8 version)
 
 	if(data.getSize() == 0)
 		return;
-	
+
 	// Write length (u32)
 
 	u8 tmp[4];
 	writeU32(tmp, data.getSize());
 	os.write((char*)tmp, 4);
-	
+
 	// We will be writing 8-bit pairs of more_count and byte
 	u8 more_count = 0;
 	u8 current_byte = data[0];
 	for(u32 i=1; i<data.getSize(); i++)
 	{
 		if(
-			data[i] != current_byte
-			|| more_count == 255
+		    data[i] != current_byte
+		    || more_count == 255
 		)
 		{
 			// write count and byte
@@ -249,7 +250,7 @@ void decompress(std::istream &is, std::ostream &os, u8 version)
 	u8 tmp[4];
 	is.read((char*)tmp, 4);
 	u32 len = readU32(tmp);
-	
+
 	// We will be reading 8-bit pairs of more_count and byte
 	u32 count = 0;
 	for(;;)
@@ -258,7 +259,7 @@ void decompress(std::istream &is, std::ostream &os, u8 version)
 		u8 byte=0;
 
 		is.read((char*)&more_count, 1);
-		
+
 		is.read((char*)&byte, 1);
 
 		if(is.eof())

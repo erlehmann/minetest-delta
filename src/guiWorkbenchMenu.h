@@ -24,10 +24,11 @@
 
 class Client;
 
-class GUIWorkbenchMenu: public GUIInventoryMenu {
+class GUIWorkbenchMenu: public GUIInventoryMenu
+{
 public:
 	GUIWorkbenchMenu(gui::IGUIEnvironment* env, gui::IGUIElement* parent,
-			s32 id, IMenuManager *menumgr, v3s16 nodepos, Client *client);
+	                 s32 id, IMenuManager *menumgr, v3s16 nodepos, Client *client);
 private:
 
 	v3s16 m_nodepos;

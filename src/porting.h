@@ -31,17 +31,17 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "constants.h"
 
 #ifdef _MSC_VER
-	#define SWPRINTF_CHARSTRING L"%S"
+#define SWPRINTF_CHARSTRING L"%S"
 #else
-	#define SWPRINTF_CHARSTRING L"%s"
+#define SWPRINTF_CHARSTRING L"%s"
 #endif
 
 #ifdef _WIN32
-	#include <windows.h>
-	#define sleep_ms(x) Sleep(x)
+#include <windows.h>
+#define sleep_ms(x) Sleep(x)
 #else
-	#include <unistd.h>
-	#define sleep_ms(x) usleep(x*1000)
+#include <unistd.h>
+#define sleep_ms(x) usleep(x*1000)
 #endif
 
 namespace porting
@@ -89,26 +89,26 @@ void initializePaths();
 	Overflow can occur at any value higher than 10000000.
 */
 #ifdef _WIN32 // Windows
-	#include <windows.h>
-	inline u32 getTimeMs()
-	{
-		return GetTickCount();
-	}
+#include <windows.h>
+inline u32 getTimeMs()
+{
+	return GetTickCount();
+}
 #else // Posix
-	#include <sys/time.h>
-	inline u32 getTimeMs()
-	{
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-		return tv.tv_sec * 1000 + tv.tv_usec / 1000;
-	}
-	/*#include <sys/timeb.h>
-	inline u32 getTimeMs()
-	{
-		struct timeb tb;
-		ftime(&tb);
-		return tb.time * 1000 + tb.millitm;
-	}*/
+#include <sys/time.h>
+inline u32 getTimeMs()
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+/*#include <sys/timeb.h>
+inline u32 getTimeMs()
+{
+	struct timeb tb;
+	ftime(&tb);
+	return tb.time * 1000 + tb.millitm;
+}*/
 #endif
 
 } // namespace porting

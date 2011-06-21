@@ -55,19 +55,25 @@ public:
 
 	// Create a certain type of ServerActiveObject
 	static ServerActiveObject* create(u8 type,
-			ServerEnvironment *env, u16 id, v3f pos,
-			const std::string &data);
-	
+	                                  ServerEnvironment *env, u16 id, v3f pos,
+	                                  const std::string &data);
+
 	/*
 		Some simple getters/setters
 	*/
 	v3f getBasePosition()
-		{return m_base_position;}
+	{
+		return m_base_position;
+	}
 	void setBasePosition(v3f pos)
-		{m_base_position = pos;}
+	{
+		m_base_position = pos;
+	}
 	ServerEnvironment* getEnv()
-		{return m_env;}
-	
+	{
+		return m_env;
+	}
+
 	/*
 		Step object in time.
 		Messages added to messages are sent to client over network.
@@ -79,33 +85,45 @@ public:
 			packet.
 	*/
 	virtual void step(float dtime, Queue<ActiveObjectMessage> &messages,
-			bool send_recommended){}
-	
+	                  bool send_recommended) {}
+
 	/*
 		The return value of this is passed to the client-side object
 		when it is created
 	*/
-	virtual std::string getClientInitializationData(){return "";}
-	
+	virtual std::string getClientInitializationData()
+	{
+		return "";
+	}
+
 	/*
 		The return value of this is passed to the server-side object
 		when it is created (converted from static to active - actually
 		the data is the static form)
 	*/
-	virtual std::string getStaticData(){return "";}
-	
+	virtual std::string getStaticData()
+	{
+		return "";
+	}
+
 	/*
 		Item that the player gets when this object is picked up.
 		If NULL, object cannot be picked up.
 	*/
-	virtual InventoryItem* createPickedUpItem(){return NULL;}
-	
+	virtual InventoryItem* createPickedUpItem()
+	{
+		return NULL;
+	}
+
 	/*
 		If the object doesn't return an item, this will be called.
 		Return value is tool wear.
 	*/
-	virtual u16 punch(const std::string &toolname){return 0;}
-	
+	virtual u16 punch(const std::string &toolname)
+	{
+		return 0;
+	}
+
 	/*
 		Number of players which know about this object. Object won't be
 		deleted until this is 0 to keep the id preserved for the right
@@ -123,17 +141,17 @@ public:
 		- This can be set to true by anything else too.
 	*/
 	bool m_removed;
-	
+
 	/*
 		This is set to true when a block should be removed from the active
 		object list but couldn't be removed because the id has to be
 		reserved for some client.
 
 		The environment checks this periodically. If this is true and also
-		m_known_by_count is true, 
+		m_known_by_count is true,
 	*/
 	bool m_pending_deactivation;
-	
+
 	/*
 		Whether the object's static data has been stored to a block
 	*/
@@ -143,12 +161,12 @@ public:
 		a copy of the static data resides.
 	*/
 	v3s16 m_static_block;
-	
+
 protected:
 	// Used for creating objects based on type
 	typedef ServerActiveObject* (*Factory)
-			(ServerEnvironment *env, u16 id, v3f pos,
-			const std::string &data);
+	(ServerEnvironment *env, u16 id, v3f pos,
+	 const std::string &data);
 	static void registerType(u16 type, Factory f);
 
 	ServerEnvironment *m_env;
@@ -164,11 +182,13 @@ class TestSAO : public ServerActiveObject
 public:
 	TestSAO(ServerEnvironment *env, u16 id, v3f pos);
 	u8 getType() const
-		{return ACTIVEOBJECT_TYPE_TEST;}
+	{
+		return ACTIVEOBJECT_TYPE_TEST;
+	}
 	static ServerActiveObject* create(ServerEnvironment *env, u16 id, v3f pos,
-			const std::string &data);
+	                                  const std::string &data);
 	void step(float dtime, Queue<ActiveObjectMessage> &messages,
-			bool send_recommended);
+	          bool send_recommended);
 private:
 	float m_timer1;
 	float m_age;
@@ -178,17 +198,22 @@ class ItemSAO : public ServerActiveObject
 {
 public:
 	ItemSAO(ServerEnvironment *env, u16 id, v3f pos,
-			const std::string inventorystring);
+	        const std::string inventorystring);
 	u8 getType() const
-		{return ACTIVEOBJECT_TYPE_ITEM;}
+	{
+		return ACTIVEOBJECT_TYPE_ITEM;
+	}
 	static ServerActiveObject* create(ServerEnvironment *env, u16 id, v3f pos,
-			const std::string &data);
+	                                  const std::string &data);
 	void step(float dtime, Queue<ActiveObjectMessage> &messages,
-			bool send_recommended);
+	          bool send_recommended);
 	std::string getClientInitializationData();
 	std::string getStaticData();
 	InventoryItem* createInventoryItem();
-	InventoryItem* createPickedUpItem(){return createInventoryItem();}
+	InventoryItem* createPickedUpItem()
+	{
+		return createInventoryItem();
+	}
 private:
 	std::string m_inventorystring;
 	v3f m_speed_f;
@@ -201,11 +226,13 @@ class RatSAO : public ServerActiveObject
 public:
 	RatSAO(ServerEnvironment *env, u16 id, v3f pos);
 	u8 getType() const
-		{return ACTIVEOBJECT_TYPE_RAT;}
+	{
+		return ACTIVEOBJECT_TYPE_RAT;
+	}
 	static ServerActiveObject* create(ServerEnvironment *env, u16 id, v3f pos,
-			const std::string &data);
+	                                  const std::string &data);
 	void step(float dtime, Queue<ActiveObjectMessage> &messages,
-			bool send_recommended);
+	          bool send_recommended);
 	std::string getClientInitializationData();
 	std::string getStaticData();
 	InventoryItem* createPickedUpItem();
@@ -227,14 +254,19 @@ class Oerkki1SAO : public ServerActiveObject
 public:
 	Oerkki1SAO(ServerEnvironment *env, u16 id, v3f pos);
 	u8 getType() const
-		{return ACTIVEOBJECT_TYPE_OERKKI1;}
+	{
+		return ACTIVEOBJECT_TYPE_OERKKI1;
+	}
 	static ServerActiveObject* create(ServerEnvironment *env, u16 id, v3f pos,
-			const std::string &data);
+	                                  const std::string &data);
 	void step(float dtime, Queue<ActiveObjectMessage> &messages,
-			bool send_recommended);
+	          bool send_recommended);
 	std::string getClientInitializationData();
 	std::string getStaticData();
-	InventoryItem* createPickedUpItem(){return NULL;}
+	InventoryItem* createPickedUpItem()
+	{
+		return NULL;
+	}
 	u16 punch(const std::string &toolname);
 private:
 	bool m_is_active;

@@ -40,9 +40,9 @@ class InventoryItem
 public:
 	InventoryItem(u16 count);
 	virtual ~InventoryItem();
-	
+
 	static InventoryItem* deSerialize(std::istream &is);
-	
+
 	virtual const char* getName() const = 0;
 	// Shall write the name and the parameters
 	virtual void serialize(std::ostream &os) = 0;
@@ -50,14 +50,23 @@ public:
 	virtual InventoryItem* clone() = 0;
 #ifndef SERVER
 	// Shall return an image to show in the GUI (or NULL)
-	virtual video::ITexture * getImage() { return NULL; }
+	virtual video::ITexture * getImage()
+	{
+		return NULL;
+	}
 #endif
 	// Shall return a text to show in the GUI
-	virtual std::string getText() { return ""; }
+	virtual std::string getText()
+	{
+		return "";
+	}
 	// Creates an object from the item, to be placed in the world.
 	virtual ServerActiveObject* createSAO(ServerEnvironment *env, u16 id, v3f pos);
 	// Gets amount of items that dropping one SAO will decrement
-	virtual u16 getDropCount(){ return getCount(); }
+	virtual u16 getDropCount()
+	{
+		return getCount();
+	}
 
 	/*
 		Quantity methods
@@ -68,7 +77,7 @@ public:
 	{
 		return false;
 	}
-	
+
 	u16 getCount()
 	{
 		return m_count;
@@ -97,11 +106,20 @@ public:
 		Other properties
 	*/
 	// Whether it can be cooked
-	virtual bool isCookable(){return false;}
+	virtual bool isCookable()
+	{
+		return false;
+	}
 	// Time of cooking
-	virtual float getCookTime(){return 3.0;}
+	virtual float getCookTime()
+	{
+		return 3.0;
+	}
 	// Result of cooking
-	virtual InventoryItem *createCookResult(){return NULL;}
+	virtual InventoryItem *createCookResult()
+	{
+		return NULL;
+	}
 
 protected:
 	u16 m_count;
@@ -189,7 +207,7 @@ public:
 	{
 		m_inventorystring = inventorystring;
 	}
-	
+
 	/*
 		Implementation interface
 	*/
@@ -344,7 +362,7 @@ public:
 	{
 		if(g_texturesource == NULL)
 			return NULL;
-		
+
 		std::string basename;
 		if(m_toolname == "WPick")
 			basename = "tool_woodpick.png";
@@ -374,14 +392,14 @@ public:
 			basename = "tool_steelsword.png";
 		else
 			basename = "cloud.png";
-		
+
 		/*
 			Calculate a progress value with sane amount of
 			maximum states
 		*/
 		u32 maxprogress = 30;
 		u32 toolprogress = (65535-m_wear)/(65535/maxprogress);
-		
+
 		float value_f = (float)toolprogress / (float)maxprogress;
 		std::ostringstream os;
 		os<<basename<<"^[progressbar"<<value_f;
@@ -392,7 +410,7 @@ public:
 	std::string getText()
 	{
 		return "";
-		
+
 		/*std::ostringstream os;
 		u16 f = 4;
 		u16 d = 65535/f;
@@ -402,7 +420,7 @@ public:
 		for(; i<f; i++)
 			os<<'-';
 		return os.str();*/
-		
+
 		/*std::ostringstream os;
 		os<<m_toolname;
 		os<<" ";
@@ -459,7 +477,7 @@ public:
 
 	/*bool getDirty(){ return m_dirty; }
 	void setDirty(bool dirty=true){ m_dirty = dirty; }*/
-	
+
 	// Get pointer to item
 	InventoryItem * getItem(u32 i);
 	// Returns old item (or NULL). Parameter can be NULL.
@@ -512,7 +530,7 @@ public:
 	Inventory();
 	Inventory(const Inventory &other);
 	Inventory & operator = (const Inventory &other);
-	
+
 	void serialize(std::ostream &os);
 	void deSerialize(std::istream &is);
 
@@ -528,7 +546,7 @@ public:
 			return newitem;
 		return list->addItem(newitem);
 	}
-	
+
 private:
 	// -1 if not found
 	s32 getListIndex(const std::string &name);
@@ -541,7 +559,7 @@ class Player;
 struct InventoryContext
 {
 	Player *current_player;
-	
+
 	InventoryContext():
 		current_player(NULL)
 	{}
@@ -552,9 +570,9 @@ class InventoryAction;
 class InventoryManager
 {
 public:
-	InventoryManager(){}
-	virtual ~InventoryManager(){}
-	
+	InventoryManager() {}
+	virtual ~InventoryManager() {}
+
 	/*
 		Get a pointer to an inventory specified by id.
 		id can be:
@@ -562,13 +580,15 @@ public:
 		- "nodemeta:X,Y,Z"
 	*/
 	virtual Inventory* getInventory(InventoryContext *c, std::string id)
-		{return NULL;}
+	{
+		return NULL;
+	}
 	// Used on the server by InventoryAction::apply and other stuff
 	virtual void inventoryModified(InventoryContext *c, std::string id)
-		{}
+	{}
 	// Used on the client
 	virtual void inventoryAction(InventoryAction *a)
-		{}
+	{}
 };
 
 #define IACTION_MOVE 0
@@ -576,7 +596,7 @@ public:
 struct InventoryAction
 {
 	static InventoryAction * deSerialize(std::istream &is);
-	
+
 	virtual u16 getType() const = 0;
 	virtual void serialize(std::ostream &os) = 0;
 	virtual void apply(InventoryContext *c, InventoryManager *mgr) = 0;
@@ -592,7 +612,7 @@ struct IMoveAction : public InventoryAction
 	std::string to_inv;
 	std::string to_list;
 	s16 to_i;
-	
+
 	IMoveAction()
 	{
 		count = 0;

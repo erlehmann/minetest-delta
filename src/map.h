@@ -25,11 +25,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <iostream>
 
 #ifdef _WIN32
-	#include <windows.h>
-	#define sleep_s(x) Sleep((x*1000))
+#include <windows.h>
+#define sleep_s(x) Sleep((x*1000))
 #else
-	#include <unistd.h>
-	#define sleep_s(x) sleep(x)
+#include <unistd.h>
+#define sleep_s(x) sleep(x)
 #endif
 
 #include "common_irrlicht.h"
@@ -45,7 +45,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define MAPTYPE_SERVER 1
 #define MAPTYPE_CLIENT 2
 
-enum MapEditEventType{
+enum MapEditEventType
+{
 	MEET_ADDNODE,
 	MEET_REMOVENODE,
 	MEET_OTHER
@@ -64,7 +65,7 @@ struct MapEditEvent
 		already_known_by_peer(0)
 	{
 	}
-	
+
 	MapEditEvent * clone()
 	{
 		MapEditEvent *event = new MapEditEvent();
@@ -72,8 +73,8 @@ struct MapEditEvent
 		event->p = p;
 		event->n = n;
 		for(core::map<v3s16, bool>::Iterator
-				i = modified_blocks.getIterator();
-				i.atEnd()==false; i++)
+		        i = modified_blocks.getIterator();
+		        i.atEnd()==false; i++)
 		{
 			v3s16 p = i.getNode()->getKey();
 			bool v = i.getNode()->getValue();
@@ -106,7 +107,7 @@ public:
 	{
 		return MAPTYPE_BASE;
 	}
-	
+
 	/*
 		Drop (client) or delete (server) the map.
 	*/
@@ -133,9 +134,15 @@ public:
 		This is overloaded by ClientMap and ServerMap to allow
 		their differing fetch methods.
 	*/
-	virtual MapSector * emergeSector(v2s16 p){ return NULL; }
+	virtual MapSector * emergeSector(v2s16 p)
+	{
+		return NULL;
+	}
 	virtual MapSector * emergeSector(v2s16 p,
-			core::map<v3s16, MapBlock*> &changed_blocks){ return NULL; }
+	                                 core::map<v3s16, MapBlock*> &changed_blocks)
+	{
+		return NULL;
+	}
 
 	// Returns InvalidPositionException if not found
 	MapBlock * getBlockNoCreate(v3s16 p);
@@ -143,16 +150,17 @@ public:
 	MapBlock * getBlockNoCreateNoEx(v3s16 p);
 	// Gets an existing block or creates an empty one
 	//MapBlock * getBlockCreate(v3s16 p);
-	
+
 	// Returns InvalidPositionException if not found
 	bool isNodeUnderground(v3s16 p);
-	
+
 	// virtual from NodeContainer
 	bool isValidPosition(v3s16 p)
 	{
 		v3s16 blockpos = getNodeBlockPos(p);
 		MapBlock *blockref;
-		try{
+		try
+		{
 			blockref = getBlockNoCreate(blockpos);
 		}
 		catch(InvalidPositionException &e)
@@ -164,7 +172,7 @@ public:
 		bool is_valid = blockref->isValidPosition(relpos);
 		return is_valid;*/
 	}
-	
+
 	// virtual from NodeContainer
 	// throws InvalidPositionException if not found
 	MapNode getNode(v3s16 p)
@@ -185,11 +193,12 @@ public:
 		v3s16 relpos = p - blockpos*MAP_BLOCKSIZE;
 		blockref->setNodeNoCheck(relpos, n);
 	}
-	
+
 	// Returns a CONTENT_IGNORE node if not found
 	MapNode getNodeNoEx(v3s16 p)
 	{
-		try{
+		try
+		{
 			v3s16 blockpos = getNodeBlockPos(p);
 			MapBlock * blockref = getBlockNoCreate(blockpos);
 			v3s16 relpos = p - blockpos*MAP_BLOCKSIZE;
@@ -203,42 +212,42 @@ public:
 	}
 
 	void unspreadLight(enum LightBank bank,
-			core::map<v3s16, u8> & from_nodes,
-			core::map<v3s16, bool> & light_sources,
-			core::map<v3s16, MapBlock*> & modified_blocks);
+	                   core::map<v3s16, u8> & from_nodes,
+	                   core::map<v3s16, bool> & light_sources,
+	                   core::map<v3s16, MapBlock*> & modified_blocks);
 
 	void unLightNeighbors(enum LightBank bank,
-			v3s16 pos, u8 lightwas,
-			core::map<v3s16, bool> & light_sources,
-			core::map<v3s16, MapBlock*> & modified_blocks);
-	
+	                      v3s16 pos, u8 lightwas,
+	                      core::map<v3s16, bool> & light_sources,
+	                      core::map<v3s16, MapBlock*> & modified_blocks);
+
 	void spreadLight(enum LightBank bank,
-			core::map<v3s16, bool> & from_nodes,
-			core::map<v3s16, MapBlock*> & modified_blocks);
-	
+	                 core::map<v3s16, bool> & from_nodes,
+	                 core::map<v3s16, MapBlock*> & modified_blocks);
+
 	void lightNeighbors(enum LightBank bank,
-			v3s16 pos,
-			core::map<v3s16, MapBlock*> & modified_blocks);
+	                    v3s16 pos,
+	                    core::map<v3s16, MapBlock*> & modified_blocks);
 
 	v3s16 getBrightestNeighbour(enum LightBank bank, v3s16 p);
 
 	s16 propagateSunlight(v3s16 start,
-			core::map<v3s16, MapBlock*> & modified_blocks);
-	
+	                      core::map<v3s16, MapBlock*> & modified_blocks);
+
 	void updateLighting(enum LightBank bank,
-			core::map<v3s16, MapBlock*>  & a_blocks,
-			core::map<v3s16, MapBlock*> & modified_blocks);
-			
+	                    core::map<v3s16, MapBlock*>  & a_blocks,
+	                    core::map<v3s16, MapBlock*> & modified_blocks);
+
 	void updateLighting(core::map<v3s16, MapBlock*>  & a_blocks,
-			core::map<v3s16, MapBlock*> & modified_blocks);
-			
+	                    core::map<v3s16, MapBlock*> & modified_blocks);
+
 	/*
 		These handle lighting but not faces.
 	*/
 	void addNodeAndUpdate(v3s16 p, MapNode n,
-			core::map<v3s16, MapBlock*> &modified_blocks);
+	                      core::map<v3s16, MapBlock*> &modified_blocks);
 	void removeNodeAndUpdate(v3s16 p,
-			core::map<v3s16, MapBlock*> &modified_blocks);
+	                         core::map<v3s16, MapBlock*> &modified_blocks);
 
 	/*
 		Wrappers for the latter ones.
@@ -247,7 +256,7 @@ public:
 	*/
 	bool addNodeWithEvent(v3s16 p, MapNode n);
 	bool removeNodeWithEvent(v3s16 p);
-	
+
 	/*
 		Takes the blocks at the edges into account
 	*/
@@ -256,57 +265,63 @@ public:
 	//core::aabbox3d<s16> getDisplayedBlockArea();
 
 	//bool updateChangedVisibleArea();
-	
-	virtual void save(bool only_changed){assert(0);};
+
+	virtual void save(bool only_changed)
+	{
+		assert(0);
+	};
 
 	/*
 		Updates usage timers
 	*/
 	void timerUpdate(float dtime);
-	
+
 	// Takes cache into account
 	// sector mutex should be locked when calling
 	void deleteSectors(core::list<v2s16> &list, bool only_blocks);
-	
+
 	// Returns count of deleted sectors
 	u32 deleteUnusedSectors(float timeout, bool only_blocks=false,
-			core::list<v3s16> *deleted_blocks=NULL);
+	                        core::list<v3s16> *deleted_blocks=NULL);
 
 	// For debug printing
 	virtual void PrintInfo(std::ostream &out);
-	
+
 	void transformLiquids(core::map<v3s16, MapBlock*> & modified_blocks);
 
 	/*
 		Node metadata
 		These are basically coordinate wrappers to MapBlock
 	*/
-	
+
 	NodeMetadata* getNodeMetadata(v3s16 p);
 	void setNodeMetadata(v3s16 p, NodeMetadata *meta);
 	void removeNodeMetadata(v3s16 p);
 	void nodeMetadataStep(float dtime,
-			core::map<v3s16, MapBlock*> &changed_blocks);
-	
+	                      core::map<v3s16, MapBlock*> &changed_blocks);
+
 	/*
 		Misc.
 	*/
-	core::map<v2s16, MapSector*> *getSectorsPtr(){return &m_sectors;}
+	core::map<v2s16, MapSector*> *getSectorsPtr()
+	{
+		return &m_sectors;
+	}
 
 	/*
 		Variables
 	*/
-	
+
 protected:
 
 	std::ostream &m_dout;
 
 	core::map<MapEventReceiver*, bool> m_event_receivers;
-	
+
 	core::map<v2s16, MapSector*> m_sectors;
 	//JMutex m_sector_mutex;
 
-	// Be sure to set this to NULL when the cached sector is deleted 
+	// Be sure to set this to NULL when the cached sector is deleted
 	MapSector *m_sector_cache;
 	v2s16 m_sector_cache_p;
 
@@ -339,7 +354,7 @@ public:
 	/*
 		Map generation
 	*/
-	
+
 	// Returns the position of the chunk where the sector is in
 	v2s16 sector_to_chunk(v2s16 sectorpos)
 	{
@@ -350,15 +365,15 @@ public:
 		v2s16 chunkpos = getContainerPos(sectorpos, m_chunksize);
 		return chunkpos;
 	}
-	
+
 	// Returns the position of the (0,0) sector of the chunk
 	v2s16 chunk_to_sector(v2s16 chunkpos)
 	{
 		if(m_chunksize == 0)
 			return v2s16(0,0);
 		v2s16 sectorpos(
-			chunkpos.X * m_chunksize,
-			chunkpos.Y * m_chunksize
+		    chunkpos.X * m_chunksize,
+		    chunkpos.Y * m_chunksize
 		);
 		sectorpos.X -= m_chunksize / 2;
 		sectorpos.Y -= m_chunksize / 2;
@@ -386,7 +401,7 @@ public:
 	{
 		if(m_chunksize == 0)
 			return true;
-		
+
 		/*for(s16 x=-1; x<=1; x++)
 		for(s16 y=-1; y<=1; y++)*/
 		s16 x=0;
@@ -401,15 +416,15 @@ public:
 		}
 		return true;
 	}
-	
+
 	/*
 		Returns true if any chunk is marked as modified
 	*/
 	bool anyChunkModified()
 	{
 		for(core::map<v2s16, MapChunk*>::Iterator
-				i = m_chunks.getIterator();
-				i.atEnd()==false; i++)
+		        i = m_chunks.getIterator();
+		        i.atEnd()==false; i++)
 		{
 			v2s16 p = i.getNode()->getKey();
 			MapChunk *chunk = i.getNode()->getValue();
@@ -422,8 +437,8 @@ public:
 	void setChunksNonModified()
 	{
 		for(core::map<v2s16, MapChunk*>::Iterator
-				i = m_chunks.getIterator();
-				i.atEnd()==false; i++)
+		        i = m_chunks.getIterator();
+		        i.atEnd()==false; i++)
 		{
 			v2s16 p = i.getNode()->getKey();
 			MapChunk *chunk = i.getNode()->getValue();
@@ -436,7 +451,7 @@ public:
 	*/
 	void initChunkMake(ChunkMakeData &data, v2s16 chunkpos);
 	MapChunk* finishChunkMake(ChunkMakeData &data,
-			core::map<v3s16, MapBlock*> &changed_blocks);
+	                          core::map<v3s16, MapBlock*> &changed_blocks);
 
 	/*
 		Generate a chunk.
@@ -446,21 +461,21 @@ public:
 	/*MapChunk* generateChunkRaw(v2s16 chunkpos,
 			core::map<v3s16, MapBlock*> &changed_blocks,
 			bool force=false);*/
-	
+
 	/*
 		Generate a chunk and its neighbors so that it won't be touched
 		anymore.
 	*/
 	/*MapChunk* generateChunk(v2s16 chunkpos,
 			core::map<v3s16, MapBlock*> &changed_blocks);*/
-	
+
 	/*
 		Generate a sector.
-		
+
 		This is mainly called by generateChunkRaw.
 	*/
 	//ServerMapSector * generateSector(v2s16 p);
-	
+
 	/*
 		Get a sector from somewhere.
 		- Check memory
@@ -477,7 +492,7 @@ public:
 	*/
 	/*MapSector * emergeSector(v2s16 p,
 			core::map<v3s16, MapBlock*> &changed_blocks);*/
-	
+
 	/*MapSector * emergeSector(v2s16 p)
 	{
 		core::map<v3s16, MapBlock*> changed_blocks;
@@ -485,29 +500,29 @@ public:
 	}*/
 
 	MapBlock * generateBlock(
-			v3s16 p,
-			MapBlock *original_dummy,
-			ServerMapSector *sector,
-			core::map<v3s16, MapBlock*> &changed_blocks,
-			core::map<v3s16, MapBlock*> &lighting_invalidated_blocks
+	    v3s16 p,
+	    MapBlock *original_dummy,
+	    ServerMapSector *sector,
+	    core::map<v3s16, MapBlock*> &changed_blocks,
+	    core::map<v3s16, MapBlock*> &lighting_invalidated_blocks
 	);
-	
+
 	/*
 		Get a block from somewhere.
 		- Memory
 		- Create blank
 	*/
 	MapBlock * createBlock(v3s16 p);
-	
+
 	/*
 		only_from_disk, changed_blocks and lighting_invalidated_blocks
 		are not properly used by the new map generator.
 	*/
 	MapBlock * emergeBlock(
-			v3s16 p,
-			bool only_from_disk,
-			core::map<v3s16, MapBlock*> &changed_blocks,
-			core::map<v3s16, MapBlock*> &lighting_invalidated_blocks
+	    v3s16 p,
+	    bool only_from_disk,
+	    core::map<v3s16, MapBlock*> &changed_blocks,
+	    core::map<v3s16, MapBlock*> &lighting_invalidated_blocks
 	);
 
 #if 0
@@ -516,7 +531,7 @@ public:
 
 		Exceptions:
 		- InvalidPositionException: possible if only_from_disk==true
-		
+
 		changed_blocks:
 		- All already existing blocks that were modified are added.
 			- If found on disk, nothing will be added.
@@ -526,18 +541,18 @@ public:
 		- All blocks that have heavy-to-calculate lighting changes
 		  are added.
 			- updateLighting() should be called for these.
-		
+
 		- A block that is in changed_blocks may not be in
 		  lighting_invalidated_blocks.
 	*/
 	MapBlock * emergeBlock(
-			v3s16 p,
-			bool only_from_disk,
-			core::map<v3s16, MapBlock*> &changed_blocks,
-			core::map<v3s16, MapBlock*> &lighting_invalidated_blocks
+	    v3s16 p,
+	    bool only_from_disk,
+	    core::map<v3s16, MapBlock*> &changed_blocks,
+	    core::map<v3s16, MapBlock*> &lighting_invalidated_blocks
 	);
 #endif
-	
+
 	// Helper for placing objects on ground level
 	s16 findGroundLevel(v2s16 p2d);
 
@@ -554,29 +569,29 @@ public:
 
 	void save(bool only_changed);
 	//void loadAll();
-	
+
 	// Saves map seed and possibly other stuff
 	void saveMapMeta();
 	void loadMapMeta();
-	
+
 	void saveChunkMeta();
 	void loadChunkMeta();
-	
+
 	// The sector mutex should be locked when calling most of these
-	
+
 	// This only saves sector-specific data such as the heightmap
 	// (no MapBlocks)
 	// DEPRECATED? Sectors have no metadata anymore.
 	void saveSectorMeta(ServerMapSector *sector);
 	MapSector* loadSectorMeta(std::string dirname, bool save_after_load);
-	
+
 	// Full load of a sector including all blocks.
 	// returns true on success, false on failure.
 	bool loadSectorFull(v2s16 p2d);
 	// If sector is not found in memory, try to load it from disk.
 	// Returns true if sector now resides in memory
 	//bool deFlushSector(v2s16 p2d);
-	
+
 	void saveBlock(MapBlock *block);
 	// This will generate a sector with getSector if not found.
 	void loadBlock(std::string sectordir, std::string blockfile, MapSector *sector, bool save_after_load=false);
@@ -584,7 +599,10 @@ public:
 	// For debug printing
 	virtual void PrintInfo(std::ostream &out);
 
-	bool isSavingEnabled(){ return m_map_saving_enabled; }
+	bool isSavingEnabled()
+	{
+		return m_map_saving_enabled;
+	}
 
 private:
 	// Seed used for all kinds of randomness
@@ -641,7 +659,7 @@ class Client;
 
 /*
 	ClientMap
-	
+
 	This is the only map class that is able to render itself on screen.
 */
 
@@ -649,11 +667,11 @@ class ClientMap : public Map, public scene::ISceneNode
 {
 public:
 	ClientMap(
-			Client *client,
-			MapDrawControl &control,
-			scene::ISceneNode* parent,
-			scene::ISceneManager* mgr,
-			s32 id
+	    Client *client,
+	    MapDrawControl &control,
+	    scene::ISceneNode* parent,
+	    scene::ISceneManager* mgr,
+	    s32 id
 	);
 
 	~ClientMap();
@@ -694,7 +712,7 @@ public:
 		driver->setTransform(video::ETS_WORLD, AbsoluteTransformation);
 		renderMap(driver, SceneManager->getSceneNodeRenderPass());
 	}
-	
+
 	virtual const core::aabbox3d<f32>& getBoundingBox() const
 	{
 		return m_box;
@@ -707,40 +725,40 @@ public:
 		drawing.
 
 		Returns true if something changed.
-		
+
 		All blocks whose mesh could have been changed are inserted
 		to affected_blocks.
 	*/
 	bool setTempMod(v3s16 p, NodeMod mod,
-			core::map<v3s16, MapBlock*> *affected_blocks=NULL);
+	                core::map<v3s16, MapBlock*> *affected_blocks=NULL);
 	bool clearTempMod(v3s16 p,
-			core::map<v3s16, MapBlock*> *affected_blocks=NULL);
+	                  core::map<v3s16, MapBlock*> *affected_blocks=NULL);
 	// Efficient implementation needs a cache of TempMods
 	//void clearTempMods();
 
 	void expireMeshes(bool only_daynight_diffed);
-	
+
 	/*
 		Update the faces of the given block and blocks on the
 		leading edge.
 	*/
 	void updateMeshes(v3s16 blockpos, u32 daynight_ratio);
-	
+
 	// Update meshes that touch the node
 	//void updateNodeMeshes(v3s16 nodepos, u32 daynight_ratio);
 
 	// For debug printing
 	virtual void PrintInfo(std::ostream &out);
-	
+
 private:
 	Client *m_client;
-	
+
 	core::aabbox3d<f32> m_box;
-	
+
 	// This is the master heightmap mesh
 	//scene::SMesh *mesh;
 	//JMutex mesh_mutex;
-	
+
 	MapDrawControl &m_control;
 
 	v3f m_camera_position;
@@ -756,7 +774,7 @@ class MapVoxelManipulator : public VoxelManipulator
 public:
 	MapVoxelManipulator(Map *map);
 	virtual ~MapVoxelManipulator();
-	
+
 	virtual void clear()
 	{
 		VoxelManipulator::clear();
@@ -783,12 +801,14 @@ public:
 	virtual ~ManualMapVoxelManipulator();
 
 	void setMap(Map *map)
-	{m_map = map;}
-	
+	{
+		m_map = map;
+	}
+
 	virtual void emerge(VoxelArea a, s32 caller_id=-1);
 
 	void initialEmerge(v3s16 blockpos_min, v3s16 blockpos_max);
-	
+
 	// This is much faster with big chunks of generated data
 	void blitBackAll(core::map<v3s16, MapBlock*> * modified_blocks);
 

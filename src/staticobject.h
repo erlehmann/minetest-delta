@@ -90,7 +90,7 @@ public:
 			if(m_active.find(id) != NULL)
 			{
 				dstream<<"ERROR: StaticObjectList::insert(): "
-						<<"id already exists"<<std::endl;
+				       <<"id already exists"<<std::endl;
 				assert(0);
 				return;
 			}
@@ -104,7 +104,7 @@ public:
 		if(m_active.find(id) == NULL)
 		{
 			dstream<<"WARNING: StaticObjectList::remove(): id="<<id
-					<<" not found"<<std::endl;
+			       <<" not found"<<std::endl;
 			return;
 		}
 		m_active.remove(id);
@@ -121,15 +121,15 @@ public:
 		writeU16((u8*)buf, count);
 		os.write(buf, 2);
 		for(core::list<StaticObject>::Iterator
-				i = m_stored.begin();
-				i != m_stored.end(); i++)
+		        i = m_stored.begin();
+		        i != m_stored.end(); i++)
 		{
 			StaticObject &s_obj = *i;
 			s_obj.serialize(os);
 		}
 		for(core::map<u16, StaticObject>::Iterator
-				i = m_active.getIterator();
-				i.atEnd()==false; i++)
+		        i = m_active.getIterator();
+		        i.atEnd()==false; i++)
 		{
 			StaticObject s_obj = i.getNode()->getValue();
 			s_obj.serialize(os);
@@ -151,7 +151,7 @@ public:
 			m_stored.push_back(s_obj);
 		}
 	}
-	
+
 	/*
 		NOTE: When an object is transformed to active, it is removed
 		from m_stored and inserted to m_active.

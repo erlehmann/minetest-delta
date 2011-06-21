@@ -76,9 +76,9 @@ inline void writeU8(u8 *data, u8 i)
 inline u64 readU64(u8 *data)
 {
 	return ((u64)data[0]<<56) | ((u64)data[1]<<48)
-		| ((u64)data[2]<<40) | ((u64)data[3]<<32)
-		| ((u64)data[4]<<24) | ((u64)data[5]<<16)
-		| ((u64)data[6]<<8) | ((u64)data[7]<<0);
+	       | ((u64)data[2]<<40) | ((u64)data[3]<<32)
+	       | ((u64)data[4]<<24) | ((u64)data[5]<<16)
+	       | ((u64)data[6]<<8) | ((u64)data[7]<<0);
 }
 
 inline u32 readU32(u8 *data)
@@ -96,24 +96,30 @@ inline u8 readU8(u8 *data)
 	return (data[0]<<0);
 }
 
-inline void writeS32(u8 *data, s32 i){
+inline void writeS32(u8 *data, s32 i)
+{
 	writeU32(data, (u32)i);
 }
-inline s32 readS32(u8 *data){
+inline s32 readS32(u8 *data)
+{
 	return (s32)readU32(data);
 }
 
-inline void writeF1000(u8 *data, f32 i){
+inline void writeF1000(u8 *data, f32 i)
+{
 	writeS32(data, i*1000);
 }
-inline f32 readF1000(u8 *data){
+inline f32 readF1000(u8 *data)
+{
 	return (f32)readS32(data)/1000.;
 }
 
-inline void writeS16(u8 *data, s16 i){
+inline void writeS16(u8 *data, s16 i)
+{
 	writeU16(data, (u16)i);
 }
-inline s16 readS16(u8 *data){
+inline s16 readS16(u8 *data)
+{
 	return (s16)readU16(data);
 }
 
@@ -514,13 +520,13 @@ public:
 		JMutexAutoLock lock(m_mutex);
 		m_value = value;
 	}
-	
+
 	// You'll want to grab this in a SharedPtr
 	JMutexAutoLock * getLock()
 	{
 		return new JMutexAutoLock(m_mutex);
 	}
-	
+
 	// You pretty surely want to grab the lock when accessing this
 	T m_value;
 
@@ -628,11 +634,11 @@ inline void getFacePositions(core::list<v3s16> &list, u16 d)
 	// Take the bottom and top face with borders
 	// -d<x<d, y=+-d, -d<z<d
 	for(s16 x=-d; x<=d; x++)
-	for(s16 z=-d; z<=d; z++)
-	{
-		list.push_back(v3s16(x,-d,z));
-		list.push_back(v3s16(x,d,z));
-	}
+		for(s16 z=-d; z<=d; z++)
+		{
+			list.push_back(v3s16(x,-d,z));
+			list.push_back(v3s16(x,d,z));
+		}
 }
 
 class IndentationRaiser
@@ -659,61 +665,61 @@ inline s16 getContainerPos(s16 p, s16 d)
 inline v2s16 getContainerPos(v2s16 p, s16 d)
 {
 	return v2s16(
-		getContainerPos(p.X, d),
-		getContainerPos(p.Y, d)
-	);
+	           getContainerPos(p.X, d),
+	           getContainerPos(p.Y, d)
+	       );
 }
 
 inline v3s16 getContainerPos(v3s16 p, s16 d)
 {
 	return v3s16(
-		getContainerPos(p.X, d),
-		getContainerPos(p.Y, d),
-		getContainerPos(p.Z, d)
-	);
+	           getContainerPos(p.X, d),
+	           getContainerPos(p.Y, d),
+	           getContainerPos(p.Z, d)
+	       );
 }
 
 inline v2s16 getContainerPos(v2s16 p, v2s16 d)
 {
 	return v2s16(
-		getContainerPos(p.X, d.X),
-		getContainerPos(p.Y, d.Y)
-	);
+	           getContainerPos(p.X, d.X),
+	           getContainerPos(p.Y, d.Y)
+	       );
 }
 
 inline v3s16 getContainerPos(v3s16 p, v3s16 d)
 {
 	return v3s16(
-		getContainerPos(p.X, d.X),
-		getContainerPos(p.Y, d.Y),
-		getContainerPos(p.Z, d.Z)
-	);
+	           getContainerPos(p.X, d.X),
+	           getContainerPos(p.Y, d.Y),
+	           getContainerPos(p.Z, d.Z)
+	       );
 }
 
 inline bool isInArea(v3s16 p, s16 d)
 {
 	return (
-		p.X >= 0 && p.X < d &&
-		p.Y >= 0 && p.Y < d &&
-		p.Z >= 0 && p.Z < d
-	);
+	           p.X >= 0 && p.X < d &&
+	           p.Y >= 0 && p.Y < d &&
+	           p.Z >= 0 && p.Z < d
+	       );
 }
 
 inline bool isInArea(v2s16 p, s16 d)
 {
 	return (
-		p.X >= 0 && p.X < d &&
-		p.Y >= 0 && p.Y < d
-	);
+	           p.X >= 0 && p.X < d &&
+	           p.Y >= 0 && p.Y < d
+	       );
 }
 
 inline bool isInArea(v3s16 p, v3s16 d)
 {
 	return (
-		p.X >= 0 && p.X < d.X &&
-		p.Y >= 0 && p.Y < d.Y &&
-		p.Z >= 0 && p.Z < d.Z
-	);
+	           p.X >= 0 && p.X < d.X &&
+	           p.Y >= 0 && p.Y < d.Y &&
+	           p.Z >= 0 && p.Z < d.Z
+	       );
 }
 
 inline s16 rangelim(s16 i, s16 max)
@@ -874,7 +880,7 @@ inline std::string ftos(float f)
 }
 
 inline void str_replace(std::string & str, std::string const & pattern,
-		std::string const & replacement)
+                        std::string const & replacement)
 {
 	std::string::size_type start = str.find(pattern, 0);
 	while(start != str.npos)
@@ -967,10 +973,10 @@ public:
 	void writeLines(std::ostream &os)
 	{
 		JMutexAutoLock lock(m_mutex);
-		
+
 		for(core::map<std::string, std::string>::Iterator
-				i = m_settings.getIterator();
-				i.atEnd() == false; i++)
+		        i = m_settings.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			std::string name = i.getNode()->getKey();
 			std::string value = i.getNode()->getValue();
@@ -981,9 +987,9 @@ public:
 	bool parseConfigLine(const std::string &line)
 	{
 		JMutexAutoLock lock(m_mutex);
-		
+
 		std::string trimmedline = trim(line);
-		
+
 		// Ignore comments
 		if(trimmedline[0] == '#')
 			return true;
@@ -997,15 +1003,15 @@ public:
 
 		if(name == "")
 			return true;
-		
+
 		std::string value = sf.next("\n");
 		value = trim(value);
 
 		/*dstream<<"Config name=\""<<name<<"\" value=\""
 				<<value<<"\""<<std::endl;*/
-		
+
 		m_settings[name] = value;
-		
+
 		return true;
 	}
 
@@ -1014,7 +1020,7 @@ public:
 	{
 		if(is.eof())
 			return false;
-		
+
 		/*
 			NOTE: This function might be expanded to allow multi-line
 			      settings.
@@ -1037,22 +1043,22 @@ public:
 		if(is.good() == false)
 		{
 			dstream<<"Error opening configuration file \""
-					<<filename<<"\""<<std::endl;
+			       <<filename<<"\""<<std::endl;
 			return false;
 		}
 
 		dstream<<"Parsing configuration file: \""
-				<<filename<<"\""<<std::endl;
-				
+		       <<filename<<"\""<<std::endl;
+
 		while(parseConfigObject(is));
-		
+
 		return true;
 	}
 
 	/*
 		Reads a configuration object from stream (usually a single line)
 		and adds it to dst.
-		
+
 		Preserves comments and empty lines.
 
 		Settings that were added to dst are also added to updated.
@@ -1061,14 +1067,14 @@ public:
 		Returns false on EOF
 	*/
 	bool getUpdatedConfigObject(std::istream &is,
-			core::list<std::string> &dst,
-			core::map<std::string, bool> &updated)
+	                            core::list<std::string> &dst,
+	                            core::map<std::string, bool> &updated)
 	{
 		JMutexAutoLock lock(m_mutex);
-		
+
 		if(is.eof())
 			return false;
-		
+
 		// NOTE: This function will be expanded to allow multi-line settings
 		std::string line;
 		std::getline(is, line);
@@ -1078,7 +1084,7 @@ public:
 		std::string line_end = "";
 		if(is.eof() == false)
 			line_end = "\n";
-		
+
 		// Ignore comments
 		if(trimmedline[0] == '#')
 		{
@@ -1096,26 +1102,26 @@ public:
 			dst.push_back(line+line_end);
 			return true;
 		}
-		
+
 		std::string value = sf.next("\n");
 		value = trim(value);
-		
+
 		if(m_settings.find(name))
 		{
 			std::string newvalue = m_settings[name];
-			
+
 			if(newvalue != value)
 			{
 				dstream<<"Changing value of \""<<name<<"\" = \""
-						<<value<<"\" -> \""<<newvalue<<"\""
-						<<std::endl;
+				       <<value<<"\" -> \""<<newvalue<<"\""
+				       <<std::endl;
 			}
 
 			dst.push_back(name + " = " + newvalue + line_end);
 
 			updated[name] = true;
 		}
-		
+
 		return true;
 	}
 
@@ -1127,46 +1133,46 @@ public:
 	bool updateConfigFile(const char *filename)
 	{
 		dstream<<"Updating configuration file: \""
-				<<filename<<"\""<<std::endl;
-		
+		       <<filename<<"\""<<std::endl;
+
 		core::list<std::string> objects;
 		core::map<std::string, bool> updated;
-		
+
 		// Read and modify stuff
 		{
 			std::ifstream is(filename);
 			if(is.good() == false)
 			{
 				dstream<<"INFO: updateConfigFile():"
-						" Error opening configuration file"
-						" for reading: \""
-						<<filename<<"\""<<std::endl;
+				       " Error opening configuration file"
+				       " for reading: \""
+				       <<filename<<"\""<<std::endl;
 			}
 			else
 			{
 				while(getUpdatedConfigObject(is, objects, updated));
 			}
 		}
-		
+
 		JMutexAutoLock lock(m_mutex);
-		
+
 		// Write stuff back
 		{
 			std::ofstream os(filename);
 			if(os.good() == false)
 			{
 				dstream<<"Error opening configuration file"
-						" for writing: \""
-						<<filename<<"\""<<std::endl;
+				       " for writing: \""
+				       <<filename<<"\""<<std::endl;
 				return false;
 			}
-			
+
 			/*
 				Write updated stuff
 			*/
 			for(core::list<std::string>::Iterator
-					i = objects.begin();
-					i != objects.end(); i++)
+			        i = objects.begin();
+			        i != objects.end(); i++)
 			{
 				os<<(*i);
 			}
@@ -1175,19 +1181,19 @@ public:
 				Write stuff that was not already in the file
 			*/
 			for(core::map<std::string, std::string>::Iterator
-					i = m_settings.getIterator();
-					i.atEnd() == false; i++)
+			        i = m_settings.getIterator();
+			        i.atEnd() == false; i++)
 			{
 				if(updated.find(i.getNode()->getKey()))
 					continue;
 				std::string name = i.getNode()->getKey();
 				std::string value = i.getNode()->getValue();
 				dstream<<"Adding \""<<name<<"\" = \""<<value<<"\""
-						<<std::endl;
+				       <<std::endl;
 				os<<name<<" = "<<value<<"\n";
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -1197,7 +1203,7 @@ public:
 		returns true on success
 	*/
 	bool parseCommandLine(int argc, char *argv[],
-			core::map<std::string, ValueSpec> &allowed_options)
+	                      core::map<std::string, ValueSpec> &allowed_options)
 	{
 		int i=1;
 		for(;;)
@@ -1208,7 +1214,7 @@ public:
 			if(argname.substr(0, 2) != "--")
 			{
 				dstream<<"Invalid command-line parameter \""
-						<<argname<<"\": --<option> expected."<<std::endl;
+				       <<argname<<"\": --<option> expected."<<std::endl;
 				return false;
 			}
 			i++;
@@ -1220,14 +1226,14 @@ public:
 			if(n == NULL)
 			{
 				dstream<<"Unknown command-line parameter \""
-						<<argname<<"\""<<std::endl;
+				       <<argname<<"\""<<std::endl;
 				return false;
 			}
 
 			ValueType type = n->getValue().type;
 
 			std::string value = "";
-			
+
 			if(type == VALUETYPE_FLAG)
 			{
 				value = "true";
@@ -1237,17 +1243,17 @@ public:
 				if(i >= argc)
 				{
 					dstream<<"Invalid command-line parameter \""
-							<<name<<"\": missing value"<<std::endl;
+					       <<name<<"\": missing value"<<std::endl;
 					return false;
 				}
 				value = argv[i];
 				i++;
 			}
-			
+
 
 			dstream<<"Valid command-line parameter: \""
-					<<name<<"\" = \""<<value<<"\""
-					<<std::endl;
+			       <<name<<"\" = \""<<value<<"\""
+			       <<std::endl;
 			set(name, value);
 		}
 
@@ -1257,28 +1263,28 @@ public:
 	void set(std::string name, std::string value)
 	{
 		JMutexAutoLock lock(m_mutex);
-		
+
 		m_settings[name] = value;
 	}
 
 	void setDefault(std::string name, std::string value)
 	{
 		JMutexAutoLock lock(m_mutex);
-		
+
 		m_defaults[name] = value;
 	}
 
 	bool exists(std::string name)
 	{
 		JMutexAutoLock lock(m_mutex);
-		
+
 		return (m_settings.find(name) || m_defaults.find(name));
 	}
 
 	std::string get(std::string name)
 	{
 		JMutexAutoLock lock(m_mutex);
-		
+
 		core::map<std::string, std::string>::Node *n;
 		n = m_settings.find(name);
 		if(n == NULL)
@@ -1287,7 +1293,7 @@ public:
 			if(n == NULL)
 			{
 				dstream<<"INFO: Settings: Setting not found: \""
-						<<name<<"\""<<std::endl;
+				       <<name<<"\""<<std::endl;
 				throw SettingNotFoundException("Setting not found");
 			}
 		}
@@ -1299,7 +1305,7 @@ public:
 	{
 		return is_yes(get(name));
 	}
-	
+
 	bool getFlag(std::string name)
 	{
 		try
@@ -1318,7 +1324,7 @@ public:
 		// If it is in settings
 		if(exists(name))
 			return getBool(name);
-		
+
 		std::string s;
 		char templine[10];
 		std::cout<<question<<" [y/N]: ";
@@ -1346,7 +1352,7 @@ public:
 		// If it is in settings
 		if(exists(name))
 			return getU16(name);
-		
+
 		std::string s;
 		char templine[10];
 		std::cout<<question<<" ["<<def<<"]: ";
@@ -1424,7 +1430,7 @@ public:
 	void clear()
 	{
 		JMutexAutoLock lock(m_mutex);
-		
+
 		m_settings.clear();
 		m_defaults.clear();
 	}
@@ -1433,24 +1439,24 @@ public:
 	{
 		JMutexAutoLock lock(m_mutex);
 		JMutexAutoLock lock2(other.m_mutex);
-		
+
 		if(&other == this)
 			return *this;
 
 		for(core::map<std::string, std::string>::Iterator
-				i = other.m_settings.getIterator();
-				i.atEnd() == false; i++)
+		        i = other.m_settings.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			m_settings.insert(i.getNode()->getKey(),
-					i.getNode()->getValue());
+			                  i.getNode()->getValue());
 		}
-		
+
 		for(core::map<std::string, std::string>::Iterator
-				i = other.m_defaults.getIterator();
-				i.atEnd() == false; i++)
+		        i = other.m_defaults.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			m_defaults.insert(i.getNode()->getKey(),
-					i.getNode()->getValue());
+			                  i.getNode()->getValue());
 		}
 
 	}
@@ -1459,13 +1465,13 @@ public:
 	{
 		JMutexAutoLock lock(m_mutex);
 		JMutexAutoLock lock2(other.m_mutex);
-		
+
 		if(&other == this)
 			return *this;
 
 		clear();
 		(*this) += other;
-		
+
 		return *this;
 	}
 
@@ -1487,7 +1493,7 @@ public:
 	{
 		m_list.push_back(t);
 	}
-	
+
 	T pop_front()
 	{
 		if(m_list.size() == 0)
@@ -1647,7 +1653,7 @@ public:
 		dest = a_dest;
 	}
 	GetRequest(ResultQueue<Key,T, Caller, CallerData> *a_dest,
-			Key a_key)
+	           Key a_key)
 	{
 		dest = a_dest;
 		key = a_key;
@@ -1655,7 +1661,7 @@ public:
 	~GetRequest()
 	{
 	}
-	
+
 	Key key;
 	ResultQueue<Key, T, Caller, CallerData> *dest;
 	core::list<CallerInfo<Caller, CallerData> > callers;
@@ -1671,24 +1677,24 @@ public:
 	}
 
 	void add(Key key, Caller caller, CallerData callerdata,
-			ResultQueue<Key, T, Caller, CallerData> *dest)
+	         ResultQueue<Key, T, Caller, CallerData> *dest)
 	{
 		JMutexAutoLock lock(m_queue.getMutex());
-		
+
 		/*
 			If the caller is already on the list, only update CallerData
 		*/
 		for(typename core::list< GetRequest<Key, T, Caller, CallerData> >::Iterator
-				i = m_queue.getList().begin();
-				i != m_queue.getList().end(); i++)
+		        i = m_queue.getList().begin();
+		        i != m_queue.getList().end(); i++)
 		{
 			GetRequest<Key, T, Caller, CallerData> &request = *i;
 
 			if(request.key == key)
 			{
 				for(typename core::list< CallerInfo<Caller, CallerData> >::Iterator
-						i = request.callers.begin();
-						i != request.callers.end(); i++)
+				        i = request.callers.begin();
+				        i != request.callers.end(); i++)
 				{
 					CallerInfo<Caller, CallerData> &ca = *i;
 					if(ca.caller == caller)
@@ -1716,7 +1722,7 @@ public:
 		ca.data = callerdata;
 		request.callers.push_back(ca);
 		request.dest = dest;
-		
+
 		m_queue.getList().push_back(request);
 	}
 
@@ -1751,7 +1757,7 @@ inline int myrand_range(int min, int max)
 */
 
 bool isBlockInSight(v3s16 blockpos_b, v3f camera_pos, v3f camera_dir, f32 range,
-		f32 *distance_ptr=NULL);
+                    f32 *distance_ptr=NULL);
 
 /*
 	Queue with unique values with fast checking of value existence
@@ -1761,7 +1767,7 @@ template<typename Value>
 class UniqueQueue
 {
 public:
-	
+
 	/*
 		Does nothing if value is already queued.
 		Return value:
@@ -1777,7 +1783,7 @@ public:
 		// Add
 		m_map.insert(value, 0);
 		m_list.push_back(value);
-		
+
 		return true;
 	}
 
@@ -1811,14 +1817,14 @@ public:
 		m_mutex.Init();
 		assert(m_mutex.IsInitialized());
 	}
-	
+
 	void set(const Key &name, const Value &value)
 	{
 		JMutexAutoLock lock(m_mutex);
 
 		m_values[name] = value;
 	}
-	
+
 	bool get(const Key &name, Value *result)
 	{
 		JMutexAutoLock lock(m_mutex);
@@ -1828,10 +1834,10 @@ public:
 
 		if(n == NULL)
 			return false;
-		
+
 		if(result != NULL)
 			*result = n->getValue();
-			
+
 		return true;
 	}
 
@@ -1862,7 +1868,7 @@ public:
 		m_mutex.Init();
 		assert(m_mutex.IsInitialized());
 	}
-	
+
 	// Returns true if found
 	bool getValue(u32 id, T &value)
 	{
@@ -1874,7 +1880,7 @@ public:
 		value = m_id_to_value[id-1];
 		return true;
 	}
-	
+
 	// If id exists for value, returns the id.
 	// Otherwise generates an id for the value.
 	u32 getId(const T &value)
@@ -1947,9 +1953,9 @@ inline std::string wrap_rows(const std::string &from, u32 rowlen)
 inline v3s16 floatToInt(v3f p, f32 d)
 {
 	v3s16 p2(
-		(p.X + (p.X>0 ? d/2 : -d/2))/d,
-		(p.Y + (p.Y>0 ? d/2 : -d/2))/d,
-		(p.Z + (p.Z>0 ? d/2 : -d/2))/d);
+	    (p.X + (p.X>0 ? d/2 : -d/2))/d,
+	    (p.Y + (p.Y>0 ? d/2 : -d/2))/d,
+	    (p.Z + (p.Z>0 ? d/2 : -d/2))/d);
 	return p2;
 }
 
@@ -1959,9 +1965,9 @@ inline v3s16 floatToInt(v3f p, f32 d)
 inline v3f intToFloat(v3s16 p, f32 d)
 {
 	v3f p2(
-		(f32)p.X * d,
-		(f32)p.Y * d,
-		(f32)p.Z * d
+	    (f32)p.X * d,
+	    (f32)p.Y * d,
+	    (f32)p.Z * d
 	);
 	return p2;
 }
@@ -2077,15 +2083,15 @@ inline u32 time_to_daynight_ratio(u32 time_of_day)
 inline core::aabbox3d<f32> getNodeBox(v3s16 p, float d)
 {
 	return core::aabbox3d<f32>(
-		(float)p.X * d - 0.5*d,
-		(float)p.Y * d - 0.5*d,
-		(float)p.Z * d - 0.5*d,
-		(float)p.X * d + 0.5*d,
-		(float)p.Y * d + 0.5*d,
-		(float)p.Z * d + 0.5*d
-	);
+	           (float)p.X * d - 0.5*d,
+	           (float)p.Y * d - 0.5*d,
+	           (float)p.Z * d - 0.5*d,
+	           (float)p.X * d + 0.5*d,
+	           (float)p.Y * d + 0.5*d,
+	           (float)p.Z * d + 0.5*d
+	       );
 }
-	
+
 class IntervalLimiter
 {
 public:

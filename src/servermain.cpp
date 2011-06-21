@@ -24,24 +24,24 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 #ifndef SERVER
-	#ifdef _WIN32
-		#pragma error ("For a server build, SERVER must be defined globally")
-	#else
-		#error "For a server build, SERVER must be defined globally"
-	#endif
+#ifdef _WIN32
+#pragma error ("For a server build, SERVER must be defined globally")
+#else
+#error "For a server build, SERVER must be defined globally"
+#endif
 #endif
 
 #ifdef NDEBUG
-	#ifdef _WIN32
-		#pragma message ("Disabling unit tests")
-	#else
-		#warning "Disabling unit tests"
-	#endif
-	// Disable unit tests
-	#define ENABLE_TESTS 0
+#ifdef _WIN32
+#pragma message ("Disabling unit tests")
 #else
-	// Enable unit tests
-	#define ENABLE_TESTS 1
+#warning "Disabling unit tests"
+#endif
+// Disable unit tests
+#define ENABLE_TESTS 0
+#else
+// Enable unit tests
+#define ENABLE_TESTS 1
 #endif
 
 #ifdef _MSC_VER
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 
 	porting::signal_handler_init();
 	bool &kill = *porting::signal_handler_killstatus();
-	
+
 	porting::initializePaths();
 
 	initializeMaterialProperties();
@@ -139,181 +139,181 @@ int main(int argc, char *argv[])
 
 	// Print startup message
 	dstream<<DTIME<<"minetest-c55"
-			" with SER_FMT_VER_HIGHEST="<<(int)SER_FMT_VER_HIGHEST
-			<<", "<<BUILD_INFO
-			<<std::endl;
-	
+	       " with SER_FMT_VER_HIGHEST="<<(int)SER_FMT_VER_HIGHEST
+	       <<", "<<BUILD_INFO
+	       <<std::endl;
+
 	try
 	{
-	
-	/*
-		Parse command line
-	*/
-	
-	// List all allowed options
-	core::map<std::string, ValueSpec> allowed_options;
-	allowed_options.insert("help", ValueSpec(VALUETYPE_FLAG));
-	allowed_options.insert("config", ValueSpec(VALUETYPE_STRING,
-			"Load configuration from specified file"));
-	allowed_options.insert("port", ValueSpec(VALUETYPE_STRING));
-	allowed_options.insert("disable-unittests", ValueSpec(VALUETYPE_FLAG));
-	allowed_options.insert("enable-unittests", ValueSpec(VALUETYPE_FLAG));
-	allowed_options.insert("map-dir", ValueSpec(VALUETYPE_STRING));
 
-	Settings cmd_args;
-	
-	bool ret = cmd_args.parseCommandLine(argc, argv, allowed_options);
+		/*
+			Parse command line
+		*/
 
-	if(ret == false || cmd_args.getFlag("help"))
-	{
-		dstream<<"Allowed options:"<<std::endl;
-		for(core::map<std::string, ValueSpec>::Iterator
-				i = allowed_options.getIterator();
-				i.atEnd() == false; i++)
+		// List all allowed options
+		core::map<std::string, ValueSpec> allowed_options;
+		allowed_options.insert("help", ValueSpec(VALUETYPE_FLAG));
+		allowed_options.insert("config", ValueSpec(VALUETYPE_STRING,
+		                       "Load configuration from specified file"));
+		allowed_options.insert("port", ValueSpec(VALUETYPE_STRING));
+		allowed_options.insert("disable-unittests", ValueSpec(VALUETYPE_FLAG));
+		allowed_options.insert("enable-unittests", ValueSpec(VALUETYPE_FLAG));
+		allowed_options.insert("map-dir", ValueSpec(VALUETYPE_STRING));
+
+		Settings cmd_args;
+
+		bool ret = cmd_args.parseCommandLine(argc, argv, allowed_options);
+
+		if(ret == false || cmd_args.getFlag("help"))
 		{
-			dstream<<"  --"<<i.getNode()->getKey();
-			if(i.getNode()->getValue().type == VALUETYPE_FLAG)
+			dstream<<"Allowed options:"<<std::endl;
+			for(core::map<std::string, ValueSpec>::Iterator
+			        i = allowed_options.getIterator();
+			        i.atEnd() == false; i++)
 			{
-			}
-			else
-			{
-				dstream<<" <value>";
-			}
-			dstream<<std::endl;
+				dstream<<"  --"<<i.getNode()->getKey();
+				if(i.getNode()->getValue().type == VALUETYPE_FLAG)
+				{
+				}
+				else
+				{
+					dstream<<" <value>";
+				}
+				dstream<<std::endl;
 
-			if(i.getNode()->getValue().help != NULL)
-			{
-				dstream<<"      "<<i.getNode()->getValue().help
-						<<std::endl;
+				if(i.getNode()->getValue().help != NULL)
+				{
+					dstream<<"      "<<i.getNode()->getValue().help
+					       <<std::endl;
+				}
 			}
+
+			return cmd_args.getFlag("help") ? 0 : 1;
 		}
 
-		return cmd_args.getFlag("help") ? 0 : 1;
-	}
 
+		/*
+			Basic initialization
+		*/
 
-	/*
-		Basic initialization
-	*/
+		// Initialize default settings
+		set_default_settings();
 
-	// Initialize default settings
-	set_default_settings();
-	
-	// Set locale. This is for forcing '.' as the decimal point.
-	std::locale::global(std::locale("C"));
-	// This enables printing all characters in bitmap font
-	setlocale(LC_CTYPE, "en_US");
+		// Set locale. This is for forcing '.' as the decimal point.
+		std::locale::global(std::locale("C"));
+		// This enables printing all characters in bitmap font
+		setlocale(LC_CTYPE, "en_US");
 
-	// Initialize sockets
-	sockets_init();
-	atexit(sockets_cleanup);
-	
-	/*
-		Initialization
-	*/
+		// Initialize sockets
+		sockets_init();
+		atexit(sockets_cleanup);
 
-	/*
-		Read config file
-	*/
-	
-	// Path of configuration file in use
-	std::string configpath = "";
-	
-	if(cmd_args.exists("config"))
-	{
-		bool r = g_settings.readConfigFile(cmd_args.get("config").c_str());
-		if(r == false)
+		/*
+			Initialization
+		*/
+
+		/*
+			Read config file
+		*/
+
+		// Path of configuration file in use
+		std::string configpath = "";
+
+		if(cmd_args.exists("config"))
 		{
-			dstream<<"Could not read configuration from \""
-					<<cmd_args.get("config")<<"\""<<std::endl;
-			return 1;
+			bool r = g_settings.readConfigFile(cmd_args.get("config").c_str());
+			if(r == false)
+			{
+				dstream<<"Could not read configuration from \""
+				       <<cmd_args.get("config")<<"\""<<std::endl;
+				return 1;
+			}
+			configpath = cmd_args.get("config");
 		}
-		configpath = cmd_args.get("config");
-	}
-	else
-	{
-		core::array<std::string> filenames;
-		filenames.push_back(porting::path_userdata + "/minetest.conf");
+		else
+		{
+			core::array<std::string> filenames;
+			filenames.push_back(porting::path_userdata + "/minetest.conf");
 #ifdef RUN_IN_PLACE
-		filenames.push_back(porting::path_userdata + "/../minetest.conf");
+			filenames.push_back(porting::path_userdata + "/../minetest.conf");
 #endif
 
-		for(u32 i=0; i<filenames.size(); i++)
-		{
-			bool r = g_settings.readConfigFile(filenames[i].c_str());
-			if(r)
+			for(u32 i=0; i<filenames.size(); i++)
 			{
-				configpath = filenames[i];
-				break;
+				bool r = g_settings.readConfigFile(filenames[i].c_str());
+				if(r)
+				{
+					configpath = filenames[i];
+					break;
+				}
 			}
 		}
-	}
 
-	// Initialize random seed
-	srand(time(0));
-	mysrand(time(0));
+		// Initialize random seed
+		srand(time(0));
+		mysrand(time(0));
 
-	// Initialize stuff
-	
-	init_mapnode();
-	init_mineral();
+		// Initialize stuff
 
-	/*
-		Run unit tests
-	*/
-	if((ENABLE_TESTS && cmd_args.getFlag("disable-unittests") == false)
-			|| cmd_args.getFlag("enable-unittests") == true)
-	{
-		run_tests();
-	}
+		init_mapnode();
+		init_mineral();
 
-	/*
-		Check parameters
-	*/
+		/*
+			Run unit tests
+		*/
+		if((ENABLE_TESTS && cmd_args.getFlag("disable-unittests") == false)
+		        || cmd_args.getFlag("enable-unittests") == true)
+		{
+			run_tests();
+		}
 
-	std::cout<<std::endl<<std::endl;
-	
-	std::cout
-	<<"        .__               __                   __   "<<std::endl
-	<<"  _____ |__| ____   _____/  |_  ____   _______/  |_ "<<std::endl
-	<<" /     \\|  |/    \\_/ __ \\   __\\/ __ \\ /  ___/\\   __\\"<<std::endl
-	<<"|  Y Y  \\  |   |  \\  ___/|  | \\  ___/ \\___ \\  |  |  "<<std::endl
-	<<"|__|_|  /__|___|  /\\___  >__|  \\___  >____  > |__|  "<<std::endl
-	<<"      \\/        \\/     \\/          \\/     \\/        "<<std::endl
-	<<std::endl;
+		/*
+			Check parameters
+		*/
 
-	std::cout<<std::endl;
-	
-	// Port?
-	u16 port = 30000;
-	if(cmd_args.exists("port") && cmd_args.getU16("port") != 0)
-	{
-		port = cmd_args.getU16("port");
-	}
-	else if(g_settings.exists("port") && g_settings.getU16("port") != 0)
-	{
-		port = g_settings.getU16("port");
-	}
-	else
-	{
-		dstream<<"Please specify port (in config or on command line)"
-				<<std::endl;
-	}
-	
-	// Figure out path to map
-	std::string map_dir = porting::path_userdata+"/map";
-	if(cmd_args.exists("map-dir"))
-		map_dir = cmd_args.get("map-dir");
-	else if(g_settings.exists("map-dir"))
-		map_dir = g_settings.get("map-dir");
-	
-	// Create server
-	Server server(map_dir.c_str());
-	server.start(port);
+		std::cout<<std::endl<<std::endl;
 
-	// Run server
-	dedicated_server_loop(server, kill);
-	
+		std::cout
+		        <<"        .__               __                   __   "<<std::endl
+		        <<"  _____ |__| ____   _____/  |_  ____   _______/  |_ "<<std::endl
+		        <<" /     \\|  |/    \\_/ __ \\   __\\/ __ \\ /  ___/\\   __\\"<<std::endl
+		        <<"|  Y Y  \\  |   |  \\  ___/|  | \\  ___/ \\___ \\  |  |  "<<std::endl
+		        <<"|__|_|  /__|___|  /\\___  >__|  \\___  >____  > |__|  "<<std::endl
+		        <<"      \\/        \\/     \\/          \\/     \\/        "<<std::endl
+		        <<std::endl;
+
+		std::cout<<std::endl;
+
+		// Port?
+		u16 port = 30000;
+		if(cmd_args.exists("port") && cmd_args.getU16("port") != 0)
+		{
+			port = cmd_args.getU16("port");
+		}
+		else if(g_settings.exists("port") && g_settings.getU16("port") != 0)
+		{
+			port = g_settings.getU16("port");
+		}
+		else
+		{
+			dstream<<"Please specify port (in config or on command line)"
+			       <<std::endl;
+		}
+
+		// Figure out path to map
+		std::string map_dir = porting::path_userdata+"/map";
+		if(cmd_args.exists("map-dir"))
+			map_dir = cmd_args.get("map-dir");
+		else if(g_settings.exists("map-dir"))
+			map_dir = g_settings.get("map-dir");
+
+		// Create server
+		Server server(map_dir.c_str());
+		server.start(port);
+
+		// Run server
+		dedicated_server_loop(server, kill);
+
 	} //try
 	catch(con::PeerNotFoundException &e)
 	{
@@ -323,7 +323,7 @@ int main(int argc, char *argv[])
 	END_DEBUG_EXCEPTION_HANDLER
 
 	debugstreams_deinit();
-	
+
 	return 0;
 }
 

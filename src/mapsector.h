@@ -40,7 +40,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 class MapSector: public NodeContainer
 {
 public:
-	
+
 	MapSector(NodeContainer *parent, v2s16 pos);
 	virtual ~MapSector();
 
@@ -65,17 +65,17 @@ public:
 	//MapBlock * getBlock(s16 y, bool generate=true);
 
 	void insertBlock(MapBlock *block);
-	
+
 	// This is used to remove a dummy from the sector while generating it.
 	// Block is only removed from internal container, not deleted.
 	void removeBlock(MapBlock *block);
-	
+
 	/*
 		This might not be a thread-safe depending on the day.
 		See the implementation.
 	*/
 	void getBlocks(core::list<MapBlock*> &dest);
-	
+
 	/*
 		If all nodes in area can be accessed, returns true and
 		adds all blocks in area to blocks.
@@ -87,19 +87,20 @@ public:
 		if blocks==NULL; it is not accessed at all.
 	*/
 	bool isValidArea(v3s16 p_min_nodes, v3s16 p_max_nodes,
-			core::map<s16, MapBlock*> *blocks)
+	                 core::map<s16, MapBlock*> *blocks)
 	{
 		core::map<s16, MapBlock*> bs;
-		
+
 		v3s16 p_min = getNodeBlockPos(p_min_nodes);
 		v3s16 p_max = getNodeBlockPos(p_max_nodes);
 		if(p_min.X != 0 || p_min.Z != 0
-				|| p_max.X != 0 || p_max.Z != 0)
+		        || p_max.X != 0 || p_max.Z != 0)
 			return false;
 		v3s16 y;
 		for(s16 y=p_min.Y; y<=p_max.Y; y++)
 		{
-			try{
+			try
+			{
 				MapBlock *block = getBlockNoCreate(y);
 				if(block->isDummy())
 					return false;
@@ -115,7 +116,7 @@ public:
 		if(blocks!=NULL)
 		{
 			for(core::map<s16, MapBlock*>::Iterator i=bs.getIterator();
-					i.atEnd()==false; i++)
+			        i.atEnd()==false; i++)
 			{
 				MapBlock *block = i.getNode()->getValue();
 				s16 y = i.getNode()->getKey();
@@ -126,14 +127,15 @@ public:
 	}
 
 	void getBlocksInArea(v3s16 p_min_nodes, v3s16 p_max_nodes,
-			core::map<v3s16, MapBlock*> &blocks)
+	                     core::map<v3s16, MapBlock*> &blocks)
 	{
 		v3s16 p_min = getNodeBlockPos(p_min_nodes);
 		v3s16 p_max = getNodeBlockPos(p_max_nodes);
 		v3s16 y;
 		for(s16 y=p_min.Y; y<=p_max.Y; y++)
 		{
-			try{
+			try
+			{
 				MapBlock *block = getBlockNoCreate(y);
 				blocks.insert(block->getPos(), block);
 			}
@@ -142,7 +144,7 @@ public:
 			}
 		}
 	}
-	
+
 	// virtual from NodeContainer
 	bool isValidPosition(v3s16 p)
 	{
@@ -152,7 +154,8 @@ public:
 			return false;
 
 		MapBlock *blockref;
-		try{
+		try
+		{
 			blockref = getBlockNoCreate(blockpos.Y);
 		}
 		catch(InvalidPositionException &e)
@@ -169,7 +172,7 @@ public:
 		v3s16 blockpos = getNodeBlockPos(p);
 		if(blockpos.X != 0 || blockpos.Z != 0)
 			throw InvalidPositionException
-				("MapSector only allows Y");
+			("MapSector only allows Y");
 
 		MapBlock * blockref = getBlockNoCreate(blockpos.Y);
 		v3s16 relpos = p - blockpos*MAP_BLOCKSIZE;
@@ -182,7 +185,7 @@ public:
 		v3s16 blockpos = getNodeBlockPos(p);
 		if(blockpos.X != 0 || blockpos.Z != 0)
 			throw InvalidPositionException
-				("MapSector only allows Y");
+			("MapSector only allows Y");
 
 		MapBlock * blockref = getBlockNoCreate(blockpos.Y);
 		v3s16 relpos = p - blockpos*MAP_BLOCKSIZE;
@@ -197,7 +200,7 @@ public:
 	virtual void setGroundHeight(v2s16 p, f32 y, bool generate=false)
 	{
 	}
-	
+
 	// When true, sector metadata is changed from the one on disk
 	// (sector metadata = all but blocks)
 	// Basically, this should be changed to true in every setter method
@@ -211,7 +214,7 @@ public:
 	float usage_timer;
 
 protected:
-	
+
 	// The pile of MapBlocks
 	core::map<s16, MapBlock*> m_blocks;
 	//JMutex m_blocks_mutex; // For public access functions
@@ -220,13 +223,13 @@ protected:
 	// Position on parent (in MapBlock widths)
 	v2s16 m_pos;
 
-	// Be sure to set this to NULL when the cached block is deleted 
+	// Be sure to set this to NULL when the cached block is deleted
 	MapBlock *m_block_cache;
 	s16 m_block_cache_y;
-	
+
 	// This is used for protecting m_blocks
 	JMutex m_mutex;
-	
+
 	/*
 		Private methods
 	*/
@@ -239,12 +242,12 @@ class ServerMapSector : public MapSector
 public:
 	ServerMapSector(NodeContainer *parent, v2s16 pos);
 	~ServerMapSector();
-	
+
 	u32 getId() const
 	{
 		return MAPSECTOR_SERVER;
 	}
-	
+
 	// DEPRECATED?
 	f32 getGroundHeight(v2s16 p, bool generate=false);
 	void setGroundHeight(v2s16 p, f32 y, bool generate=false);
@@ -254,14 +257,14 @@ public:
 		They do not handle blocks.
 	*/
 	void serialize(std::ostream &os, u8 version);
-	
+
 	static ServerMapSector* deSerialize(
-			std::istream &is,
-			NodeContainer *parent,
-			v2s16 p2d,
-			core::map<v2s16, MapSector*> & sectors
-		);
-		
+	    std::istream &is,
+	    NodeContainer *parent,
+	    v2s16 p2d,
+	    core::map<v2s16, MapSector*> & sectors
+	);
+
 private:
 };
 
@@ -271,7 +274,7 @@ class ClientMapSector : public MapSector
 public:
 	ClientMapSector(NodeContainer *parent, v2s16 pos);
 	~ClientMapSector();
-	
+
 	u32 getId() const
 	{
 		return MAPSECTOR_CLIENT;
@@ -283,12 +286,12 @@ public:
 	{
 		return m_corners[i];
 	}*/
-		
+
 private:
 	// The ground height of the corners is stored in here
 	//s16 m_corners[4];
 };
 #endif
-	
+
 #endif
 

@@ -40,11 +40,11 @@ struct ServerCommandContext
 	u32 flags;
 
 	ServerCommandContext(
-		std::vector<std::wstring> parms,
-		Server* server,
-		ServerEnvironment *env,
-		Player* player,
-		u64 privs)
+	    std::vector<std::wstring> parms,
+	    Server* server,
+	    ServerEnvironment *env,
+	    Player* player,
+	    u64 privs)
 		: parms(parms), server(server), env(env), player(player), privs(privs)
 	{
 	}

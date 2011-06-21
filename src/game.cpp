@@ -90,7 +90,7 @@ struct TextDestSign : public TextDest
 	{
 		std::string ntext = wide_to_narrow(text);
 		dstream<<"Changing text of a sign object: "
-				<<ntext<<std::endl;
+		       <<ntext<<std::endl;
 		m_client->sendSignText(m_blockpos, m_id, ntext);
 	}
 
@@ -110,15 +110,15 @@ struct TextDestChat : public TextDest
 		// Discard empty line
 		if(text == L"")
 			return;
-		
+
 		// Parse command (server command starts with "/#")
 		if(text[0] == L'/' && text[1] != L'#')
 		{
 			std::wstring reply = L"Local: ";
 
 			reply += L"Local commands not yet supported. "
-					L"Server prefix is \"/#\".";
-			
+			         L"Server prefix is \"/#\".";
+
 			m_client->addChatMessage(reply);
 			return;
 		}
@@ -143,7 +143,7 @@ struct TextDestSignNode : public TextDest
 	{
 		std::string ntext = wide_to_narrow(text);
 		dstream<<"Changing text of a sign node: "
-				<<ntext<<std::endl;
+		       <<ntext<<std::endl;
 		m_client->sendSignNodeText(m_p, ntext);
 	}
 
@@ -158,7 +158,7 @@ void updateViewingRange(f32 frametime_in, Client *client)
 {
 	if(draw_control.range_all == true)
 		return;
-	
+
 	static f32 added_frametime = 0;
 	static s16 added_frames = 0;
 
@@ -176,46 +176,46 @@ void updateViewingRange(f32 frametime_in, Client *client)
 	/*dstream<<__FUNCTION_NAME
 			<<": Collected "<<added_frames<<" frames, total of "
 			<<added_frametime<<"s."<<std::endl;*/
-	
+
 	/*dstream<<"draw_control.blocks_drawn="
 			<<draw_control.blocks_drawn
 			<<", draw_control.blocks_would_have_drawn="
 			<<draw_control.blocks_would_have_drawn
 			<<std::endl;*/
-	
+
 	float range_min = g_settings.getS16("viewing_range_nodes_min");
 	float range_max = g_settings.getS16("viewing_range_nodes_max");
-	
+
 	// Limit minimum to keep the feedback loop stable
 	if(range_min < 5)
 		range_min = 5;
-	
+
 	draw_control.wanted_min_range = range_min;
 	//draw_control.wanted_max_blocks = (1.5*draw_control.blocks_drawn)+1;
 	draw_control.wanted_max_blocks = (1.5*draw_control.blocks_would_have_drawn)+1;
 	if(draw_control.wanted_max_blocks < 10)
 		draw_control.wanted_max_blocks = 10;
-	
+
 	float block_draw_ratio = 1.0;
 	if(draw_control.blocks_would_have_drawn != 0)
 	{
 		block_draw_ratio = (float)draw_control.blocks_drawn
-			/ (float)draw_control.blocks_would_have_drawn;
+		                   / (float)draw_control.blocks_would_have_drawn;
 	}
 
 	// Calculate the average frametime in the case that all wanted
 	// blocks had been drawn
 	f32 frametime = added_frametime / added_frames / block_draw_ratio;
-	
+
 	added_frametime = 0.0;
 	added_frames = 0;
-	
+
 	float wanted_fps = g_settings.getFloat("wanted_fps");
 	float wanted_frametime = 1.0 / wanted_fps;
-	
+
 	f32 wanted_frametime_change = wanted_frametime - frametime;
 	//dstream<<"wanted_frametime_change="<<wanted_frametime_change<<std::endl;
-	
+
 	// If needed frametime change is small, just return
 	if(fabs(wanted_frametime_change) < wanted_frametime*0.4)
 	{
@@ -228,7 +228,7 @@ void updateViewingRange(f32 frametime_in, Client *client)
 
 	static s16 range_old = 0;
 	static f32 frametime_old = 0;
-	
+
 	float d_range = range - range_old;
 	f32 d_frametime = frametime - frametime_old;
 	// A sane default of 30ms per 50 nodes of range
@@ -237,7 +237,7 @@ void updateViewingRange(f32 frametime_in, Client *client)
 	{
 		time_per_range = d_frametime / d_range;
 	}
-	
+
 	// The minimum allowed calculated frametime-range derivative:
 	// Practically this sets the maximum speed of changing the range.
 	// The lower this value, the higher the maximum changing speed.
@@ -273,13 +273,13 @@ void updateViewingRange(f32 frametime_in, Client *client)
 	}
 
 	new_range += wanted_range_change;
-	
+
 	//float new_range_unclamped = new_range;
 	if(new_range < range_min)
 		new_range = range_min;
 	if(new_range > range_max)
 		new_range = range_max;
-	
+
 	/*dstream<<"new_range="<<new_range_unclamped
 			<<", clamped to "<<new_range<<std::endl;*/
 
@@ -293,8 +293,8 @@ void updateViewingRange(f32 frametime_in, Client *client)
 	Hotbar draw routine
 */
 void draw_hotbar(video::IVideoDriver *driver, gui::IGUIFont *font,
-		v2s32 centerlowerpos, s32 imgsize, s32 itemcount,
-		Inventory *inventory, s32 halfheartcount)
+                 v2s32 centerlowerpos, s32 imgsize, s32 itemcount,
+                 Inventory *inventory, s32 halfheartcount)
 {
 	InventoryList *mainlist = inventory->getList("main");
 	if(mainlist == NULL)
@@ -302,14 +302,14 @@ void draw_hotbar(video::IVideoDriver *driver, gui::IGUIFont *font,
 		dstream<<"WARNING: draw_hotbar(): mainlist == NULL"<<std::endl;
 		return;
 	}
-	
+
 	s32 padding = imgsize/12;
 	//s32 height = imgsize + padding*2;
 	s32 width = itemcount*(imgsize+padding*2);
-	
+
 	// Position of upper left corner of bar
 	v2s32 pos = centerlowerpos - v2s32(width/2, imgsize+padding*2);
-	
+
 	// Draw background color
 	/*core::rect<s32> barrect(0,0,width,height);
 	barrect += pos;
@@ -321,16 +321,16 @@ void draw_hotbar(video::IVideoDriver *driver, gui::IGUIFont *font,
 	for(s32 i=0; i<itemcount; i++)
 	{
 		InventoryItem *item = mainlist->getItem(i);
-		
+
 		core::rect<s32> rect = imgrect + pos
-				+ v2s32(padding+i*(imgsize+padding*2), padding);
-		
+		                       + v2s32(padding+i*(imgsize+padding*2), padding);
+
 		if(g_selected_item == i)
 		{
 			driver->draw2DRectangle(video::SColor(255,255,0,0),
-					core::rect<s32>(rect.UpperLeftCorner - v2s32(1,1)*padding,
-							rect.LowerRightCorner + v2s32(1,1)*padding),
-					NULL);
+			                        core::rect<s32>(rect.UpperLeftCorner - v2s32(1,1)*padding,
+			                                        rect.LowerRightCorner + v2s32(1,1)*padding),
+			                        NULL);
 		}
 		else
 		{
@@ -343,13 +343,13 @@ void draw_hotbar(video::IVideoDriver *driver, gui::IGUIFont *font,
 			drawInventoryItem(driver, font, item, rect, NULL);
 		}
 	}
-	
+
 	/*
 		Draw hearts
 	*/
 	{
 		video::ITexture *heart_texture =
-				driver->getTexture(getTexturePath("heart.png").c_str());
+		    driver->getTexture(getTexturePath("heart.png").c_str());
 		v2s32 p = pos + v2s32(0, -20);
 		for(s32 i=0; i<halfheartcount/2; i++)
 		{
@@ -358,9 +358,9 @@ void draw_hotbar(video::IVideoDriver *driver, gui::IGUIFont *font,
 			core::rect<s32> rect(0,0,16,16);
 			rect += p;
 			driver->draw2DImage(heart_texture, rect,
-				core::rect<s32>(core::position2d<s32>(0,0),
-				core::dimension2di(heart_texture->getOriginalSize())),
-				NULL, colors, true);
+			                    core::rect<s32>(core::position2d<s32>(0,0),
+			                                    core::dimension2di(heart_texture->getOriginalSize())),
+			                    NULL, colors, true);
 			p += v2s32(20,0);
 		}
 		if(halfheartcount % 2 == 1)
@@ -372,8 +372,8 @@ void draw_hotbar(video::IVideoDriver *driver, gui::IGUIFont *font,
 			core::dimension2di srcd(heart_texture->getOriginalSize());
 			srcd.Width /= 2;
 			driver->draw2DImage(heart_texture, rect,
-				core::rect<s32>(core::position2d<s32>(0,0), srcd),
-				NULL, colors, true);
+			                    core::rect<s32>(core::position2d<s32>(0,0), srcd),
+			                    NULL, colors, true);
 			p += v2s32(20,0);
 		}
 	}
@@ -383,14 +383,14 @@ void draw_hotbar(video::IVideoDriver *driver, gui::IGUIFont *font,
 	Find what the player is pointing at
 */
 void getPointedNode(Client *client, v3f player_position,
-		v3f camera_direction, v3f camera_position,
-		bool &nodefound, core::line3d<f32> shootline,
-		v3s16 &nodepos, v3s16 &neighbourpos,
-		core::aabbox3d<f32> &nodehilightbox,
-		f32 d)
+                    v3f camera_direction, v3f camera_position,
+                    bool &nodefound, core::line3d<f32> shootline,
+                    v3s16 &nodepos, v3s16 &neighbourpos,
+                    core::aabbox3d<f32> &nodehilightbox,
+                    f32 d)
 {
 	f32 mindistance = BS * 1001;
-	
+
 	v3s16 pos_i = floatToInt(player_position, BS);
 
 	/*std::cout<<"pos_i=("<<pos_i.X<<","<<pos_i.Y<<","<<pos_i.Z<<")"
@@ -403,282 +403,284 @@ void getPointedNode(Client *client, v3f player_position,
 	s16 yend = pos_i.Y + 1 + (camera_direction.Y>0 ? a : 1);
 	s16 zend = pos_i.Z + (camera_direction.Z>0 ? a : 1);
 	s16 xend = pos_i.X + (camera_direction.X>0 ? a : 1);
-	
+
 	for(s16 y = ystart; y <= yend; y++)
-	for(s16 z = zstart; z <= zend; z++)
-	for(s16 x = xstart; x <= xend; x++)
-	{
-		MapNode n;
-		try
-		{
-			n = client->getNode(v3s16(x,y,z));
-			if(content_pointable(n.d) == false)
-				continue;
-		}
-		catch(InvalidPositionException &e)
-		{
-			continue;
-		}
-
-		v3s16 np(x,y,z);
-		v3f npf = intToFloat(np, BS);
-		
-		f32 d = 0.01;
-		
-		v3s16 dirs[6] = {
-			v3s16(0,0,1), // back
-			v3s16(0,1,0), // top
-			v3s16(1,0,0), // right
-			v3s16(0,0,-1), // front
-			v3s16(0,-1,0), // bottom
-			v3s16(-1,0,0), // left
-		};
-		
-		/*
-			Meta-objects
-		*/
-		if(n.d == CONTENT_TORCH)
-		{
-			v3s16 dir = unpackDir(n.dir);
-			v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
-			dir_f *= BS/2 - BS/6 - BS/20;
-			v3f cpf = npf + dir_f;
-			f32 distance = (cpf - camera_position).getLength();
-
-			core::aabbox3d<f32> box;
-			
-			// bottom
-			if(dir == v3s16(0,-1,0))
+		for(s16 z = zstart; z <= zend; z++)
+			for(s16 x = xstart; x <= xend; x++)
 			{
-				box = core::aabbox3d<f32>(
-					npf - v3f(BS/6, BS/2, BS/6),
-					npf + v3f(BS/6, -BS/2+BS/3*2, BS/6)
-				);
-			}
-			// top
-			else if(dir == v3s16(0,1,0))
-			{
-				box = core::aabbox3d<f32>(
-					npf - v3f(BS/6, -BS/2+BS/3*2, BS/6),
-					npf + v3f(BS/6, BS/2, BS/6)
-				);
-			}
-			// side
-			else
-			{
-				box = core::aabbox3d<f32>(
-					cpf - v3f(BS/6, BS/3, BS/6),
-					cpf + v3f(BS/6, BS/3, BS/6)
-				);
-			}
-
-			if(distance < mindistance)
-			{
-				if(box.intersectsWithLine(shootline))
+				MapNode n;
+				try
 				{
-					nodefound = true;
-					nodepos = np;
-					neighbourpos = np;
-					mindistance = distance;
-					nodehilightbox = box;
+					n = client->getNode(v3s16(x,y,z));
+					if(content_pointable(n.d) == false)
+						continue;
 				}
-			}
-		}
-		else if(n.d == CONTENT_SIGN_WALL)
-		{
-			v3s16 dir = unpackDir(n.dir);
-			v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
-			dir_f *= BS/2 - BS/6 - BS/20;
-			v3f cpf = npf + dir_f;
-			f32 distance = (cpf - camera_position).getLength();
-
-			v3f vertices[4] =
-			{
-				v3f(BS*0.42,-BS*0.35,-BS*0.4),
-				v3f(BS*0.49, BS*0.35, BS*0.4),
-			};
-
-			for(s32 i=0; i<2; i++)
-			{
-				if(dir == v3s16(1,0,0))
-					vertices[i].rotateXZBy(0);
-				if(dir == v3s16(-1,0,0))
-					vertices[i].rotateXZBy(180);
-				if(dir == v3s16(0,0,1))
-					vertices[i].rotateXZBy(90);
-				if(dir == v3s16(0,0,-1))
-					vertices[i].rotateXZBy(-90);
-				if(dir == v3s16(0,-1,0))
-					vertices[i].rotateXYBy(-90);
-				if(dir == v3s16(0,1,0))
-					vertices[i].rotateXYBy(90);
-
-				vertices[i] += npf;
-			}
-
-			core::aabbox3d<f32> box;
-
-			box = core::aabbox3d<f32>(vertices[0]);
-			box.addInternalPoint(vertices[1]);
-
-			if(distance < mindistance)
-			{
-				if(box.intersectsWithLine(shootline))
+				catch(InvalidPositionException &e)
 				{
-					nodefound = true;
-					nodepos = np;
-					neighbourpos = np;
-					mindistance = distance;
-					nodehilightbox = box;
+					continue;
 				}
-			}
-		}
-		else if(n.d == CONTENT_RAIL)
-		{
-			v3s16 dir = unpackDir(n.dir);
-			v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
-			dir_f *= BS/2 - BS/6 - BS/20;
-			v3f cpf = npf + dir_f;
-			f32 distance = (cpf - camera_position).getLength();
 
-			float d = (float)BS/16;
-			v3f vertices[4] =
-			{
-				v3f(BS/2, -BS/2+d, -BS/2),
-				v3f(-BS/2, -BS/2, BS/2),
-			};
+				v3s16 np(x,y,z);
+				v3f npf = intToFloat(np, BS);
 
-			for(s32 i=0; i<2; i++)
-			{
-				vertices[i] += npf;
-			}
+				f32 d = 0.01;
 
-			core::aabbox3d<f32> box;
-
-			box = core::aabbox3d<f32>(vertices[0]);
-			box.addInternalPoint(vertices[1]);
-
-			if(distance < mindistance)
-			{
-				if(box.intersectsWithLine(shootline))
+				v3s16 dirs[6] =
 				{
-					nodefound = true;
-					nodepos = np;
-					neighbourpos = np;
-					mindistance = distance;
-					nodehilightbox = box;
+					v3s16(0,0,1), // back
+					v3s16(0,1,0), // top
+					v3s16(1,0,0), // right
+					v3s16(0,0,-1), // front
+					v3s16(0,-1,0), // bottom
+					v3s16(-1,0,0), // left
+				};
+
+				/*
+					Meta-objects
+				*/
+				if(n.d == CONTENT_TORCH)
+				{
+					v3s16 dir = unpackDir(n.dir);
+					v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
+					dir_f *= BS/2 - BS/6 - BS/20;
+					v3f cpf = npf + dir_f;
+					f32 distance = (cpf - camera_position).getLength();
+
+					core::aabbox3d<f32> box;
+
+					// bottom
+					if(dir == v3s16(0,-1,0))
+					{
+						box = core::aabbox3d<f32>(
+						          npf - v3f(BS/6, BS/2, BS/6),
+						          npf + v3f(BS/6, -BS/2+BS/3*2, BS/6)
+						      );
+					}
+					// top
+					else if(dir == v3s16(0,1,0))
+					{
+						box = core::aabbox3d<f32>(
+						          npf - v3f(BS/6, -BS/2+BS/3*2, BS/6),
+						          npf + v3f(BS/6, BS/2, BS/6)
+						      );
+					}
+					// side
+					else
+					{
+						box = core::aabbox3d<f32>(
+						          cpf - v3f(BS/6, BS/3, BS/6),
+						          cpf + v3f(BS/6, BS/3, BS/6)
+						      );
+					}
+
+					if(distance < mindistance)
+					{
+						if(box.intersectsWithLine(shootline))
+						{
+							nodefound = true;
+							nodepos = np;
+							neighbourpos = np;
+							mindistance = distance;
+							nodehilightbox = box;
+						}
+					}
 				}
-			}
-		}
-		/*
-			Regular blocks
-		*/
-		else
-		{
-			for(u16 i=0; i<6; i++)
-			{
-				v3f dir_f = v3f(dirs[i].X,
-						dirs[i].Y, dirs[i].Z);
-				v3f centerpoint = npf + dir_f * BS/2;
-				f32 distance =
-						(centerpoint - camera_position).getLength();
-				
-				if(distance < mindistance)
+				else if(n.d == CONTENT_SIGN_WALL)
 				{
-					core::CMatrix4<f32> m;
-					m.buildRotateFromTo(v3f(0,0,1), dir_f);
+					v3s16 dir = unpackDir(n.dir);
+					v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
+					dir_f *= BS/2 - BS/6 - BS/20;
+					v3f cpf = npf + dir_f;
+					f32 distance = (cpf - camera_position).getLength();
 
-					// This is the back face
-					v3f corners[2] = {
-						v3f(BS/2, BS/2, BS/2),
-						v3f(-BS/2, -BS/2, BS/2+d)
+					v3f vertices[4] =
+					{
+						v3f(BS*0.42,-BS*0.35,-BS*0.4),
+						v3f(BS*0.49, BS*0.35, BS*0.4),
 					};
-					
-					for(u16 j=0; j<2; j++)
+
+					for(s32 i=0; i<2; i++)
 					{
-						m.rotateVect(corners[j]);
-						corners[j] += npf;
+						if(dir == v3s16(1,0,0))
+							vertices[i].rotateXZBy(0);
+						if(dir == v3s16(-1,0,0))
+							vertices[i].rotateXZBy(180);
+						if(dir == v3s16(0,0,1))
+							vertices[i].rotateXZBy(90);
+						if(dir == v3s16(0,0,-1))
+							vertices[i].rotateXZBy(-90);
+						if(dir == v3s16(0,-1,0))
+							vertices[i].rotateXYBy(-90);
+						if(dir == v3s16(0,1,0))
+							vertices[i].rotateXYBy(90);
+
+						vertices[i] += npf;
 					}
 
-					core::aabbox3d<f32> facebox(corners[0]);
-					facebox.addInternalPoint(corners[1]);
+					core::aabbox3d<f32> box;
 
-					if(facebox.intersectsWithLine(shootline))
+					box = core::aabbox3d<f32>(vertices[0]);
+					box.addInternalPoint(vertices[1]);
+
+					if(distance < mindistance)
 					{
-						nodefound = true;
-						nodepos = np;
-						neighbourpos = np + dirs[i];
-						mindistance = distance;
+						if(box.intersectsWithLine(shootline))
+						{
+							nodefound = true;
+							nodepos = np;
+							neighbourpos = np;
+							mindistance = distance;
+							nodehilightbox = box;
+						}
+					}
+				}
+				else if(n.d == CONTENT_RAIL)
+				{
+					v3s16 dir = unpackDir(n.dir);
+					v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
+					dir_f *= BS/2 - BS/6 - BS/20;
+					v3f cpf = npf + dir_f;
+					f32 distance = (cpf - camera_position).getLength();
 
-						//nodehilightbox = facebox;
+					float d = (float)BS/16;
+					v3f vertices[4] =
+					{
+						v3f(BS/2, -BS/2+d, -BS/2),
+						v3f(-BS/2, -BS/2, BS/2),
+					};
 
-						const float d = 0.502;
-						core::aabbox3d<f32> nodebox
+					for(s32 i=0; i<2; i++)
+					{
+						vertices[i] += npf;
+					}
+
+					core::aabbox3d<f32> box;
+
+					box = core::aabbox3d<f32>(vertices[0]);
+					box.addInternalPoint(vertices[1]);
+
+					if(distance < mindistance)
+					{
+						if(box.intersectsWithLine(shootline))
+						{
+							nodefound = true;
+							nodepos = np;
+							neighbourpos = np;
+							mindistance = distance;
+							nodehilightbox = box;
+						}
+					}
+				}
+				/*
+					Regular blocks
+				*/
+				else
+				{
+					for(u16 i=0; i<6; i++)
+					{
+						v3f dir_f = v3f(dirs[i].X,
+						                dirs[i].Y, dirs[i].Z);
+						v3f centerpoint = npf + dir_f * BS/2;
+						f32 distance =
+						    (centerpoint - camera_position).getLength();
+
+						if(distance < mindistance)
+						{
+							core::CMatrix4<f32> m;
+							m.buildRotateFromTo(v3f(0,0,1), dir_f);
+
+							// This is the back face
+							v3f corners[2] =
+							{
+								v3f(BS/2, BS/2, BS/2),
+								v3f(-BS/2, -BS/2, BS/2+d)
+							};
+
+							for(u16 j=0; j<2; j++)
+							{
+								m.rotateVect(corners[j]);
+								corners[j] += npf;
+							}
+
+							core::aabbox3d<f32> facebox(corners[0]);
+							facebox.addInternalPoint(corners[1]);
+
+							if(facebox.intersectsWithLine(shootline))
+							{
+								nodefound = true;
+								nodepos = np;
+								neighbourpos = np + dirs[i];
+								mindistance = distance;
+
+								//nodehilightbox = facebox;
+
+								const float d = 0.502;
+								core::aabbox3d<f32> nodebox
 								(-BS*d, -BS*d, -BS*d, BS*d, BS*d, BS*d);
-						v3f nodepos_f = intToFloat(nodepos, BS);
-						nodebox.MinEdge += nodepos_f;
-						nodebox.MaxEdge += nodepos_f;
-						nodehilightbox = nodebox;
-					}
-				} // if distance < mindistance
-			} // for dirs
-		} // regular block
-	} // for coords
+								v3f nodepos_f = intToFloat(nodepos, BS);
+								nodebox.MinEdge += nodepos_f;
+								nodebox.MaxEdge += nodepos_f;
+								nodehilightbox = nodebox;
+							}
+						} // if distance < mindistance
+					} // for dirs
+				} // regular block
+			} // for coords
 }
 
 void update_skybox(video::IVideoDriver* driver,
-		scene::ISceneManager* smgr, scene::ISceneNode* &skybox,
-		float brightness)
+                   scene::ISceneManager* smgr, scene::ISceneNode* &skybox,
+                   float brightness)
 {
 	if(skybox)
 	{
 		skybox->remove();
 	}
-	
+
 	if(brightness >= 0.5)
 	{
 		skybox = smgr->addSkyBoxSceneNode(
-			driver->getTexture(getTexturePath("skybox2.png").c_str()),
-			driver->getTexture(getTexturePath("skybox3.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1.png").c_str()));
+		             driver->getTexture(getTexturePath("skybox2.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox3.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1.png").c_str()));
 	}
 	else if(brightness >= 0.2)
 	{
 		skybox = smgr->addSkyBoxSceneNode(
-			driver->getTexture(getTexturePath("skybox2_dawn.png").c_str()),
-			driver->getTexture(getTexturePath("skybox3_dawn.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1_dawn.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1_dawn.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1_dawn.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1_dawn.png").c_str()));
+		             driver->getTexture(getTexturePath("skybox2_dawn.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox3_dawn.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1_dawn.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1_dawn.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1_dawn.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1_dawn.png").c_str()));
 	}
 	else
 	{
 		skybox = smgr->addSkyBoxSceneNode(
-			driver->getTexture(getTexturePath("skybox2_night.png").c_str()),
-			driver->getTexture(getTexturePath("skybox3_night.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1_night.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1_night.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1_night.png").c_str()),
-			driver->getTexture(getTexturePath("skybox1_night.png").c_str()));
+		             driver->getTexture(getTexturePath("skybox2_night.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox3_night.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1_night.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1_night.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1_night.png").c_str()),
+		             driver->getTexture(getTexturePath("skybox1_night.png").c_str()));
 	}
 }
 
 void the_game(
-	bool &kill,
-	bool random_input,
-	InputHandler *input,
-	IrrlichtDevice *device,
-	gui::IGUIFont* font,
-	std::string map_dir,
-	std::string playername,
-	std::string password,
-	std::string address,
-	u16 port,
-	std::wstring &error_message
+    bool &kill,
+    bool random_input,
+    InputHandler *input,
+    IrrlichtDevice *device,
+    gui::IGUIFont* font,
+    std::string map_dir,
+    std::string playername,
+    std::string password,
+    std::string address,
+    u16 port,
+    std::wstring &error_message
 )
 {
 	video::IVideoDriver* driver = device->getVideoDriver();
@@ -690,7 +692,7 @@ void the_game(
 
 	const s32 hotbar_itemcount = 8;
 	const s32 hotbar_imagesize = 36;
-	
+
 	// The color of the sky
 
 	//video::SColor skycolor = video::SColor(255,140,186,250);
@@ -707,34 +709,36 @@ void the_game(
 	core::rect<s32> textrect(center - textsize/2, center + textsize/2);
 
 	gui::IGUIStaticText *gui_loadingtext = guienv->addStaticText(
-			loadingtext, textrect, false, false);
+	        loadingtext, textrect, false, false);
 	gui_loadingtext->setTextAlignment(gui::EGUIA_CENTER, gui::EGUIA_UPPERLEFT);
 
 	driver->beginScene(true, true, video::SColor(255,0,0,0));
 	guienv->drawAll();
 	driver->endScene();
 
-	
+
 	/*
 		Create server.
 		SharedPtr will delete it when it goes out of scope.
 	*/
 	SharedPtr<Server> server;
-	if(address == ""){
+	if(address == "")
+	{
 		std::cout<<DTIME<<"Creating server"<<std::endl;
 		server = new Server(map_dir);
 		server->start(port);
 	}
-	
+
 	/*
 		Create client
 	*/
 
 	std::cout<<DTIME<<"Creating client"<<std::endl;
 	Client client(device, playername.c_str(), password, draw_control);
-			
+
 	Address connect_address(0,0,0,0, port);
-	try{
+	try
+	{
 		if(address == "")
 			//connect_address.Resolve("localhost");
 			connect_address.setAddress(127,0,0,1);
@@ -753,15 +757,16 @@ void the_game(
 	/*
 		Attempt to connect to the server
 	*/
-	
+
 	dstream<<DTIME<<"Connecting to server at ";
 	connect_address.print(&dstream);
 	dstream<<std::endl;
 	client.connect(connect_address);
 
 	bool could_connect = false;
-	
-	try{
+
+	try
+	{
 		float time_counter = 0.0;
 		for(;;)
 		{
@@ -791,14 +796,14 @@ void the_game(
 
 			if(server != NULL)
 				server->step(0.1);
-			
+
 			// Delay a bit
 			sleep_ms(100);
 			time_counter += 0.1;
 		}
 	}
 	catch(con::PeerNotFoundException &e)
-	{}
+		{}
 
 	if(could_connect == false)
 	{
@@ -822,17 +827,17 @@ void the_game(
 	float old_brightness = 1.0;
 	scene::ISceneNode* skybox = NULL;
 	update_skybox(driver, smgr, skybox, 1.0);
-	
+
 	/*
 		Create the camera node
 	*/
 
 	scene::ICameraSceneNode* camera = smgr->addCameraSceneNode(
-		0, // Camera parent
-		v3f(BS*100, BS*2, BS*100), // Look from
-		v3f(BS*100+1, BS*2, BS*100), // Look to
-		-1 // Camera ID
-   	);
+	                                      0, // Camera parent
+	                                      v3f(BS*100, BS*2, BS*100), // Look from
+	                                      v3f(BS*100+1, BS*2, BS*100), // Look to
+	                                      -1 // Camera ID
+	                                  );
 
 	if(camera == NULL)
 	{
@@ -844,23 +849,23 @@ void the_game(
 
 	// Just so big a value that everything rendered is visible
 	camera->setFarValue(100000*BS);
-	
+
 	f32 camera_yaw = 0; // "right/left"
 	f32 camera_pitch = 0; // "up/down"
 
 	/*
 		Clouds
 	*/
-	
+
 	float cloud_height = BS*100;
 	Clouds *clouds = NULL;
 	clouds = new Clouds(smgr->getRootSceneNode(), smgr, -1,
-			cloud_height, time(0));
+	                    cloud_height, time(0));
 
 	/*
 		Move into game
 	*/
-	
+
 	gui_loadingtext->remove();
 
 	/*
@@ -869,49 +874,49 @@ void the_game(
 
 	// First line of debug text
 	gui::IGUIStaticText *guitext = guienv->addStaticText(
-			L"Minetest-c55",
-			core::rect<s32>(5, 5, 795, 5+text_height),
-			false, false);
+	                                   L"Minetest-c55",
+	                                   core::rect<s32>(5, 5, 795, 5+text_height),
+	                                   false, false);
 	// Second line of debug text
 	gui::IGUIStaticText *guitext2 = guienv->addStaticText(
-			L"",
-			core::rect<s32>(5, 5+(text_height+5)*1, 795, (5+text_height)*2),
-			false, false);
-	
+	                                    L"",
+	                                    core::rect<s32>(5, 5+(text_height+5)*1, 795, (5+text_height)*2),
+	                                    false, false);
+
 	// At the middle of the screen
 	// Object infos are shown in this
 	gui::IGUIStaticText *guitext_info = guienv->addStaticText(
-			L"",
-			core::rect<s32>(0,0,400,text_height+5) + v2s32(100,200),
-			false, false);
-	
+	                                        L"",
+	                                        core::rect<s32>(0,0,400,text_height+5) + v2s32(100,200),
+	                                        false, false);
+
 	// Chat text
 	gui::IGUIStaticText *guitext_chat = guienv->addStaticText(
-			L"",
-			core::rect<s32>(0,0,0,0),
-			false, false); // Disable word wrap as of now
-			//false, true);
+	                                        L"",
+	                                        core::rect<s32>(0,0,0,0),
+	                                        false, false); // Disable word wrap as of now
+	//false, true);
 	//guitext_chat->setBackgroundColor(video::SColor(96,0,0,0));
 	core::list<ChatLine> chat_lines;
-	
+
 	/*GUIQuickInventory *quick_inventory = new GUIQuickInventory
 			(guienv, NULL, v2s32(10, 70), 5, &local_inventory);*/
 	/*GUIQuickInventory *quick_inventory = new GUIQuickInventory
 			(guienv, NULL, v2s32(0, 0), quickinv_itemcount, &local_inventory);*/
-	
+
 	// Test the text input system
 	/*(new GUITextInputMenu(guienv, guiroot, -1, &g_menumgr,
 			NULL))->drop();*/
 	/*GUIMessageMenu *menu =
-			new GUIMessageMenu(guienv, guiroot, -1, 
+			new GUIMessageMenu(guienv, guiroot, -1,
 				&g_menumgr,
 				L"Asd");
 	menu->drop();*/
-	
+
 	// Launch pause menu
 	(new GUIPauseMenu(guienv, guiroot, -1, g_gamecallback,
-			&g_menumgr))->drop();
-	
+	                  &g_menumgr))->drop();
+
 	// Enable texts
 	/*guitext2->setVisible(true);
 	guitext_info->setVisible(true);
@@ -926,7 +931,7 @@ void the_game(
 	u32 beginscenetime = 0;
 	u32 scenetime = 0;
 	u32 endscenetime = 0;
-	
+
 	// A test
 	//throw con::PeerNotFoundException("lol");
 
@@ -956,7 +961,7 @@ void the_game(
 		if(g_gamecallback->changepassword_requested)
 		{
 			(new GUIPasswordChange(guienv, guiroot, -1,
-				&g_menumgr, &client))->drop();
+			                       &g_menumgr, &client))->drop();
 			g_gamecallback->changepassword_requested = false;
 		}
 
@@ -972,10 +977,10 @@ void the_game(
 		screensize = driver->getScreenSize();
 		v2s32 displaycenter(screensize.X/2,screensize.Y/2);
 		//bool screensize_changed = screensize != last_screensize;
-		
+
 		// Hilight boxes collected during the loop and displayed
 		core::list< core::aabbox3d<f32> > hilightboxes;
-		
+
 		// Info text
 		std::wstring infotext;
 
@@ -987,7 +992,7 @@ void the_game(
 		}*/
 
 		//TimeTaker //timer1("//timer1");
-		
+
 		// Time of frame without fps limit
 		float busytime;
 		u32 busytime_u32;
@@ -1002,16 +1007,16 @@ void the_game(
 		}
 
 		//std::cout<<"busytime_u32="<<busytime_u32<<std::endl;
-	
+
 		// Necessary for device->getTimer()->getTime()
 		device->run();
 
 		/*
 			Viewing range
 		*/
-		
+
 		updateViewingRange(busytime, &client);
-		
+
 		/*
 			FPS limiter
 		*/
@@ -1019,7 +1024,7 @@ void the_game(
 		{
 			float fps_max = g_settings.getFloat("fps_max");
 			u32 frametime_min = 1000./fps_max;
-			
+
 			if(busytime_u32 < frametime_min)
 			{
 				u32 sleeptime = frametime_min - busytime_u32;
@@ -1034,7 +1039,7 @@ void the_game(
 			Time difference calculation
 		*/
 		f32 dtime; // in seconds
-		
+
 		u32 time = device->getTimer()->getTime();
 		if(time > lasttime)
 			dtime = (time - lasttime) / 1000.0;
@@ -1080,11 +1085,11 @@ void the_game(
 				counter -= 3.0;
 				dtime_jitter1_max_sample = jitter1_max;
 				dtime_jitter1_max_fraction
-						= dtime_jitter1_max_sample / (dtime_avg1+0.001);
+				= dtime_jitter1_max_sample / (dtime_avg1+0.001);
 				jitter1_max = 0.0;
 			}
 		}
-		
+
 		/*
 			Busytime average and jitter calculation
 		*/
@@ -1092,7 +1097,7 @@ void the_game(
 		static f32 busytime_avg1 = 0.0;
 		busytime_avg1 = busytime_avg1 * 0.98 + busytime * 0.02;
 		f32 busytime_jitter1 = busytime - busytime_avg1;
-		
+
 		static f32 busytime_jitter1_max_sample = 0.0;
 		static f32 busytime_jitter1_min_sample = 0.0;
 		{
@@ -1104,7 +1109,8 @@ void the_game(
 			if(busytime_jitter1 < jitter1_min)
 				jitter1_min = busytime_jitter1;
 			counter += dtime;
-			if(counter > 0.0){
+			if(counter > 0.0)
+			{
 				counter -= 3.0;
 				busytime_jitter1_max_sample = jitter1_max;
 				busytime_jitter1_min_sample = jitter1_min;
@@ -1112,7 +1118,7 @@ void the_game(
 				jitter1_min = 0.0;
 			}
 		}
-		
+
 		/*
 			Debug info for client
 		*/
@@ -1129,7 +1135,7 @@ void the_game(
 		/*
 			Direct handling of user input
 		*/
-		
+
 		// Reset input if window not active or some menu is active
 		if(device->isWindowActive() == false || noMenuActive() == false)
 		{
@@ -1145,24 +1151,24 @@ void the_game(
 		if(input->wasKeyDown(getKeySetting("keymap_inventory")))
 		{
 			dstream<<DTIME<<"the_game: "
-					<<"Launching inventory"<<std::endl;
-			
+			       <<"Launching inventory"<<std::endl;
+
 			GUIInventoryMenu *menu =
-				new GUIInventoryMenu(guienv, guiroot, -1,
-					&g_menumgr, v2s16(8,7),
-					client.getInventoryContext(),
-					&client);
+			    new GUIInventoryMenu(guienv, guiroot, -1,
+			                         &g_menumgr, v2s16(8,7),
+			                         client.getInventoryContext(),
+			                         &client);
 
 			core::array<GUIInventoryMenu::DrawSpec> draw_spec;
 			draw_spec.push_back(GUIInventoryMenu::DrawSpec(
-					"list", "current_player", "main",
-					v2s32(0, 3), v2s32(8, 4)));
+			                        "list", "current_player", "main",
+			                        v2s32(0, 3), v2s32(8, 4)));
 			draw_spec.push_back(GUIInventoryMenu::DrawSpec(
-					"list", "current_player", "craft",
-					v2s32(3, 0), v2s32(2, 2)));
+			                        "list", "current_player", "craft",
+			                        v2s32(3, 0), v2s32(2, 2)));
 			draw_spec.push_back(GUIInventoryMenu::DrawSpec(
-					"list", "current_player", "craftresult",
-					v2s32(7, 1), v2s32(1, 1)));
+			                        "list", "current_player", "craftresult",
+			                        v2s32(7, 1), v2s32(1, 1)));
 
 			menu->setDrawSpec(draw_spec);
 
@@ -1171,10 +1177,10 @@ void the_game(
 		else if(input->wasKeyDown(KEY_ESCAPE))
 		{
 			dstream<<DTIME<<"the_game: "
-					<<"Launching pause menu"<<std::endl;
+			       <<"Launching pause menu"<<std::endl;
 			// It will delete itself by itself
 			(new GUIPauseMenu(guienv, guiroot, -1, g_gamecallback,
-					&g_menumgr))->drop();
+			                  &g_menumgr))->drop();
 
 			// Move mouse cursor on top of the disconnect button
 			input->setMousePos(displaycenter.X, displaycenter.Y+25);
@@ -1184,8 +1190,8 @@ void the_game(
 			TextDest *dest = new TextDestChat(&client);
 
 			(new GUITextInputMenu(guienv, guiroot, -1,
-					&g_menumgr, dest,
-					L""))->drop();
+			                      &g_menumgr, dest,
+			                      L""))->drop();
 		}
 		else if(input->wasKeyDown(getKeySetting("keymap_freemove")))
 		{
@@ -1214,7 +1220,7 @@ void the_game(
 		{
 			s32 wheel = input->getMouseWheel();
 			u16 max_item = MYMIN(PLAYER_INVENTORY_SIZE-1,
-					hotbar_itemcount-1);
+			                     hotbar_itemcount-1);
 
 			if(wheel < 0)
 			{
@@ -1231,7 +1237,7 @@ void the_game(
 					g_selected_item = max_item;
 			}
 		}
-		
+
 		// Item selection
 		for(u16 i=0; i<10; i++)
 		{
@@ -1245,7 +1251,7 @@ void the_game(
 					g_selected_item = i;
 
 					dstream<<DTIME<<"Selected item: "
-							<<g_selected_item<<std::endl;
+					       <<g_selected_item<<std::endl;
 				}
 			}
 		}
@@ -1269,10 +1275,10 @@ void the_game(
 		if(input->wasKeyDown(getKeySetting("keymap_print_debug_stacks")))
 		{
 			dstream<<"-----------------------------------------"
-					<<std::endl;
+			       <<std::endl;
 			dstream<<DTIME<<"Printing debug stacks:"<<std::endl;
 			dstream<<"-----------------------------------------"
-					<<std::endl;
+			       <<std::endl;
 			debug_stacks_print();
 		}
 
@@ -1280,7 +1286,7 @@ void the_game(
 			Player speed control
 			TODO: Cache the keycodes from getKeySetting
 		*/
-		
+
 		{
 			/*bool a_up,
 			bool a_down,
@@ -1292,19 +1298,19 @@ void the_game(
 			float a_pitch,
 			float a_yaw*/
 			PlayerControl control(
-				input->isKeyDown(getKeySetting("keymap_forward")),
-				input->isKeyDown(getKeySetting("keymap_backward")),
-				input->isKeyDown(getKeySetting("keymap_left")),
-				input->isKeyDown(getKeySetting("keymap_right")),
-				input->isKeyDown(getKeySetting("keymap_jump")),
-				input->isKeyDown(getKeySetting("keymap_special1")),
-				input->isKeyDown(getKeySetting("keymap_sneak")),
-				camera_pitch,
-				camera_yaw
+			    input->isKeyDown(getKeySetting("keymap_forward")),
+			    input->isKeyDown(getKeySetting("keymap_backward")),
+			    input->isKeyDown(getKeySetting("keymap_left")),
+			    input->isKeyDown(getKeySetting("keymap_right")),
+			    input->isKeyDown(getKeySetting("keymap_jump")),
+			    input->isKeyDown(getKeySetting("keymap_special1")),
+			    input->isKeyDown(getKeySetting("keymap_sneak")),
+			    camera_pitch,
+			    camera_yaw
 			);
 			client.setPlayerControl(control);
 		}
-		
+
 		/*
 			Run server
 		*/
@@ -1318,7 +1324,7 @@ void the_game(
 		/*
 			Process environment
 		*/
-		
+
 		{
 			//TimeTaker timer("client.step(dtime)");
 			client.step(dtime);
@@ -1345,7 +1351,7 @@ void the_game(
 				camera_pitch = event.player_force_move.pitch;
 			}
 		}
-		
+
 		// Get player position
 		v3f player_position = client.getPlayerPosition();
 
@@ -1354,21 +1360,23 @@ void the_game(
 		/*
 			Mouse and camera control
 		*/
-		
+
 		if((device->isWindowActive() && noMenuActive()) || random_input)
 		{
 			if(!random_input)
 				device->getCursorControl()->setVisible(false);
 
-			if(first_loop_after_window_activation){
+			if(first_loop_after_window_activation)
+			{
 				//std::cout<<"window active, first loop"<<std::endl;
 				first_loop_after_window_activation = false;
 			}
-			else{
+			else
+			{
 				s32 dx = input->getMousePos().X - displaycenter.X;
 				s32 dy = input->getMousePos().Y - displaycenter.Y;
 				//std::cout<<"window active, pos difference "<<dx<<","<<dy<<std::endl;
-				
+
 				/*const float keyspeed = 500;
 				if(input->isKeyDown(irr::KEY_UP))
 					dy -= dtime * keyspeed;
@@ -1386,7 +1394,8 @@ void the_game(
 			}
 			input->setMousePos(displaycenter.X, displaycenter.Y);
 		}
-		else{
+		else
+		{
 			device->getCursorControl()->setVisible(true);
 
 			//std::cout<<"window inactive"<<std::endl;
@@ -1395,11 +1404,11 @@ void the_game(
 
 		camera_yaw = wrapDegrees(camera_yaw);
 		camera_pitch = wrapDegrees(camera_pitch);
-		
+
 		v3f camera_direction = v3f(0,0,1);
 		camera_direction.rotateYZBy(camera_pitch);
 		camera_direction.rotateXZBy(camera_yaw);
-		
+
 		// This is at the height of the eyes of the current figure
 		//v3f camera_position = player_position + v3f(0, BS+BS/2, 0);
 		// This is more like in minecraft
@@ -1409,41 +1418,43 @@ void the_game(
 		// *100.0 helps in large map coordinates
 		camera->setTarget(camera_position + camera_direction * 100.0);
 
-		if(FIELD_OF_VIEW_TEST){
+		if(FIELD_OF_VIEW_TEST)
+		{
 			client.updateCamera(v3f(0,0,0), v3f(0,0,1));
 		}
-		else{
+		else
+		{
 			//TimeTaker timer("client.updateCamera");
 			client.updateCamera(camera_position, camera_direction);
 		}
-		
+
 		//timer2.stop();
 		//TimeTaker //timer3("//timer3");
 
 		/*
 			Calculate what block is the crosshair pointing to
 		*/
-		
+
 		//u32 t1 = device->getTimer()->getRealTime();
-		
+
 		//f32 d = 4; // max. distance
 		f32 d = 4; // max. distance
 		core::line3d<f32> shootline(camera_position,
-				camera_position + camera_direction * BS * (d+1));
+		                            camera_position + camera_direction * BS * (d+1));
 
 		MapBlockObject *selected_object = client.getSelectedObject
-				(d*BS, camera_position, shootline);
+		                                  (d*BS, camera_position, shootline);
 
 		ClientActiveObject *selected_active_object
-				= client.getSelectedActiveObject
-					(d*BS, camera_position, shootline);
+		= client.getSelectedActiveObject
+		  (d*BS, camera_position, shootline);
 
 		if(selected_object != NULL)
 		{
 			//dstream<<"Client returned selected_object != NULL"<<std::endl;
 
 			core::aabbox3d<f32> box_on_map
-					= selected_object->getSelectionBoxOnMap();
+			= selected_object->getSelectionBoxOnMap();
 
 			hilightboxes.push_back(box_on_map);
 
@@ -1453,7 +1464,7 @@ void the_game(
 			{
 				std::cout<<DTIME<<"Left-clicked object"<<std::endl;
 				client.clickObject(0, selected_object->getBlock()->getPos(),
-						selected_object->getId(), g_selected_item);
+				                   selected_object->getId(), g_selected_item);
 			}
 			else if(input->getRightClicked())
 			{
@@ -1464,24 +1475,24 @@ void the_game(
 				if(selected_object->getTypeId() == MAPBLOCKOBJECT_TYPE_SIGN)
 				{
 					dstream<<"Sign object right-clicked"<<std::endl;
-					
+
 					if(random_input == false)
 					{
 						// Get a new text for it
 
 						TextDest *dest = new TextDestSign(
-								selected_object->getBlock()->getPos(),
-								selected_object->getId(),
-								&client);
+						    selected_object->getBlock()->getPos(),
+						    selected_object->getId(),
+						    &client);
 
 						SignObject *sign_object = (SignObject*)selected_object;
 
 						std::wstring wtext =
-								narrow_to_wide(sign_object->getText());
+						    narrow_to_wide(sign_object->getText());
 
 						(new GUITextInputMenu(guienv, guiroot, -1,
-								&g_menumgr, dest,
-								wtext))->drop();
+						                      &g_menumgr, dest,
+						                      wtext))->drop();
 					}
 				}
 				/*
@@ -1490,16 +1501,16 @@ void the_game(
 				else
 				{
 					client.clickObject(1, selected_object->getBlock()->getPos(),
-							selected_object->getId(), g_selected_item);
+					                   selected_object->getId(), g_selected_item);
 				}
 			}
 		}
 		else if(selected_active_object != NULL)
 		{
 			//dstream<<"Client returned selected_active_object != NULL"<<std::endl;
-			
+
 			core::aabbox3d<f32> *selection_box
-					= selected_active_object->getSelectionBox();
+			= selected_active_object->getSelectionBox();
 			// Box should exist because object was returned in the
 			// first place
 			assert(selection_box);
@@ -1507,8 +1518,8 @@ void the_game(
 			v3f pos = selected_active_object->getPosition();
 
 			core::aabbox3d<f32> box_on_map(
-					selection_box->MinEdge + pos,
-					selection_box->MaxEdge + pos
+			    selection_box->MinEdge + pos,
+			    selection_box->MaxEdge + pos
 			);
 
 			hilightboxes.push_back(box_on_map);
@@ -1520,7 +1531,7 @@ void the_game(
 			{
 				std::cout<<DTIME<<"Left-clicked object"<<std::endl;
 				client.clickActiveObject(0,
-						selected_active_object->getId(), g_selected_item);
+				                         selected_active_object->getId(), g_selected_item);
 			}
 			else if(input->getRightClicked())
 			{
@@ -1530,267 +1541,268 @@ void the_game(
 		else // selected_object == NULL
 		{
 
-		/*
-			Find out which node we are pointing at
-		*/
-		
-		bool nodefound = false;
-		v3s16 nodepos;
-		v3s16 neighbourpos;
-		core::aabbox3d<f32> nodehilightbox;
-
-		getPointedNode(&client, player_position,
-				camera_direction, camera_position,
-				nodefound, shootline,
-				nodepos, neighbourpos,
-				nodehilightbox, d);
-	
-		static float nodig_delay_counter = 0.0;
-
-		if(nodefound)
-		{
-			static v3s16 nodepos_old(-32768,-32768,-32768);
-
-			static float dig_time = 0.0;
-			static u16 dig_index = 0;
-			
 			/*
-				Visualize selection
+				Find out which node we are pointing at
 			*/
 
-			hilightboxes.push_back(nodehilightbox);
+			bool nodefound = false;
+			v3s16 nodepos;
+			v3s16 neighbourpos;
+			core::aabbox3d<f32> nodehilightbox;
 
-			/*
-				Check information text of node
-			*/
+			getPointedNode(&client, player_position,
+			               camera_direction, camera_position,
+			               nodefound, shootline,
+			               nodepos, neighbourpos,
+			               nodehilightbox, d);
 
-			NodeMetadata *meta = client.getNodeMetadata(nodepos);
-			if(meta)
+			static float nodig_delay_counter = 0.0;
+
+			if(nodefound)
 			{
-				infotext = narrow_to_wide(meta->infoText());
-			}
-			
-			//MapNode node = client.getNode(nodepos);
+				static v3s16 nodepos_old(-32768,-32768,-32768);
 
-			/*
-				Handle digging
-			*/
-			
-			if(input->getLeftReleased())
-			{
-				client.clearTempMod(nodepos);
-				dig_time = 0.0;
-			}
-			
-			if(nodig_delay_counter > 0.0)
-			{
-				nodig_delay_counter -= dtime;
-			}
-			else
-			{
-				if(nodepos != nodepos_old)
+				static float dig_time = 0.0;
+				static u16 dig_index = 0;
+
+				/*
+					Visualize selection
+				*/
+
+				hilightboxes.push_back(nodehilightbox);
+
+				/*
+					Check information text of node
+				*/
+
+				NodeMetadata *meta = client.getNodeMetadata(nodepos);
+				if(meta)
 				{
-					std::cout<<DTIME<<"Pointing at ("<<nodepos.X<<","
-							<<nodepos.Y<<","<<nodepos.Z<<")"<<std::endl;
-
-					if(nodepos_old != v3s16(-32768,-32768,-32768))
-					{
-						client.clearTempMod(nodepos_old);
-						dig_time = 0.0;
-					}
+					infotext = narrow_to_wide(meta->infoText());
 				}
 
-				if(input->getLeftClicked() ||
-						(input->getLeftState() && nodepos != nodepos_old))
+				//MapNode node = client.getNode(nodepos);
+
+				/*
+					Handle digging
+				*/
+
+				if(input->getLeftReleased())
 				{
-					dstream<<DTIME<<"Started digging"<<std::endl;
-					client.groundAction(0, nodepos, neighbourpos, g_selected_item);
+					client.clearTempMod(nodepos);
+					dig_time = 0.0;
 				}
-				if(input->getLeftClicked())
+
+				if(nodig_delay_counter > 0.0)
 				{
-					client.setTempMod(nodepos, NodeMod(NODEMOD_CRACK, 0));
-				}
-				if(input->getLeftState())
-				{
-					MapNode n = client.getNode(nodepos);
-				
-					// Get tool name. Default is "" = bare hands
-					std::string toolname = "";
-					InventoryList *mlist = local_inventory.getList("main");
-					if(mlist != NULL)
-					{
-						InventoryItem *item = mlist->getItem(g_selected_item);
-						if(item && (std::string)item->getName() == "ToolItem")
-						{
-							ToolItem *titem = (ToolItem*)item;
-							toolname = titem->getToolName();
-						}
-					}
-
-					// Get digging properties for material and tool
-					u8 material = n.d;
-					DiggingProperties prop =
-							getDiggingProperties(material, toolname);
-					
-					float dig_time_complete = 0.0;
-
-					if(prop.diggable == false)
-					{
-						/*dstream<<"Material "<<(int)material
-								<<" not diggable with \""
-								<<toolname<<"\""<<std::endl;*/
-						// I guess nobody will wait for this long
-						dig_time_complete = 10000000.0;
-					}
-					else
-					{
-						dig_time_complete = prop.time;
-					}
-					
-					if(dig_time_complete >= 0.001)
-					{
-						dig_index = (u16)((float)CRACK_ANIMATION_LENGTH
-								* dig_time/dig_time_complete);
-					}
-					// This is for torches
-					else
-					{
-						dig_index = CRACK_ANIMATION_LENGTH;
-					}
-
-					if(dig_index < CRACK_ANIMATION_LENGTH)
-					{
-						//TimeTaker timer("client.setTempMod");
-						//dstream<<"dig_index="<<dig_index<<std::endl;
-						client.setTempMod(nodepos, NodeMod(NODEMOD_CRACK, dig_index));
-					}
-					else
-					{
-						dstream<<DTIME<<"Digging completed"<<std::endl;
-						client.groundAction(3, nodepos, neighbourpos, g_selected_item);
-						client.clearTempMod(nodepos);
-						client.removeNode(nodepos);
-
-						dig_time = 0;
-
-						nodig_delay_counter = dig_time_complete
-								/ (float)CRACK_ANIMATION_LENGTH;
-
-						// We don't want a corresponding delay to
-						// very time consuming nodes
-						if(nodig_delay_counter > 0.5)
-						{
-							nodig_delay_counter = 0.5;
-						}
-						// We want a slight delay to very little
-						// time consuming nodes
-						float mindelay = 0.15;
-						if(nodig_delay_counter < mindelay)
-						{
-							nodig_delay_counter = mindelay;
-						}
-					}
-
-					dig_time += dtime;
-				}
-			}
-			
-			if(input->getRightClicked())
-			{
-				std::cout<<DTIME<<"Ground right-clicked"<<std::endl;
-				
-				if(meta && meta->typeId() == CONTENT_SIGN_WALL && !random_input)
-				{
-					dstream<<"Sign node right-clicked"<<std::endl;
-					
-					SignNodeMetadata *signmeta = (SignNodeMetadata*)meta;
-					
-					// Get a new text for it
-
-					TextDest *dest = new TextDestSignNode(nodepos, &client);
-
-					std::wstring wtext =
-							narrow_to_wide(signmeta->getText());
-
-					(new GUITextInputMenu(guienv, guiroot, -1,
-							&g_menumgr, dest,
-							wtext))->drop();
-				}
-				else if(meta && meta->typeId() == CONTENT_CHEST && !random_input)
-				{
-					dstream<<"Chest node right-clicked"<<std::endl;
-					
-					//ChestNodeMetadata *chestmeta = (ChestNodeMetadata*)meta;
-
-					std::string chest_inv_id;
-					chest_inv_id += "nodemeta:";
-					chest_inv_id += itos(nodepos.X);
-					chest_inv_id += ",";
-					chest_inv_id += itos(nodepos.Y);
-					chest_inv_id += ",";
-					chest_inv_id += itos(nodepos.Z);
-					
-					GUIInventoryMenu *menu =
-						new GUIInventoryMenu(guienv, guiroot, -1,
-							&g_menumgr, v2s16(8,9),
-							client.getInventoryContext(),
-							&client);
-
-					core::array<GUIInventoryMenu::DrawSpec> draw_spec;
-					
-					draw_spec.push_back(GUIInventoryMenu::DrawSpec(
-							"list", chest_inv_id, "0",
-							v2s32(0, 0), v2s32(8, 4)));
-					draw_spec.push_back(GUIInventoryMenu::DrawSpec(
-							"list", "current_player", "main",
-							v2s32(0, 5), v2s32(8, 4)));
-
-					menu->setDrawSpec(draw_spec);
-
-					menu->drop();
-
-				}
-				else if (meta && meta->typeId() == CONTENT_WORKBENCH
-										&& !random_input)
-				{
-					dstream << "Workbench node right-clicked" << std::endl;
-
-					GUIWorkbenchMenu *menu = new GUIWorkbenchMenu(guienv,
-					guiroot, -1, &g_menumgr, nodepos, &client);
-
-					menu->drop();
-				}
-				else if(meta && meta->typeId() == CONTENT_FURNACE && !random_input)
-				{
-					dstream<<"Furnace node right-clicked"<<std::endl;
-					
-					GUIFurnaceMenu *menu =
-						new GUIFurnaceMenu(guienv, guiroot, -1,
-							&g_menumgr, nodepos, &client);
-
-					menu->drop();
-
+					nodig_delay_counter -= dtime;
 				}
 				else
 				{
-					client.groundAction(1, nodepos, neighbourpos, g_selected_item);
+					if(nodepos != nodepos_old)
+					{
+						std::cout<<DTIME<<"Pointing at ("<<nodepos.X<<","
+						         <<nodepos.Y<<","<<nodepos.Z<<")"<<std::endl;
+
+						if(nodepos_old != v3s16(-32768,-32768,-32768))
+						{
+							client.clearTempMod(nodepos_old);
+							dig_time = 0.0;
+						}
+					}
+
+					if(input->getLeftClicked() ||
+					        (input->getLeftState() && nodepos != nodepos_old))
+					{
+						dstream<<DTIME<<"Started digging"<<std::endl;
+						client.groundAction(0, nodepos, neighbourpos, g_selected_item);
+					}
+					if(input->getLeftClicked())
+					{
+						client.setTempMod(nodepos, NodeMod(NODEMOD_CRACK, 0));
+					}
+					if(input->getLeftState())
+					{
+						MapNode n = client.getNode(nodepos);
+
+						// Get tool name. Default is "" = bare hands
+						std::string toolname = "";
+						InventoryList *mlist = local_inventory.getList("main");
+						if(mlist != NULL)
+						{
+							InventoryItem *item = mlist->getItem(g_selected_item);
+							if(item && (std::string)item->getName() == "ToolItem")
+							{
+								ToolItem *titem = (ToolItem*)item;
+								toolname = titem->getToolName();
+							}
+						}
+
+						// Get digging properties for material and tool
+						u8 material = n.d;
+						DiggingProperties prop =
+						    getDiggingProperties(material, toolname);
+
+						float dig_time_complete = 0.0;
+
+						if(prop.diggable == false)
+						{
+							/*dstream<<"Material "<<(int)material
+									<<" not diggable with \""
+									<<toolname<<"\""<<std::endl;*/
+							// I guess nobody will wait for this long
+							dig_time_complete = 10000000.0;
+						}
+						else
+						{
+							dig_time_complete = prop.time;
+						}
+
+						if(dig_time_complete >= 0.001)
+						{
+							dig_index = (u16)((float)CRACK_ANIMATION_LENGTH
+							                  * dig_time/dig_time_complete);
+						}
+						// This is for torches
+						else
+						{
+							dig_index = CRACK_ANIMATION_LENGTH;
+						}
+
+						if(dig_index < CRACK_ANIMATION_LENGTH)
+						{
+							//TimeTaker timer("client.setTempMod");
+							//dstream<<"dig_index="<<dig_index<<std::endl;
+							client.setTempMod(nodepos, NodeMod(NODEMOD_CRACK, dig_index));
+						}
+						else
+						{
+							dstream<<DTIME<<"Digging completed"<<std::endl;
+							client.groundAction(3, nodepos, neighbourpos, g_selected_item);
+							client.clearTempMod(nodepos);
+							client.removeNode(nodepos);
+
+							dig_time = 0;
+
+							nodig_delay_counter = dig_time_complete
+							                      / (float)CRACK_ANIMATION_LENGTH;
+
+							// We don't want a corresponding delay to
+							// very time consuming nodes
+							if(nodig_delay_counter > 0.5)
+							{
+								nodig_delay_counter = 0.5;
+							}
+							// We want a slight delay to very little
+							// time consuming nodes
+							float mindelay = 0.15;
+							if(nodig_delay_counter < mindelay)
+							{
+								nodig_delay_counter = mindelay;
+							}
+						}
+
+						dig_time += dtime;
+					}
 				}
+
+				if(input->getRightClicked())
+				{
+					std::cout<<DTIME<<"Ground right-clicked"<<std::endl;
+
+					if(meta && meta->typeId() == CONTENT_SIGN_WALL && !random_input)
+					{
+						dstream<<"Sign node right-clicked"<<std::endl;
+
+						SignNodeMetadata *signmeta = (SignNodeMetadata*)meta;
+
+						// Get a new text for it
+
+						TextDest *dest = new TextDestSignNode(nodepos, &client);
+
+						std::wstring wtext =
+						    narrow_to_wide(signmeta->getText());
+
+						(new GUITextInputMenu(guienv, guiroot, -1,
+						                      &g_menumgr, dest,
+						                      wtext))->drop();
+					}
+					else if(meta && meta->typeId() == CONTENT_CHEST && !random_input)
+					{
+						dstream<<"Chest node right-clicked"<<std::endl;
+
+						//ChestNodeMetadata *chestmeta = (ChestNodeMetadata*)meta;
+
+						std::string chest_inv_id;
+						chest_inv_id += "nodemeta:";
+						chest_inv_id += itos(nodepos.X);
+						chest_inv_id += ",";
+						chest_inv_id += itos(nodepos.Y);
+						chest_inv_id += ",";
+						chest_inv_id += itos(nodepos.Z);
+
+						GUIInventoryMenu *menu =
+						    new GUIInventoryMenu(guienv, guiroot, -1,
+						                         &g_menumgr, v2s16(8,9),
+						                         client.getInventoryContext(),
+						                         &client);
+
+						core::array<GUIInventoryMenu::DrawSpec> draw_spec;
+
+						draw_spec.push_back(GUIInventoryMenu::DrawSpec(
+						                        "list", chest_inv_id, "0",
+						                        v2s32(0, 0), v2s32(8, 4)));
+						draw_spec.push_back(GUIInventoryMenu::DrawSpec(
+						                        "list", "current_player", "main",
+						                        v2s32(0, 5), v2s32(8, 4)));
+
+						menu->setDrawSpec(draw_spec);
+
+						menu->drop();
+
+					}
+					else if (meta && meta->typeId() == CONTENT_WORKBENCH
+					         && !random_input)
+					{
+						dstream << "Workbench node right-clicked" << std::endl;
+
+						GUIWorkbenchMenu *menu = new GUIWorkbenchMenu(guienv,
+						        guiroot, -1, &g_menumgr, nodepos, &client);
+
+						menu->drop();
+					}
+					else if(meta && meta->typeId() == CONTENT_FURNACE && !random_input)
+					{
+						dstream<<"Furnace node right-clicked"<<std::endl;
+
+						GUIFurnaceMenu *menu =
+						    new GUIFurnaceMenu(guienv, guiroot, -1,
+						                       &g_menumgr, nodepos, &client);
+
+						menu->drop();
+
+					}
+					else
+					{
+						client.groundAction(1, nodepos, neighbourpos, g_selected_item);
+					}
+				}
+
+				nodepos_old = nodepos;
 			}
-			
-			nodepos_old = nodepos;
-		}
-		else{
-		}
+			else
+			{
+			}
 
 		} // selected_object == NULL
-		
+
 		input->resetLeftClicked();
 		input->resetRightClicked();
-		
+
 		if(input->getLeftReleased())
 		{
 			std::cout<<DTIME<<"Left button released (stopped digging)"
-					<<std::endl;
+			         <<std::endl;
 			client.groundAction(2, v3s16(0,0,0), v3s16(0,0,0), 0);
 		}
 		if(input->getRightReleased())
@@ -1798,26 +1810,26 @@ void the_game(
 			//std::cout<<DTIME<<"Right released"<<std::endl;
 			// Nothing here
 		}
-		
+
 		input->resetLeftReleased();
 		input->resetRightReleased();
-		
+
 		/*
 			Calculate stuff for drawing
 		*/
 
 		camera->setAspectRatio((f32)screensize.X / (f32)screensize.Y);
-		
+
 		u32 daynight_ratio = client.getDayNightRatio();
 		u8 l = decode_light((daynight_ratio * LIGHT_SUN) / 1000);
 		video::SColor bgcolor = video::SColor(
-				255,
-				bgcolor_bright.getRed() * l / 255,
-				bgcolor_bright.getGreen() * l / 255,
-				bgcolor_bright.getBlue() * l / 255);
-				/*skycolor.getRed() * l / 255,
-				skycolor.getGreen() * l / 255,
-				skycolor.getBlue() * l / 255);*/
+		                            255,
+		                            bgcolor_bright.getRed() * l / 255,
+		                            bgcolor_bright.getGreen() * l / 255,
+		                            bgcolor_bright.getBlue() * l / 255);
+		/*skycolor.getRed() * l / 255,
+		skycolor.getGreen() * l / 255,
+		skycolor.getBlue() * l / 255);*/
 
 		float brightness = (float)l/255.0;
 
@@ -1834,16 +1846,16 @@ void the_game(
 		{
 			clouds->step(dtime);
 			clouds->update(v2f(player_position.X, player_position.Z),
-					0.05+brightness*0.95);
+			               0.05+brightness*0.95);
 		}
-		
+
 		// Store brightness value
 		old_brightness = brightness;
 
 		/*
 			Fog
 		*/
-		
+
 		if(g_settings.getBool("enable_fog") == true)
 		{
 			f32 range = draw_control.wanted_range*BS + MAP_BLOCKSIZE*BS*1.5;
@@ -1853,25 +1865,25 @@ void the_game(
 				range = range * 0.5 + 25*BS;
 
 			driver->setFog(
-				bgcolor,
-				video::EFT_FOG_LINEAR,
-				range*0.4,
-				range*1.0,
-				0.01,
-				false, // pixel fog
-				false // range fog
+			    bgcolor,
+			    video::EFT_FOG_LINEAR,
+			    range*0.4,
+			    range*1.0,
+			    0.01,
+			    false, // pixel fog
+			    false // range fog
 			);
 		}
 		else
 		{
 			driver->setFog(
-				bgcolor,
-				video::EFT_FOG_LINEAR,
-				100000*BS,
-				110000*BS,
-				0.01,
-				false, // pixel fog
-				false // range fog
+			    bgcolor,
+			    video::EFT_FOG_LINEAR,
+			    100000*BS,
+			    110000*BS,
+			    0.01,
+			    false, // pixel fog
+			    false // range fog
 			);
 		}
 
@@ -1881,7 +1893,7 @@ void the_game(
 		*/
 
 		//TimeTaker guiupdatetimer("Gui updating");
-		
+
 		{
 			static float drawtime_avg = 0;
 			drawtime_avg = drawtime_avg * 0.95 + (float)drawtime*0.05;
@@ -1891,47 +1903,47 @@ void the_game(
 			scenetime_avg = scenetime_avg * 0.95 + (float)scenetime*0.05;
 			static float endscenetime_avg = 0;
 			endscenetime_avg = endscenetime_avg * 0.95 + (float)endscenetime*0.05;
-			
+
 			char temptext[300];
 			snprintf(temptext, 300, "Minetest-c55 %s ("
-					"R: range_all=%i"
-					")"
-					" drawtime=%.0f, beginscenetime=%.0f"
-					", scenetime=%.0f, endscenetime=%.0f",
-					VERSION_STRING,
-					draw_control.range_all,
-					drawtime_avg,
-					beginscenetime_avg,
-					scenetime_avg,
-					endscenetime_avg
-					);
-			
+			         "R: range_all=%i"
+			         ")"
+			         " drawtime=%.0f, beginscenetime=%.0f"
+			         ", scenetime=%.0f, endscenetime=%.0f",
+			         VERSION_STRING,
+			         draw_control.range_all,
+			         drawtime_avg,
+			         beginscenetime_avg,
+			         scenetime_avg,
+			         endscenetime_avg
+			        );
+
 			guitext->setText(narrow_to_wide(temptext).c_str());
 		}
-		
+
 		{
 			char temptext[300];
 			snprintf(temptext, 300,
-					"(% .1f, % .1f, % .1f)"
-					" (% .3f < btime_jitter < % .3f"
-					", dtime_jitter = % .1f %%"
-					", v_range = %.1f)",
-					player_position.X/BS,
-					player_position.Y/BS,
-					player_position.Z/BS,
-					busytime_jitter1_min_sample,
-					busytime_jitter1_max_sample,
-					dtime_jitter1_max_fraction * 100.0,
-					draw_control.wanted_range
-					);
+			         "(% .1f, % .1f, % .1f)"
+			         " (% .3f < btime_jitter < % .3f"
+			         ", dtime_jitter = % .1f %%"
+			         ", v_range = %.1f)",
+			         player_position.X/BS,
+			         player_position.Y/BS,
+			         player_position.Z/BS,
+			         busytime_jitter1_min_sample,
+			         busytime_jitter1_max_sample,
+			         dtime_jitter1_max_fraction * 100.0,
+			         draw_control.wanted_range
+			        );
 
 			guitext2->setText(narrow_to_wide(temptext).c_str());
 		}
-		
+
 		{
 			guitext_info->setText(infotext.c_str());
 		}
-		
+
 		/*
 			Get chat messages from client
 		*/
@@ -1957,8 +1969,8 @@ void the_game(
 			// Count of messages to be removed from the top
 			u16 to_be_removed_count = 0;
 			for(core::list<ChatLine>::Iterator
-					i = chat_lines.begin();
-					i != chat_lines.end(); i++)
+			        i = chat_lines.begin();
+			        i != chat_lines.end(); i++)
 			{
 				// After this, line number is valid for this loop
 				line_number--;
@@ -1980,7 +1992,7 @@ void the_game(
 			for(u16 i=0; i<to_be_removed_count; i++)
 			{
 				core::list<ChatLine>::Iterator
-						it = chat_lines.begin();
+				it = chat_lines.begin();
 				chat_lines.erase(it);
 			}
 			guitext_chat->setText(whole.c_str());
@@ -1995,10 +2007,10 @@ void the_game(
 					screensize.Y - guitext_chat_pad_bottom
 			);*/
 			core::rect<s32> rect(
-					10,
-					50,
-					screensize.X - 10,
-					50 + text_height*chat_lines.size()
+			    10,
+			    50,
+			    screensize.X - 10,
+			    50 + text_height*chat_lines.size()
 			);
 
 			guitext_chat->setRelativePosition(rect);
@@ -2012,16 +2024,16 @@ void the_game(
 		/*
 			Inventory
 		*/
-		
+
 		static u16 old_selected_item = 65535;
 		if(client.getLocalInventoryUpdated()
-				|| g_selected_item != old_selected_item)
+		        || g_selected_item != old_selected_item)
 		{
 			old_selected_item = g_selected_item;
 			//std::cout<<"Updating local inventory"<<std::endl;
 			client.getLocalInventory(local_inventory);
 		}
-		
+
 		/*
 			Send actions returned by the inventory menu
 		*/
@@ -2040,7 +2052,7 @@ void the_game(
 
 		TimeTaker drawtimer("Drawing");
 
-		
+
 		{
 			TimeTaker timer("beginScene");
 			driver->beginScene(true, true, bgcolor);
@@ -2049,68 +2061,68 @@ void the_game(
 		}
 
 		//timer3.stop();
-		
+
 		//std::cout<<DTIME<<"smgr->drawAll()"<<std::endl;
-		
+
 		{
 			TimeTaker timer("smgr");
 			smgr->drawAll();
 			scenetime = timer.stop(true);
 		}
-		
-		{
-		//TimeTaker timer9("auxiliary drawings");
-		// 0ms
-		
-		//timer9.stop();
-		//TimeTaker //timer10("//timer10");
-		
-		video::SMaterial m;
-		//m.Thickness = 10;
-		m.Thickness = 3;
-		m.Lighting = false;
-		driver->setMaterial(m);
 
-		driver->setTransform(video::ETS_WORLD, core::IdentityMatrix);
-
-		for(core::list< core::aabbox3d<f32> >::Iterator i=hilightboxes.begin();
-				i != hilightboxes.end(); i++)
 		{
-			/*std::cout<<"hilightbox min="
-					<<"("<<i->MinEdge.X<<","<<i->MinEdge.Y<<","<<i->MinEdge.Z<<")"
-					<<" max="
-					<<"("<<i->MaxEdge.X<<","<<i->MaxEdge.Y<<","<<i->MaxEdge.Z<<")"
-					<<std::endl;*/
-			driver->draw3DBox(*i, video::SColor(255,0,0,0));
-		}
+			//TimeTaker timer9("auxiliary drawings");
+			// 0ms
 
-		/*
-			Frametime log
-		*/
-		if(g_settings.getBool("frametime_graph") == true)
-		{
-			s32 x = 10;
-			for(core::list<float>::Iterator
-					i = frametime_log.begin();
-					i != frametime_log.end();
-					i++)
+			//timer9.stop();
+			//TimeTaker //timer10("//timer10");
+
+			video::SMaterial m;
+			//m.Thickness = 10;
+			m.Thickness = 3;
+			m.Lighting = false;
+			driver->setMaterial(m);
+
+			driver->setTransform(video::ETS_WORLD, core::IdentityMatrix);
+
+			for(core::list< core::aabbox3d<f32> >::Iterator i=hilightboxes.begin();
+			        i != hilightboxes.end(); i++)
 			{
-				driver->draw2DLine(v2s32(x,50),
-						v2s32(x,50+(*i)*1000),
-						video::SColor(255,255,255,255));
-				x++;
+				/*std::cout<<"hilightbox min="
+						<<"("<<i->MinEdge.X<<","<<i->MinEdge.Y<<","<<i->MinEdge.Z<<")"
+						<<" max="
+						<<"("<<i->MaxEdge.X<<","<<i->MaxEdge.Y<<","<<i->MaxEdge.Z<<")"
+						<<std::endl;*/
+				driver->draw3DBox(*i, video::SColor(255,0,0,0));
 			}
-		}
 
-		/*
-			Draw crosshair
-		*/
-		driver->draw2DLine(displaycenter - core::vector2d<s32>(10,0),
-				displaycenter + core::vector2d<s32>(10,0),
-				video::SColor(255,255,255,255));
-		driver->draw2DLine(displaycenter - core::vector2d<s32>(0,10),
-				displaycenter + core::vector2d<s32>(0,10),
-				video::SColor(255,255,255,255));
+			/*
+				Frametime log
+			*/
+			if(g_settings.getBool("frametime_graph") == true)
+			{
+				s32 x = 10;
+				for(core::list<float>::Iterator
+				        i = frametime_log.begin();
+				        i != frametime_log.end();
+				        i++)
+				{
+					driver->draw2DLine(v2s32(x,50),
+					                   v2s32(x,50+(*i)*1000),
+					                   video::SColor(255,255,255,255));
+					x++;
+				}
+			}
+
+			/*
+				Draw crosshair
+			*/
+			driver->draw2DLine(displaycenter - core::vector2d<s32>(10,0),
+			                   displaycenter + core::vector2d<s32>(10,0),
+			                   video::SColor(255,255,255,255));
+			driver->draw2DLine(displaycenter - core::vector2d<s32>(0,10),
+			                   displaycenter + core::vector2d<s32>(0,10),
+			                   video::SColor(255,255,255,255));
 
 		} // timer
 
@@ -2128,8 +2140,8 @@ void the_game(
 		*/
 		{
 			draw_hotbar(driver, font, v2s32(displaycenter.X, screensize.Y),
-					hotbar_imagesize, hotbar_itemcount, &local_inventory,
-					client.getHP());
+			            hotbar_imagesize, hotbar_itemcount, &local_inventory,
+			            client.getHP());
 		}
 
 		/*
@@ -2138,13 +2150,13 @@ void the_game(
 		if(damage_flash_timer > 0.0)
 		{
 			damage_flash_timer -= dtime;
-			
+
 			video::SColor color(128,255,0,0);
 			driver->draw2DRectangle(color,
-					core::rect<s32>(0,0,screensize.X,screensize.Y),
-					NULL);
+			                        core::rect<s32>(0,0,screensize.X,screensize.Y),
+			                        NULL);
 		}
-		
+
 		/*
 			End scene
 		*/
@@ -2180,7 +2192,7 @@ void the_game(
 		Drop stuff
 	*/
 	clouds->drop();
-	
+
 	/*
 		Draw a "shutting down" screen, which will be shown while the map
 		generator and other stuff quits
@@ -2188,9 +2200,9 @@ void the_game(
 	{
 		const wchar_t *shuttingdowntext = L"Shutting down stuff...";
 		gui::IGUIStaticText *gui_shuttingdowntext = guienv->addStaticText(
-				shuttingdowntext, textrect, false, false);
+		            shuttingdowntext, textrect, false, false);
 		gui_shuttingdowntext->setTextAlignment(gui::EGUIA_CENTER,
-				gui::EGUIA_UPPERLEFT);
+		                                       gui::EGUIA_UPPERLEFT);
 		driver->beginScene(true, true, video::SColor(255,0,0,0));
 		guienv->drawAll();
 		driver->endScene();

@@ -21,11 +21,12 @@
 #include "client.h"
 
 GUIWorkbenchMenu::GUIWorkbenchMenu(gui::IGUIEnvironment* env,
-		gui::IGUIElement* parent, s32 id, IMenuManager *menumgr, v3s16 nodepos,
-		Client *client) :
+                                   gui::IGUIElement* parent, s32 id, IMenuManager *menumgr, v3s16 nodepos,
+                                   Client *client) :
 	GUIInventoryMenu(env, parent, id, menumgr, v2s16(8, 9),
-			client->getInventoryContext(), client), m_nodepos(nodepos),
-			m_client(client) {
+	                 client->getInventoryContext(), client), m_nodepos(nodepos),
+	m_client(client)
+{
 
 	std::string workbench_inv_id;
 	workbench_inv_id += "nodemeta:";
@@ -38,11 +39,11 @@ GUIWorkbenchMenu::GUIWorkbenchMenu(gui::IGUIEnvironment* env,
 	core::array<GUIInventoryMenu::DrawSpec> draw_spec;
 
 	draw_spec.push_back(GUIInventoryMenu::DrawSpec("list", workbench_inv_id,
-			"workbench_craft", v2s32(3, 0), v2s32(3, 3)));
+	                    "workbench_craft", v2s32(3, 0), v2s32(3, 3)));
 	draw_spec.push_back(GUIInventoryMenu::DrawSpec("list", workbench_inv_id,
-			"workbench_craftresult", v2s32(7, 1), v2s32(1, 1)));
+	                    "workbench_craftresult", v2s32(7, 1), v2s32(1, 1)));
 	draw_spec.push_back(GUIInventoryMenu::DrawSpec("list", "current_player",
-			"main", v2s32(0, 3), v2s32(8, 4)));
+	                    "main", v2s32(0, 3), v2s32(8, 4)));
 
 	setDrawSpec(draw_spec);
 }

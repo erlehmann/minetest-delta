@@ -35,7 +35,7 @@ public:
 
 	virtual bool isKeyDown(EKEY_CODE keyCode) = 0;
 	virtual bool wasKeyDown(EKEY_CODE keyCode) = 0;
-	
+
 	virtual v2s32 getMousePos() = 0;
 	virtual void setMousePos(s32 x, s32 y) = 0;
 
@@ -51,7 +51,7 @@ public:
 	virtual bool getRightReleased() = 0;
 	virtual void resetLeftReleased() = 0;
 	virtual void resetRightReleased() = 0;
-	
+
 	virtual s32 getMouseWheel() = 0;
 
 	virtual void step(float dtime) {};
@@ -60,17 +60,17 @@ public:
 };
 
 void the_game(
-	bool &kill,
-	bool random_input,
-	InputHandler *input,
-	IrrlichtDevice *device,
-	gui::IGUIFont* font,
-	std::string map_dir,
-	std::string playername,
-	std::string password,
-	std::string address,
-	u16 port,
-	std::wstring &error_message
+    bool &kill,
+    bool random_input,
+    InputHandler *input,
+    IrrlichtDevice *device,
+    gui::IGUIFont* font,
+    std::string map_dir,
+    std::string playername,
+    std::string password,
+    std::string address,
+    u16 port,
+    std::wstring &error_message
 );
 
 #endif

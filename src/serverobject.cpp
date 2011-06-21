@@ -42,8 +42,8 @@ ServerActiveObject::~ServerActiveObject()
 }
 
 ServerActiveObject* ServerActiveObject::create(u8 type,
-		ServerEnvironment *env, u16 id, v3f pos,
-		const std::string &data)
+        ServerEnvironment *env, u16 id, v3f pos,
+        const std::string &data)
 {
 	// Find factory function
 	core::map<u16, Factory>::Node *n;
@@ -52,7 +52,7 @@ ServerActiveObject* ServerActiveObject::create(u8 type,
 	{
 		// If factory is not found, just return.
 		dstream<<"WARNING: ServerActiveObject: No factory for type="
-				<<type<<std::endl;
+		       <<type<<std::endl;
 		return NULL;
 	}
 
@@ -87,13 +87,13 @@ TestSAO::TestSAO(ServerEnvironment *env, u16 id, v3f pos):
 }
 
 ServerActiveObject* TestSAO::create(ServerEnvironment *env, u16 id, v3f pos,
-		const std::string &data)
+                                    const std::string &data)
 {
 	return new TestSAO(env, id, pos);
 }
 
 void TestSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
-		bool send_recommended)
+                   bool send_recommended)
 {
 	m_age += dtime;
 	if(m_age > 10)
@@ -139,7 +139,7 @@ void TestSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 ItemSAO proto_ItemSAO(NULL, 0, v3f(0,0,0), "");
 
 ItemSAO::ItemSAO(ServerEnvironment *env, u16 id, v3f pos,
-		const std::string inventorystring):
+                 const std::string inventorystring):
 	ServerActiveObject(env, id, pos),
 	m_inventorystring(inventorystring),
 	m_speed_f(0,0,0),
@@ -149,7 +149,7 @@ ItemSAO::ItemSAO(ServerEnvironment *env, u16 id, v3f pos,
 }
 
 ServerActiveObject* ItemSAO::create(ServerEnvironment *env, u16 id, v3f pos,
-		const std::string &data)
+                                    const std::string &data)
 {
 	std::istringstream is(data, std::ios::binary);
 	char buf[1];
@@ -161,12 +161,12 @@ ServerActiveObject* ItemSAO::create(ServerEnvironment *env, u16 id, v3f pos,
 		return NULL;
 	std::string inventorystring = deSerializeString(is);
 	dstream<<"ItemSAO::create(): Creating item \""
-			<<inventorystring<<"\""<<std::endl;
+	       <<inventorystring<<"\""<<std::endl;
 	return new ItemSAO(env, id, pos, inventorystring);
 }
 
 void ItemSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
-		bool send_recommended)
+                   bool send_recommended)
 {
 	assert(m_env);
 
@@ -174,7 +174,7 @@ void ItemSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 	if(m_move_interval.step(dtime, interval)==false)
 		return;
 	dtime = interval;
-	
+
 	core::aabbox3d<f32> box(-BS/3.,0.0,-BS/3., BS/3.,BS*2./3.,BS/3.);
 	collisionMoveResult moveresult;
 	// Apply gravity
@@ -187,8 +187,8 @@ void ItemSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 	v3f pos_f = getBasePosition();
 	v3f pos_f_old = pos_f;
 	moveresult = collisionMoveSimple(&m_env->getMap(), pos_max_d,
-			box, dtime, pos_f, m_speed_f);
-	
+	                                 box, dtime, pos_f, m_speed_f);
+
 	if(send_recommended == false)
 		return;
 
@@ -249,18 +249,19 @@ std::string ItemSAO::getStaticData()
 
 InventoryItem * ItemSAO::createInventoryItem()
 {
-	try{
+	try
+	{
 		std::istringstream is(m_inventorystring, std::ios_base::binary);
 		InventoryItem *item = InventoryItem::deSerialize(is);
 		dstream<<__FUNCTION_NAME<<": m_inventorystring=\""
-				<<m_inventorystring<<"\" -> item="<<item
-				<<std::endl;
+		       <<m_inventorystring<<"\" -> item="<<item
+		       <<std::endl;
 		return item;
 	}
 	catch(SerializationError &e)
 	{
 		dstream<<__FUNCTION_NAME<<": serialization error: "
-				<<"m_inventorystring=\""<<m_inventorystring<<"\""<<std::endl;
+		       <<"m_inventorystring=\""<<m_inventorystring<<"\""<<std::endl;
 		return NULL;
 	}
 }
@@ -290,7 +291,7 @@ RatSAO::RatSAO(ServerEnvironment *env, u16 id, v3f pos):
 }
 
 ServerActiveObject* RatSAO::create(ServerEnvironment *env, u16 id, v3f pos,
-		const std::string &data)
+                                   const std::string &data)
 {
 	std::istringstream is(data, std::ios::binary);
 	char buf[1];
@@ -304,7 +305,7 @@ ServerActiveObject* RatSAO::create(ServerEnvironment *env, u16 id, v3f pos,
 }
 
 void RatSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
-		bool send_recommended)
+                  bool send_recommended)
 {
 	assert(m_env);
 
@@ -337,7 +338,7 @@ void RatSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 	core::list<Player*> players = m_env->getPlayers(true);
 	core::list<Player*>::Iterator i;
 	for(i = players.begin();
-			i != players.end(); i++)
+	        i != players.end(); i++)
 	{
 		Player *player = *i;
 		v3f playerpos = player->getPosition();
@@ -349,7 +350,7 @@ void RatSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 	}
 
 	m_is_active = player_is_close;
-	
+
 	if(player_is_close == false)
 	{
 		m_speed_f.X = 0;
@@ -364,7 +365,7 @@ void RatSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 		m_speed_f.Z = speed * dir.Z;
 
 		if(m_touching_ground && (m_oldpos - m_base_position).getLength()
-				< dtime*speed/2)
+		        < dtime*speed/2)
 		{
 			m_counter1 -= dtime;
 			if(m_counter1 < 0.0)
@@ -384,7 +385,7 @@ void RatSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 			}
 		}
 	}
-	
+
 	m_oldpos = m_base_position;
 
 	/*
@@ -401,9 +402,9 @@ void RatSAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 	v3f pos_f = getBasePosition();
 	v3f pos_f_old = pos_f;
 	moveresult = collisionMoveSimple(&m_env->getMap(), pos_max_d,
-			box, dtime, pos_f, m_speed_f);
+	                                 box, dtime, pos_f, m_speed_f);
 	m_touching_ground = moveresult.touching_ground;
-	
+
 	setBasePosition(pos_f);
 
 	if(send_recommended == false)
@@ -477,7 +478,7 @@ Oerkki1SAO::Oerkki1SAO(ServerEnvironment *env, u16 id, v3f pos):
 }
 
 ServerActiveObject* Oerkki1SAO::create(ServerEnvironment *env, u16 id, v3f pos,
-		const std::string &data)
+                                       const std::string &data)
 {
 	std::istringstream is(data, std::ios::binary);
 	// read version
@@ -493,7 +494,7 @@ ServerActiveObject* Oerkki1SAO::create(ServerEnvironment *env, u16 id, v3f pos,
 }
 
 void Oerkki1SAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
-		bool send_recommended)
+                      bool send_recommended)
 {
 	assert(m_env);
 
@@ -527,7 +528,7 @@ void Oerkki1SAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 	core::list<Player*> players = m_env->getPlayers(true);
 	core::list<Player*>::Iterator i;
 	for(i = players.begin();
-			i != players.end(); i++)
+	        i != players.end(); i++)
 	{
 		Player *player = *i;
 		v3f playerpos = player->getPosition();
@@ -540,7 +541,7 @@ void Oerkki1SAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 	}
 
 	m_is_active = player_is_close;
-	
+
 	if(player_is_close == false)
 	{
 		m_speed_f.X = 0;
@@ -567,7 +568,7 @@ void Oerkki1SAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 		m_speed_f.Z = speed * dir.Z;
 
 		if(m_touching_ground && (m_oldpos - m_base_position).getLength()
-				< dtime*speed/2)
+		        < dtime*speed/2)
 		{
 			m_counter1 -= dtime;
 			if(m_counter1 < 0.0)
@@ -589,7 +590,7 @@ void Oerkki1SAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 			}
 		}
 	}
-	
+
 	m_oldpos = m_base_position;
 
 	/*
@@ -606,9 +607,9 @@ void Oerkki1SAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 	v3f pos_f = getBasePosition();
 	v3f pos_f_old = pos_f;
 	moveresult = collisionMoveSimple(&m_env->getMap(), pos_max_d,
-			box, dtime, pos_f, m_speed_f);
+	                                 box, dtime, pos_f, m_speed_f);
 	m_touching_ground = moveresult.touching_ground;
-	
+
 	setBasePosition(pos_f);
 
 	if(send_recommended == false)

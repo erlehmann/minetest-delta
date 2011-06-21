@@ -37,7 +37,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define BLOCK_TIMESTAMP_UNDEFINED 0xffffffff
 
 // Named by looking towards z+
-enum{
+enum
+{
 	FACE_BACK=0,
 	FACE_TOP,
 	FACE_RIGHT,
@@ -96,7 +97,7 @@ public:
 		{
 			m_mods.insert(p, mod);
 		}
-		
+
 		return true;
 	}
 	// Returns true if there was one
@@ -131,8 +132,8 @@ public:
 		dest.m_mods.clear();
 
 		for(core::map<v3s16, NodeMod>::Iterator
-				i = m_mods.getIterator();
-				i.atEnd() == false; i++)
+		        i = m_mods.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			dest.m_mods.insert(i.getNode()->getKey(), i.getNode()->getValue());
 		}
@@ -161,10 +162,12 @@ public:
 
 	MapNode getNodeNoEx(v3s16 p)
 	{
-		try{
+		try
+		{
 			return getNode(p);
 		}
-		catch(InvalidPositionException &e){
+		catch(InvalidPositionException &e)
+		{
 			return MapNode(CONTENT_IGNORE);
 		}
 	}
@@ -184,7 +187,7 @@ struct MeshMakeData
 	NodeModMap m_temp_mods;
 	VoxelManipulator m_vmanip;
 	v3s16 m_blockpos;
-	
+
 	/*
 		Copy central data directly from block, and other data from
 		parent of block.
@@ -197,7 +200,7 @@ scene::SMesh* makeMapBlockMesh(MeshMakeData *data);
 #endif
 
 u8 getFaceLight(u32 daynight_ratio, MapNode n, MapNode n2,
-		v3s16 face_dir);
+                v3s16 face_dir);
 
 /*
 	MapBlock itself
@@ -208,12 +211,12 @@ class MapBlock : public NodeContainer
 public:
 	MapBlock(NodeContainer *parent, v3s16 pos, bool dummy=false);
 	~MapBlock();
-	
+
 	virtual u16 nodeContainerId() const
 	{
 		return NODECONTAINER_ID_MAPBLOCK;
 	}
-	
+
 	NodeContainer * getParent()
 	{
 		return m_parent;
@@ -225,7 +228,8 @@ public:
 			delete[] data;
 		u32 l = MAP_BLOCKSIZE * MAP_BLOCKSIZE * MAP_BLOCKSIZE;
 		data = new MapNode[l];
-		for(u32 i=0; i<l; i++){
+		for(u32 i=0; i<l; i++)
+		{
 			data[i] = MapNode();
 		}
 		setChangedFlag();
@@ -244,7 +248,7 @@ public:
 		assert(isDummy());
 		reallocate();
 	}
-	
+
 	/*
 		This is called internally or externally after the block is
 		modified, so that the block is saved and possibly not deleted from
@@ -278,7 +282,7 @@ public:
 	{
 		m_mesh_expired = expired;
 	}
-	
+
 	bool getMeshExpired()
 	{
 		return m_mesh_expired;
@@ -322,31 +326,31 @@ public:
 	{
 		return m_pos;
 	}
-		
+
 	v3s16 getPosRelative()
 	{
 		return m_pos * MAP_BLOCKSIZE;
 	}
-		
+
 	core::aabbox3d<s16> getBox()
 	{
 		return core::aabbox3d<s16>(getPosRelative(),
-				getPosRelative()
-				+ v3s16(MAP_BLOCKSIZE, MAP_BLOCKSIZE, MAP_BLOCKSIZE)
-				- v3s16(1,1,1));
+		                           getPosRelative()
+		                           + v3s16(MAP_BLOCKSIZE, MAP_BLOCKSIZE, MAP_BLOCKSIZE)
+		                           - v3s16(1,1,1));
 	}
 
 	/*
 		Regular MapNode get-setters
 	*/
-	
+
 	bool isValidPosition(v3s16 p)
 	{
 		if(data == NULL)
 			return false;
 		return (p.X >= 0 && p.X < MAP_BLOCKSIZE
-				&& p.Y >= 0 && p.Y < MAP_BLOCKSIZE
-				&& p.Z >= 0 && p.Z < MAP_BLOCKSIZE);
+		        && p.Y >= 0 && p.Y < MAP_BLOCKSIZE
+		        && p.Z >= 0 && p.Z < MAP_BLOCKSIZE);
 	}
 
 	MapNode getNode(s16 x, s16 y, s16 z)
@@ -358,21 +362,24 @@ public:
 		if(z < 0 || z >= MAP_BLOCKSIZE) throw InvalidPositionException();
 		return data[z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + y*MAP_BLOCKSIZE + x];
 	}
-	
+
 	MapNode getNode(v3s16 p)
 	{
 		return getNode(p.X, p.Y, p.Z);
 	}
-	
+
 	MapNode getNodeNoEx(v3s16 p)
 	{
-		try{
+		try
+		{
 			return getNode(p.X, p.Y, p.Z);
-		}catch(InvalidPositionException &e){
+		}
+		catch(InvalidPositionException &e)
+		{
 			return MapNode(CONTENT_IGNORE);
 		}
 	}
-	
+
 	void setNode(s16 x, s16 y, s16 z, MapNode & n)
 	{
 		if(data == NULL)
@@ -383,7 +390,7 @@ public:
 		data[z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + y*MAP_BLOCKSIZE + x] = n;
 		setChangedFlag();
 	}
-	
+
 	void setNode(v3s16 p, MapNode & n)
 	{
 		setNode(p.X, p.Y, p.Z, n);
@@ -399,12 +406,12 @@ public:
 			throw InvalidPositionException();
 		return data[z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + y*MAP_BLOCKSIZE + x];
 	}
-	
+
 	MapNode getNodeNoCheck(v3s16 p)
 	{
 		return getNodeNoCheck(p.X, p.Y, p.Z);
 	}
-	
+
 	void setNodeNoCheck(s16 x, s16 y, s16 z, MapNode & n)
 	{
 		if(data == NULL)
@@ -412,7 +419,7 @@ public:
 		data[z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + y*MAP_BLOCKSIZE + x] = n;
 		setChangedFlag();
 	}
-	
+
 	void setNodeNoCheck(v3s16 p, MapNode & n)
 	{
 		setNodeNoCheck(p.X, p.Y, p.Z, n);
@@ -438,7 +445,7 @@ public:
 	/*
 		Graphics-related methods
 	*/
-	
+
 	/*// A quick version with nodes passed as parameters
 	u8 getFaceLight(u32 daynight_ratio, MapNode n, MapNode n2,
 			v3s16 face_dir);*/
@@ -453,11 +460,11 @@ public:
 	u8 getFaceLight2(u32 daynight_ratio, v3s16 p, v3s16 face_dir)
 	{
 		return getFaceLight(daynight_ratio,
-				getNodeParentNoEx(p),
-				getNodeParentNoEx(p + face_dir),
-				face_dir);
+		                    getNodeParentNoEx(p),
+		                    getNodeParentNoEx(p + face_dir),
+		                    face_dir);
 	}
-	
+
 #ifndef SERVER // Only on client
 
 #if 1
@@ -471,12 +478,12 @@ public:
 	// Replace the mesh with a new one
 	void replaceMesh(scene::SMesh *mesh_new);
 #endif
-	
+
 	// See comments in mapblock.cpp
 	bool propagateSunlight(core::map<v3s16, bool> & light_sources,
-			bool remove_light=false, bool *black_air_left=NULL,
-			bool grow_grass=false);
-	
+	                       bool remove_light=false, bool *black_air_left=NULL,
+	                       bool grow_grass=false);
+
 	// Copies data to VoxelManipulator to getPosRelative()
 	void copyTo(VoxelManipulator &dst);
 	// Copies data from VoxelManipulator getPosRelative()
@@ -486,14 +493,14 @@ public:
 		MapBlockObject stuff
 		DEPRECATED
 	*/
-	
+
 	void serializeObjects(std::ostream &os, u8 version)
 	{
 		m_objects.serialize(os, version);
 	}
 	// If smgr!=NULL, new objects are added to the scene
 	void updateObjects(std::istream &is, u8 version,
-			scene::ISceneManager *smgr, u32 daynight_ratio)
+	                   scene::ISceneManager *smgr, u32 daynight_ratio)
 	{
 		m_objects.update(is, version, smgr, daynight_ratio);
 
@@ -506,7 +513,7 @@ public:
 		setChangedFlag();
 	}
 	void addObject(MapBlockObject *object)
-			throw(ContainerFullException, AlreadyExistsException)
+	throw(ContainerFullException, AlreadyExistsException)
 	{
 		m_objects.add(object);
 
@@ -534,7 +541,7 @@ public:
 
 	// origin is relative to block
 	void getObjects(v3f origin, f32 max_d,
-			core::array<DistanceSortedObject> &dest)
+	                core::array<DistanceSortedObject> &dest)
 	{
 		m_objects.getObjects(origin, max_d, dest);
 	}
@@ -578,7 +585,7 @@ public:
 	bool clearTempMods()
 	{
 		JMutexAutoLock lock(m_temp_mods_mutex);
-		
+
 		return m_temp_mods.clear();
 	}
 	void copyTempMods(NodeModMap &dst)
@@ -590,9 +597,9 @@ public:
 
 	/*
 		Update day-night lighting difference flag.
-		
+
 		Sets m_day_night_differs to appropriate value.
-		
+
 		These methods don't care about neighboring blocks.
 		It means that to know if a block really doesn't need a mesh
 		update between day and night, the neighboring blocks have
@@ -608,7 +615,7 @@ public:
 	/*
 		Miscellaneous stuff
 	*/
-	
+
 	/*
 		Tries to measure ground level.
 		Return value:
@@ -636,7 +643,7 @@ public:
 	/*
 		Serialization
 	*/
-	
+
 	// These don't write or read version by itself
 	void serialize(std::ostream &os, u8 version);
 	void deSerialize(std::istream &is, u8 version);
@@ -676,10 +683,10 @@ public:
 	scene::SMesh *mesh;
 	JMutex mesh_mutex;
 #endif
-	
+
 	NodeMetadataList m_node_metadata;
 	StaticObjectList m_static_objects;
-	
+
 private:
 	/*
 		Private member variables
@@ -689,7 +696,7 @@ private:
 	NodeContainer *m_parent;
 	// Position in blocks on parent
 	v3s16 m_pos;
-	
+
 	/*
 		If NULL, block is a dummy block.
 		Dummy blocks are used for caching not-found-on-disk blocks.
@@ -721,10 +728,10 @@ private:
 		If this is true, lighting might be wrong or right.
 	*/
 	bool m_lighting_expired;
-	
+
 	// Whether day and night lighting differs
 	bool m_day_night_differs;
-	
+
 	// DEPRECATED
 	MapBlockObjectList m_objects;
 
@@ -735,13 +742,13 @@ private:
 		In practice this is set when the day/night lighting switches.
 	*/
 	bool m_mesh_expired;
-	
+
 	// Temporary modifications to nodes
 	// These are only used when drawing
 	NodeModMap m_temp_mods;
 	JMutex m_temp_mods_mutex;
 #endif
-	
+
 	/*
 		When block is removed from active blocks, this is set to gametime.
 		Value BLOCK_TIMESTAMP_UNDEFINED=0xffffffff means there is no timestamp.
@@ -752,12 +759,12 @@ private:
 inline bool blockpos_over_limit(v3s16 p)
 {
 	return
-	  (p.X < -MAP_GENERATION_LIMIT / MAP_BLOCKSIZE
-	|| p.X >  MAP_GENERATION_LIMIT / MAP_BLOCKSIZE
-	|| p.Y < -MAP_GENERATION_LIMIT / MAP_BLOCKSIZE
-	|| p.Y >  MAP_GENERATION_LIMIT / MAP_BLOCKSIZE
-	|| p.Z < -MAP_GENERATION_LIMIT / MAP_BLOCKSIZE
-	|| p.Z >  MAP_GENERATION_LIMIT / MAP_BLOCKSIZE);
+	    (p.X < -MAP_GENERATION_LIMIT / MAP_BLOCKSIZE
+	     || p.X >  MAP_GENERATION_LIMIT / MAP_BLOCKSIZE
+	     || p.Y < -MAP_GENERATION_LIMIT / MAP_BLOCKSIZE
+	     || p.Y >  MAP_GENERATION_LIMIT / MAP_BLOCKSIZE
+	     || p.Z < -MAP_GENERATION_LIMIT / MAP_BLOCKSIZE
+	     || p.Z >  MAP_GENERATION_LIMIT / MAP_BLOCKSIZE);
 }
 
 /*

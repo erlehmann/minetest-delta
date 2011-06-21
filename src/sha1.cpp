@@ -66,7 +66,7 @@ SHA1::SHA1()
 {
 	// make sure that the data type is the right size
 	assert( sizeof( Uint32 ) * 5 == 20 );
-	
+
 	// initialize
 	H0 = 0x67452301;
 	H1 = 0xefcdab89;
@@ -101,25 +101,32 @@ void SHA1::process()
 	e = H4;
 	// copy and expand the message block
 	for( t = 0; t < 16; t++ ) W[t] = (bytes[t*4] << 24)
-									+(bytes[t*4 + 1] << 16)
-									+(bytes[t*4 + 2] << 8)
-									+ bytes[t*4 + 3];
+		                                 +(bytes[t*4 + 1] << 16)
+		                                 +(bytes[t*4 + 2] << 8)
+		                                 + bytes[t*4 + 3];
 	for(; t< 80; t++ ) W[t] = lrot( W[t-3]^W[t-8]^W[t-14]^W[t-16], 1 );
-	
+
 	/* main loop */
 	Uint32 temp;
 	for( t = 0; t < 80; t++ )
 	{
-		if( t < 20 ) {
+		if( t < 20 )
+		{
 			K = 0x5a827999;
 			f = (b & c) | ((b ^ 0xFFFFFFFF) & d);//TODO: try using ~
-		} else if( t < 40 ) {
+		}
+		else if( t < 40 )
+		{
 			K = 0x6ed9eba1;
 			f = b ^ c ^ d;
-		} else if( t < 60 ) {
+		}
+		else if( t < 60 )
+		{
 			K = 0x8f1bbcdc;
 			f = (b & c) | (b & d) | (c & d);
-		} else {
+		}
+		else
+		{
 			K = 0xca62c1d6;
 			f = b ^ c ^ d;
 		}
@@ -163,7 +170,7 @@ void SHA1::addBytes( const char* data, int num )
 		num -= toCopy;
 		data += toCopy;
 		unprocessedBytes += toCopy;
-		
+
 		// there is a full block
 		if( unprocessedBytes == 64 ) process();
 	}
@@ -177,12 +184,14 @@ unsigned char* SHA1::getDigest()
 	Uint32 totalBitsH = size >> 29;
 	// add 0x80 to the message
 	addBytes( "\x80", 1 );
-	
-	unsigned char footer[64] = {
+
+	unsigned char footer[64] =
+	{
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	};
 	// block has no room for 8-byte filesize, so finish it
 	if( unprocessedBytes > 56 )
 		addBytes( (char*)footer, 64 - unprocessedBytes);

@@ -25,9 +25,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "main.h"
 
 GUIPauseMenu::GUIPauseMenu(gui::IGUIEnvironment* env,
-		gui::IGUIElement* parent, s32 id,
-		IGameCallback *gamecallback,
-		IMenuManager *menumgr):
+                           gui::IGUIElement* parent, s32 id,
+                           IGameCallback *gamecallback,
+                           IMenuManager *menumgr):
 	GUIModalMenu(env, parent, id, menumgr)
 {
 	m_gamecallback = gamecallback;
@@ -78,17 +78,17 @@ void GUIPauseMenu::regenerateGui(v2u32 screensize)
 		Remove stuff
 	*/
 	removeChildren();
-	
+
 	/*
 		Calculate new sizes and positions
 	*/
 	core::rect<s32> rect(
-			screensize.X/2 - 580/2,
-			screensize.Y/2 - 300/2,
-			screensize.X/2 + 580/2,
-			screensize.Y/2 + 300/2
+	    screensize.X/2 - 580/2,
+	    screensize.Y/2 - 300/2,
+	    screensize.X/2 + 580/2,
+	    screensize.Y/2 + 300/2
 	);
-	
+
 	DesiredRect = rect;
 	recalculateAbsolutePosition(false);
 
@@ -129,23 +129,23 @@ void GUIPauseMenu::regenerateGui(v2u32 screensize)
 		core::rect<s32> rect(0, 0, 180, 240);
 		rect = rect + v2s32(size.X/2 + 90, size.Y/2-rect.getHeight()/2);
 		const wchar_t *text =
-		L"Keys:\n"
-		L"- WASD: Walk\n"
-		L"- Mouse left: dig blocks\n"
-		L"- Mouse right: place blocks\n"
-		L"- Mouse wheel: select item\n"
-		L"- 0...9: select item\n"
-		L"- Shift: sneak\n"
-		L"- R: Toggle viewing all loaded chunks\n"
-		L"- I: Inventory menu\n"
-		L"- ESC: This menu\n"
-		L"- T: Chat\n";
+		    L"Keys:\n"
+		    L"- WASD: Walk\n"
+		    L"- Mouse left: dig blocks\n"
+		    L"- Mouse right: place blocks\n"
+		    L"- Mouse wheel: select item\n"
+		    L"- 0...9: select item\n"
+		    L"- Shift: sneak\n"
+		    L"- R: Toggle viewing all loaded chunks\n"
+		    L"- I: Inventory menu\n"
+		    L"- ESC: This menu\n"
+		    L"- T: Chat\n";
 		Environment->addStaticText(text, rect, false, true, this, 258);
 	}
 	{
 		core::rect<s32> rect(0, 0, 180, 220);
 		rect = rect + v2s32(size.X/2 - 90 - rect.getWidth(), size.Y/2-rect.getHeight()/2);
-	
+
 		v2u32 max_texture_size;
 		{
 			video::IVideoDriver* driver = Environment->getVideoDriver();
@@ -171,7 +171,7 @@ void GUIPauseMenu::regenerateGui(v2u32 screensize)
 		os<<"celeron55@gmail.com\n";
 		os<<BUILD_INFO<<"\n";
 		os<<"ud_path = "<<wrap_rows(porting::path_userdata, 20)<<"\n";
-	
+
 		Environment->addStaticText(narrow_to_wide(os.str()).c_str(), rect, false, true, this, 259);
 	}
 }
@@ -182,7 +182,7 @@ void GUIPauseMenu::drawMenu()
 	if (!skin)
 		return;
 	video::IVideoDriver* driver = Environment->getVideoDriver();
-	
+
 	video::SColor bgcolor(140,0,0,0);
 	driver->draw2DRectangle(bgcolor, AbsoluteRect, &AbsoluteClippingRect);
 
@@ -211,12 +211,12 @@ bool GUIPauseMenu::OnEvent(const SEvent& event)
 	if(event.EventType==EET_GUI_EVENT)
 	{
 		if(event.GUIEvent.EventType==gui::EGET_ELEMENT_FOCUS_LOST
-				&& isVisible())
+		        && isVisible())
 		{
 			if(!canTakeFocus(event.GUIEvent.Element))
 			{
 				dstream<<"GUIPauseMenu: Not allowing focus change."
-						<<std::endl;
+				       <<std::endl;
 				// Returning true disables focus change
 				return true;
 			}
@@ -244,7 +244,7 @@ bool GUIPauseMenu::OnEvent(const SEvent& event)
 			}
 		}
 	}
-	
+
 	return Parent ? Parent->OnEvent(event) : false;
 }
 

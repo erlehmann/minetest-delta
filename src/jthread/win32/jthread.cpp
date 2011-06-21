@@ -28,7 +28,7 @@
 #include "jthread.h"
 
 #ifndef _WIN32_WCE
-	#include <process.h>
+#include <process.h>
 #endif // _WIN32_WCE
 
 JThread::JThread()
@@ -61,9 +61,10 @@ int JThread::Start()
 		{
 			if (continuemutex2.Init() < 0)
 				return ERR_JTHREAD_CANTINITMUTEX;
-		}		mutexinit = true;
+		}
+		mutexinit = true;
 	}
-	
+
 	runningmutex.Lock();
 	if (running)
 	{
@@ -71,7 +72,7 @@ int JThread::Start()
 		return ERR_JTHREAD_ALREADYRUNNING;
 	}
 	runningmutex.Unlock();
-	
+
 	continuemutex.Lock();
 #ifndef _WIN32_WCE
 	threadhandle = (HANDLE)_beginthreadex(NULL,0,TheThread,this,0,&threadid);
@@ -83,10 +84,10 @@ int JThread::Start()
 		continuemutex.Unlock();
 		return ERR_JTHREAD_CANTSTARTTHREAD;
 	}
-	
+
 	/* Wait until 'running' is set */
 
-	runningmutex.Lock();			
+	runningmutex.Lock();
 	while (!running)
 	{
 		runningmutex.Unlock();
@@ -94,18 +95,18 @@ int JThread::Start()
 		runningmutex.Lock();
 	}
 	runningmutex.Unlock();
-	
+
 	continuemutex.Unlock();
-	
+
 	continuemutex2.Lock();
 	continuemutex2.Unlock();
-		
+
 	return 0;
 }
 
 int JThread::Kill()
 {
-	runningmutex.Lock();			
+	runningmutex.Lock();
 	if (!running)
 	{
 		runningmutex.Unlock();
@@ -121,8 +122,8 @@ int JThread::Kill()
 bool JThread::IsRunning()
 {
 	bool r;
-	
-	runningmutex.Lock();			
+
+	runningmutex.Lock();
 	r = running;
 	runningmutex.Unlock();
 	return r;
@@ -131,7 +132,7 @@ bool JThread::IsRunning()
 void *JThread::GetReturnValue()
 {
 	void *val;
-	
+
 	runningmutex.Lock();
 	if (running)
 		val = NULL;
@@ -151,23 +152,23 @@ DWORD WINAPI JThread::TheThread(void *param)
 	void *ret;
 
 	jthread = (JThread *)param;
-	
+
 	jthread->continuemutex2.Lock();
 	jthread->runningmutex.Lock();
 	jthread->running = true;
 	jthread->runningmutex.Unlock();
-	
+
 	jthread->continuemutex.Lock();
 	jthread->continuemutex.Unlock();
-	
+
 	ret = jthread->Thread();
-	
+
 	jthread->runningmutex.Lock();
 	jthread->running = false;
 	jthread->retval = ret;
 	CloseHandle(jthread->threadhandle);
 	jthread->runningmutex.Unlock();
-	return 0;		
+	return 0;
 }
 
 void JThread::ThreadStarted()

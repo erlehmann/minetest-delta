@@ -34,8 +34,8 @@ struct collisionMoveResult
 };
 
 collisionMoveResult collisionMoveSimple(Map *map, f32 pos_max_d,
-		const core::aabbox3d<f32> &box_0,
-		f32 dtime, v3f &pos_f, v3f &speed_f);
+                                        const core::aabbox3d<f32> &box_0,
+                                        f32 dtime, v3f &pos_f, v3f &speed_f);
 //{return collisionMoveResult();}
 
 enum CollisionType

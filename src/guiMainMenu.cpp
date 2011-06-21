@@ -26,11 +26,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 
 GUIMainMenu::GUIMainMenu(gui::IGUIEnvironment* env,
-		gui::IGUIElement* parent, s32 id,
-		IMenuManager *menumgr,
-		MainMenuData *data,
-		IGameCallback *gamecallback
-):
+                         gui::IGUIElement* parent, s32 id,
+                         IMenuManager *menumgr,
+                         MainMenuData *data,
+                         IGameCallback *gamecallback
+                        ):
 	GUIModalMenu(env, parent, id, menumgr),
 	m_data(data),
 	m_accepted(false),
@@ -53,13 +53,13 @@ void GUIMainMenu::removeChildren()
 	const core::list<gui::IGUIElement*> &children = getChildren();
 	core::list<gui::IGUIElement*> children_copy;
 	for(core::list<gui::IGUIElement*>::ConstIterator
-			i = children.begin(); i != children.end(); i++)
+	        i = children.begin(); i != children.end(); i++)
 	{
 		children_copy.push_back(*i);
 	}
 	for(core::list<gui::IGUIElement*>::Iterator
-			i = children_copy.begin();
-			i != children_copy.end(); i++)
+	        i = children_copy.begin();
+	        i != children_copy.end(); i++)
 	{
 		(*i)->remove();
 	}
@@ -74,7 +74,7 @@ void GUIMainMenu::regenerateGui(v2u32 screensize)
 	bool enable_damage;
 	bool fancy_trees;
 	bool smooth_lighting;
-	
+
 	// Client options
 	{
 		gui::IGUIElement *e = getElementFromId(GUI_ID_NAME_INPUT);
@@ -111,7 +111,7 @@ void GUIMainMenu::regenerateGui(v2u32 screensize)
 		else
 			smooth_lighting = m_data->smooth_lighting;
 	}
-	
+
 	// Server options
 	{
 		gui::IGUIElement *e = getElementFromId(GUI_ID_CREATIVE_CB);
@@ -132,18 +132,18 @@ void GUIMainMenu::regenerateGui(v2u32 screensize)
 		Remove stuff
 	*/
 	removeChildren();
-	
+
 	/*
 		Calculate new sizes and positions
 	*/
-	
+
 	v2s32 size(620, 430);
 
 	core::rect<s32> rect(
-			screensize.X/2 - size.X/2,
-			screensize.Y/2 - size.Y/2,
-			screensize.X/2 + size.X/2,
-			screensize.Y/2 + size.Y/2
+	    screensize.X/2 - size.X/2,
+	    screensize.Y/2 - size.Y/2,
+	    screensize.X/2 + size.X/2,
+	    screensize.Y/2 + size.Y/2
 	);
 
 	DesiredRect = rect;
@@ -161,7 +161,7 @@ void GUIMainMenu::regenerateGui(v2u32 screensize)
 
 	v2s32 topleft_client(40, 0);
 	v2s32 size_client = size - v2s32(40, 0);
-	
+
 	{
 		core::rect<s32> rect(0, 0, 20, 125);
 		rect += topleft_client + v2s32(-15, 60);
@@ -181,8 +181,8 @@ void GUIMainMenu::regenerateGui(v2u32 screensize)
 	{
 		core::rect<s32> rect(0, 0, 230, 30);
 		rect += topleft_client + v2s32(160, 50);
-		gui::IGUIElement *e = 
-		Environment->addEditBox(text_name.c_str(), rect, true, this, GUI_ID_NAME_INPUT);
+		gui::IGUIElement *e =
+		    Environment->addEditBox(text_name.c_str(), rect, true, this, GUI_ID_NAME_INPUT);
 		if(text_name == L"")
 			Environment->setFocus(e);
 	}
@@ -190,7 +190,7 @@ void GUIMainMenu::regenerateGui(v2u32 screensize)
 		core::rect<s32> rect(0, 0, 120, 30);
 		rect += topleft_client + v2s32(size_client.X-60-100, 50);
 		gui::IGUIEditBox *e =
-		Environment->addEditBox(L"", rect, true, this, 264);
+		    Environment->addEditBox(L"", rect, true, this, 264);
 		e->setPasswordBox(true);
 
 	}
@@ -204,8 +204,8 @@ void GUIMainMenu::regenerateGui(v2u32 screensize)
 	{
 		core::rect<s32> rect(0, 0, 230, 30);
 		rect += topleft_client + v2s32(160, 100);
-		gui::IGUIElement *e = 
-		Environment->addEditBox(text_address.c_str(), rect, true, this, GUI_ID_ADDRESS_INPUT);
+		gui::IGUIElement *e =
+		    Environment->addEditBox(text_address.c_str(), rect, true, this, GUI_ID_ADDRESS_INPUT);
 		if(text_name != L"")
 			Environment->setFocus(e);
 	}
@@ -225,13 +225,13 @@ void GUIMainMenu::regenerateGui(v2u32 screensize)
 		core::rect<s32> rect(0, 0, 250, 30);
 		rect += topleft_client + v2s32(35, 150);
 		Environment->addCheckBox(fancy_trees, rect, this, GUI_ID_FANCYTREE_CB,
-				L"Fancy trees");
+		                         L"Fancy trees");
 	}
 	{
 		core::rect<s32> rect(0, 0, 250, 30);
 		rect += topleft_client + v2s32(35, 150+30);
 		Environment->addCheckBox(smooth_lighting, rect, this, GUI_ID_SMOOTH_LIGHTING_CB,
-				L"Smooth Lighting");
+		                         L"Smooth Lighting");
 	}
 	// Start game button
 	{
@@ -254,7 +254,7 @@ void GUIMainMenu::regenerateGui(v2u32 screensize)
 
 	v2s32 topleft_server(40, 250);
 	v2s32 size_server = size - v2s32(40, 0);
-	
+
 	{
 		core::rect<s32> rect(0, 0, 20, 125);
 		rect += topleft_server + v2s32(-15, 40);
@@ -290,7 +290,7 @@ void GUIMainMenu::drawMenu()
 	if (!skin)
 		return;
 	video::IVideoDriver* driver = Environment->getVideoDriver();
-	
+
 	/*video::SColor bgcolor(140,0,0,0);
 	driver->draw2DRectangle(bgcolor, AbsoluteRect, &AbsoluteClippingRect);*/
 
@@ -353,7 +353,7 @@ void GUIMainMenu::acceptInput()
 		if(e != NULL && e->getType() == gui::EGUIET_CHECK_BOX)
 			m_data->fancy_trees = ((gui::IGUICheckBox*)e)->isChecked();
 	}
-	
+
 	m_accepted = true;
 }
 
@@ -377,12 +377,12 @@ bool GUIMainMenu::OnEvent(const SEvent& event)
 	if(event.EventType==EET_GUI_EVENT)
 	{
 		if(event.GUIEvent.EventType==gui::EGET_ELEMENT_FOCUS_LOST
-				&& isVisible())
+		        && isVisible())
 		{
 			if(!canTakeFocus(event.GUIEvent.Element))
 			{
 				dstream<<"GUIMainMenu: Not allowing focus change."
-						<<std::endl;
+				       <<std::endl;
 				// Returning true disables focus change
 				return true;
 			}
@@ -395,7 +395,8 @@ bool GUIMainMenu::OnEvent(const SEvent& event)
 				acceptInput();
 				quitMenu();
 				return true;
-			case GUI_ID_CHANGE_KEYS_BUTTON: {
+			case GUI_ID_CHANGE_KEYS_BUTTON:
+			{
 				GUIKeyChangeMenu *kmenu = new GUIKeyChangeMenu(env, parent, -1,menumgr);
 				kmenu->drop();
 				return true;
@@ -412,7 +413,10 @@ bool GUIMainMenu::OnEvent(const SEvent& event)
 		{
 			switch(event.GUIEvent.Caller->getID())
 			{
-				case GUI_ID_ADDRESS_INPUT: case GUI_ID_PORT_INPUT: case GUI_ID_NAME_INPUT: case 264:
+			case GUI_ID_ADDRESS_INPUT:
+			case GUI_ID_PORT_INPUT:
+			case GUI_ID_NAME_INPUT:
+			case 264:
 				acceptInput();
 				quitMenu();
 				return true;

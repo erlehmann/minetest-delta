@@ -101,29 +101,44 @@ public:
 	ClientActiveObject(u16 id);
 	virtual ~ClientActiveObject();
 
-	virtual void addToScene(scene::ISceneManager *smgr){}
-	virtual void removeFromScene(){}
+	virtual void addToScene(scene::ISceneManager *smgr) {}
+	virtual void removeFromScene() {}
 	// 0 <= light_at_pos <= LIGHT_SUN
-	virtual void updateLight(u8 light_at_pos){}
-	virtual v3s16 getLightPosition(){return v3s16(0,0,0);}
-	virtual core::aabbox3d<f32>* getSelectionBox(){return NULL;}
-	virtual core::aabbox3d<f32>* getCollisionBox(){return NULL;}
-	virtual v3f getPosition(){return v3f(0,0,0);}
-	
-	// Step object in time
-	virtual void step(float dtime, ClientEnvironment *env){}
-	
-	// Process a message sent by the server side object
-	virtual void processMessage(const std::string &data){}
+	virtual void updateLight(u8 light_at_pos) {}
+	virtual v3s16 getLightPosition()
+	{
+		return v3s16(0,0,0);
+	}
+	virtual core::aabbox3d<f32>* getSelectionBox()
+	{
+		return NULL;
+	}
+	virtual core::aabbox3d<f32>* getCollisionBox()
+	{
+		return NULL;
+	}
+	virtual v3f getPosition()
+	{
+		return v3f(0,0,0);
+	}
 
-	virtual std::string infoText() {return "";}
+	// Step object in time
+	virtual void step(float dtime, ClientEnvironment *env) {}
+
+	// Process a message sent by the server side object
+	virtual void processMessage(const std::string &data) {}
+
+	virtual std::string infoText()
+	{
+		return "";
+	}
 
 	/*
 		This takes the return value of
 		ServerActiveObject::getClientInitializationData
 	*/
-	virtual void initialize(const std::string &data){}
-	
+	virtual void initialize(const std::string &data) {}
+
 	// Create a certain type of ClientActiveObject
 	static ClientActiveObject* create(u8 type);
 
@@ -162,12 +177,12 @@ class TestCAO : public ClientActiveObject
 public:
 	TestCAO();
 	virtual ~TestCAO();
-	
+
 	u8 getType() const
 	{
 		return ACTIVEOBJECT_TYPE_TEST;
 	}
-	
+
 	static ClientActiveObject* create();
 
 	void addToScene(scene::ISceneManager *smgr);
@@ -194,12 +209,12 @@ class ItemCAO : public ClientActiveObject
 public:
 	ItemCAO();
 	virtual ~ItemCAO();
-	
+
 	u8 getType() const
 	{
 		return ACTIVEOBJECT_TYPE_ITEM;
 	}
-	
+
 	static ClientActiveObject* create();
 
 	void addToScene(scene::ISceneManager *smgr);
@@ -213,11 +228,15 @@ public:
 	void processMessage(const std::string &data);
 
 	void initialize(const std::string &data);
-	
+
 	core::aabbox3d<f32>* getSelectionBox()
-		{return &m_selection_box;}
+	{
+		return &m_selection_box;
+	}
 	v3f getPosition()
-		{return m_position;}
+	{
+		return m_position;
+	}
 
 private:
 	core::aabbox3d<f32> m_selection_box;
@@ -235,12 +254,12 @@ class RatCAO : public ClientActiveObject
 public:
 	RatCAO();
 	virtual ~RatCAO();
-	
+
 	u8 getType() const
 	{
 		return ACTIVEOBJECT_TYPE_RAT;
 	}
-	
+
 	static ClientActiveObject* create();
 
 	void addToScene(scene::ISceneManager *smgr);
@@ -254,11 +273,15 @@ public:
 	void processMessage(const std::string &data);
 
 	void initialize(const std::string &data);
-	
+
 	core::aabbox3d<f32>* getSelectionBox()
-		{return &m_selection_box;}
+	{
+		return &m_selection_box;
+	}
 	v3f getPosition()
-		{return m_position;}
+	{
+		return m_position;
+	}
 
 private:
 	core::aabbox3d<f32> m_selection_box;
@@ -277,12 +300,12 @@ class Oerkki1CAO : public ClientActiveObject
 public:
 	Oerkki1CAO();
 	virtual ~Oerkki1CAO();
-	
+
 	u8 getType() const
 	{
 		return ACTIVEOBJECT_TYPE_OERKKI1;
 	}
-	
+
 	static ClientActiveObject* create();
 
 	void addToScene(scene::ISceneManager *smgr);
@@ -296,12 +319,16 @@ public:
 	void processMessage(const std::string &data);
 
 	void initialize(const std::string &data);
-	
+
 	core::aabbox3d<f32>* getSelectionBox()
-		{return &m_selection_box;}
+	{
+		return &m_selection_box;
+	}
 	v3f getPosition()
-		{return pos_translator.vect_show;}
-		//{return m_position;}
+	{
+		return pos_translator.vect_show;
+	}
+	//{return m_position;}
 
 private:
 	IntervalLimiter m_attack_interval;

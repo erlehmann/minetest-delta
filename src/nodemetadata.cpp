@@ -45,10 +45,10 @@ NodeMetadata* NodeMetadata::deSerialize(std::istream &is)
 	u8 buf[2];
 	is.read((char*)buf, 2);
 	s16 id = readS16(buf);
-	
+
 	// Read data
 	std::string data = deSerializeString(is);
-	
+
 	// Find factory function
 	core::map<u16, Factory>::Node *n;
 	n = m_types.find(id);
@@ -56,15 +56,15 @@ NodeMetadata* NodeMetadata::deSerialize(std::istream &is)
 	{
 		// If factory is not found, just return.
 		dstream<<"WARNING: NodeMetadata: No factory for typeId="
-				<<id<<std::endl;
+		       <<id<<std::endl;
 		return NULL;
 	}
-	
+
 	// Try to load the metadata. If it fails, just return.
 	try
 	{
 		std::istringstream iss(data, std::ios_base::binary);
-		
+
 		Factory f = n->getValue();
 		NodeMetadata *meta = (*f)(iss);
 		return meta;
@@ -81,7 +81,7 @@ void NodeMetadata::serialize(std::ostream &os)
 	u8 buf[2];
 	writeU16(buf, typeId());
 	os.write((char*)buf, 2);
-	
+
 	std::ostringstream oss(std::ios_base::binary);
 	serializeBody(oss);
 	os<<serializeString(oss.str());
@@ -140,7 +140,7 @@ ChestNodeMetadata proto_ChestNodeMetadata;
 ChestNodeMetadata::ChestNodeMetadata()
 {
 	NodeMetadata::registerType(typeId(), create);
-	
+
 	m_inventory = new Inventory();
 	m_inventory->addList("0", 8*4);
 }
@@ -192,7 +192,8 @@ bool ChestNodeMetadata::nodeRemovalDisabled()
 // Prototype
 WorkbenchNodeMetadata proto_WorkbenchNodeMetadata;
 
-WorkbenchNodeMetadata::WorkbenchNodeMetadata() {
+WorkbenchNodeMetadata::WorkbenchNodeMetadata()
+{
 	NodeMetadata::registerType(typeId(), create);
 
 	m_inventory = new Inventory();
@@ -200,30 +201,37 @@ WorkbenchNodeMetadata::WorkbenchNodeMetadata() {
 	m_inventory->addList("workbench_craftresult", 1);
 	m_crafted = false;
 }
-WorkbenchNodeMetadata::~WorkbenchNodeMetadata() {
+WorkbenchNodeMetadata::~WorkbenchNodeMetadata()
+{
 	delete m_inventory;
 }
-u16 WorkbenchNodeMetadata::typeId() const {
+u16 WorkbenchNodeMetadata::typeId() const
+{
 	return CONTENT_WORKBENCH;
 }
-NodeMetadata* WorkbenchNodeMetadata::create(std::istream &is) {
+NodeMetadata* WorkbenchNodeMetadata::create(std::istream &is)
+{
 	WorkbenchNodeMetadata *d = new WorkbenchNodeMetadata();
 	d->m_inventory->deSerialize(is);
 	d->m_inventory->getList("workbench_craftresult")->setReadOnly(true); // Set craft result as read only
 	return d;
 }
-NodeMetadata* WorkbenchNodeMetadata::clone() {
+NodeMetadata* WorkbenchNodeMetadata::clone()
+{
 	WorkbenchNodeMetadata *d = new WorkbenchNodeMetadata();
 	*d->m_inventory = *m_inventory;
 	return d;
 }
-void WorkbenchNodeMetadata::serializeBody(std::ostream &os) {
+void WorkbenchNodeMetadata::serializeBody(std::ostream &os)
+{
 	m_inventory->serialize(os);
 }
-std::string WorkbenchNodeMetadata::infoText() {
+std::string WorkbenchNodeMetadata::infoText()
+{
 	return "Workbench";
 }
-bool WorkbenchNodeMetadata::nodeRemovalDisabled() {
+bool WorkbenchNodeMetadata::nodeRemovalDisabled()
+{
 	/*
 	 Disable removal if workbench contains something
 	 */
@@ -235,7 +243,8 @@ bool WorkbenchNodeMetadata::nodeRemovalDisabled() {
 	return true;
 }
 
-bool WorkbenchNodeMetadata::step(float dtime) {
+bool WorkbenchNodeMetadata::step(float dtime)
+{
 	// This can be instant
 	/* Update at a fixed frequency
 	const float interval = 0.5;
@@ -253,16 +262,19 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 	if (rlist->getUsedSlots() != 0)
 		m_crafted = false;
 
-	if (m_crafted) {
+	if (m_crafted)
+	{
 		// We have crafted something, so we decrement the clist
 		clist->decrementMaterials(1);
 		m_crafted = false;
 		return false;
 	}
 
-	if (clist && rlist) {
+	if (clist && rlist)
+	{
 		InventoryItem *items[WORKBENCH_SIZE];
-		for (u16 i = 0; i < WORKBENCH_SIZE; i++) {
+		for (u16 i = 0; i < WORKBENCH_SIZE; i++)
+		{
 			items[i] = clist->getItem(i);
 		}
 
@@ -271,27 +283,32 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 		InventoryItem *item = NULL;
 
 		// Wood
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_TREE);
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_WOOD, 4);
 				found = true;
 			}
 		}
 
 		// Stick
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new CraftItem("Stick", 4);
 				found = true;
 			}
 		}
 
 		// Fence
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[3] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
@@ -299,14 +316,16 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[6] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[8] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_FENCE, 2);
 				found = true;
 			}
 		}
 
 		// Sign
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
@@ -315,7 +334,8 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[5] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				//item = new MapBlockObjectItem("Sign"));
 				item = new MaterialItem(CONTENT_SIGN_WALL, 1);
 				found = true;
@@ -323,188 +343,217 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 		}
 
 		// Torch
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_CRAFT, "lump_of_coal");
 			specs[3] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_TORCH, 4);
 				found = true;
 			}
 		}
 
 		// Wooden pick
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("WPick", 0);
 				found = true;
 			}
 		}
 
 		// Stone pick
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("STPick", 0);
 				found = true;
 			}
 		}
 
 		// Steel pick
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[2] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("SteelPick", 0);
 				found = true;
 			}
 		}
 
 		// Mese pick
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_MESE);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_MESE);
 			specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_MESE);
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("MesePick", 0);
 				found = true;
 			}
 		}
 
 		// Wooden shovel
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("WShovel", 0);
 				found = true;
 			}
 		}
 
 		// Stone shovel
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("STShovel", 0);
 				found = true;
 			}
 		}
 
 		// Steel shovel
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("SteelShovel", 0);
 				found = true;
 			}
 		}
 
 		// Wooden axe
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("WAxe", 0);
 				found = true;
 			}
 		}
 
 		// Stone axe
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("STAxe", 0);
 				found = true;
 			}
 		}
 
 		// Steel axe
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[3] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("SteelAxe", 0);
 				found = true;
 			}
 		}
 
 		// Wooden sword
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("WSword", 0);
 				found = true;
 			}
 		}
 
 		// Stone sword
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("STSword", 0);
 				found = true;
 			}
 		}
 
 		// Steel sword
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[4] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new ToolItem("SteelSword", 0);
 				found = true;
 			}
 		}
 
 		// Chest
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
@@ -514,13 +563,15 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_CHEST, 1);
 				found = true;
 			}
 		}
 		// Rail
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[1] = ItemSpec(ITEM_CRAFT, "Stick");
@@ -531,27 +582,31 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[6] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 			specs[8] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_RAIL, 15);
 				found = true;
 			}
 		}
 
 		// Workbench
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_WORKBENCH, 1);
 				found = true;
 			}
 		}
 
 		// Furnace
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
@@ -561,14 +616,16 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 			specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_FURNACE, 1);
 				found = true;
 			}
 		}
 
 		// Steel block
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
@@ -579,77 +636,89 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[6] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[7] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 			specs[8] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_STEEL, 1);
 				found = true;
 			}
 		}
 
 		// Sandstone
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
 			specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
 			specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
 			specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_SANDSTONE, 1);
 				found = true;
 			}
 		}
 
 		// Clay
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[3] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
 			specs[4] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
 			specs[6] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
 			specs[7] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_CLAY, 1);
 				found = true;
 			}
 		}
 
 		// Brick
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[3] = ItemSpec(ITEM_CRAFT, "clay_brick");
 			specs[4] = ItemSpec(ITEM_CRAFT, "clay_brick");
 			specs[6] = ItemSpec(ITEM_CRAFT, "clay_brick");
 			specs[7] = ItemSpec(ITEM_CRAFT, "clay_brick");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_BRICK, 1);
 				found = true;
 			}
 		}
 
 		// Paper
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
 			specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
 			specs[5] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new CraftItem("paper", 1);
 				found = true;
 			}
 		}
 
 		// Book
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[1] = ItemSpec(ITEM_CRAFT, "paper");
 			specs[4] = ItemSpec(ITEM_CRAFT, "paper");
 			specs[7] = ItemSpec(ITEM_CRAFT, "paper");
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new CraftItem("book", 1);
 				found = true;
 			}
 		}
 
 		// Book shelf
-		if (!found) {
+		if (!found)
+		{
 			ItemSpec specs[WORKBENCH_SIZE];
 			specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
@@ -660,7 +729,8 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 			specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-			if (checkItemCombination(items, specs, WORKBENCH_SIZE)) {
+			if (checkItemCombination(items, specs, WORKBENCH_SIZE))
+			{
 				item = new MaterialItem(CONTENT_BOOKSHELF, 1);
 				found = true;
 			}
@@ -670,7 +740,8 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 		if(item != rlist->getItem(0))
 			rlist->clearItems();
 
-		if (found) {
+		if (found)
+		{
 			m_crafted = true;
 
 			// If the craft result has not been added yet, do so
@@ -691,7 +762,7 @@ FurnaceNodeMetadata proto_FurnaceNodeMetadata;
 FurnaceNodeMetadata::FurnaceNodeMetadata()
 {
 	NodeMetadata::registerType(typeId(), create);
-	
+
 	m_inventory = new Inventory();
 	m_inventory->addList("fuel", 1);
 	m_inventory->addList("src", 1);
@@ -776,14 +847,14 @@ bool FurnaceNodeMetadata::step(float dtime)
 	dtime = interval;
 
 	//dstream<<"Furnace step dtime="<<dtime<<std::endl;
-	
+
 	InventoryList *dst_list = m_inventory->getList("dst");
 	assert(dst_list);
 
 	InventoryList *src_list = m_inventory->getList("src");
 	assert(src_list);
 	InventoryItem *src_item = src_list->getItem(0);
-	
+
 	// Start only if there are free slots in dst, so that it can
 	// accomodate any result item
 	if(dst_list->getFreeSlots() > 0 && src_item && src_item->isCookable())
@@ -802,7 +873,7 @@ bool FurnaceNodeMetadata::step(float dtime)
 		m_fuel_time += dtime;
 		m_src_time += dtime;
 		if(m_src_time >= m_src_totaltime && m_src_totaltime > 0.001
-				&& src_item)
+		        && src_item)
 		{
 			InventoryItem *cookresult = src_item->createCookResult();
 			dst_list->addItem(cookresult);
@@ -812,12 +883,12 @@ bool FurnaceNodeMetadata::step(float dtime)
 		}
 		return true;
 	}
-	
+
 	if(src_item == NULL || m_src_totaltime < 0.001)
 	{
 		return false;
 	}
-	
+
 	bool changed = false;
 
 	//dstream<<"Furnace is out of fuel"<<std::endl;
@@ -862,7 +933,7 @@ bool FurnaceNodeMetadata::step(float dtime)
 void NodeMetadataList::serialize(std::ostream &os)
 {
 	u8 buf[6];
-	
+
 	u16 version = 1;
 	writeU16(buf, version);
 	os.write((char*)buf, 2);
@@ -872,39 +943,39 @@ void NodeMetadataList::serialize(std::ostream &os)
 	os.write((char*)buf, 2);
 
 	for(core::map<v3s16, NodeMetadata*>::Iterator
-			i = m_data.getIterator();
-			i.atEnd()==false; i++)
+	        i = m_data.getIterator();
+	        i.atEnd()==false; i++)
 	{
 		v3s16 p = i.getNode()->getKey();
 		NodeMetadata *data = i.getNode()->getValue();
-		
+
 		u16 p16 = p.Z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + p.Y*MAP_BLOCKSIZE + p.X;
 		writeU16(buf, p16);
 		os.write((char*)buf, 2);
 
 		data->serialize(os);
 	}
-	
+
 }
 void NodeMetadataList::deSerialize(std::istream &is)
 {
 	m_data.clear();
 
 	u8 buf[6];
-	
+
 	is.read((char*)buf, 2);
 	u16 version = readU16(buf);
 
 	if(version > 1)
 	{
 		dstream<<__FUNCTION_NAME<<": version "<<version<<" not supported"
-				<<std::endl;
+		       <<std::endl;
 		throw SerializationError("NodeMetadataList::deSerialize");
 	}
-	
+
 	is.read((char*)buf, 2);
 	u16 count = readU16(buf);
-	
+
 	for(u16 i=0; i<count; i++)
 	{
 		is.read((char*)buf, 2);
@@ -916,18 +987,18 @@ void NodeMetadataList::deSerialize(std::istream &is)
 		p.Y += p16 / MAP_BLOCKSIZE;
 		p16 -= p.Y * MAP_BLOCKSIZE;
 		p.X += p16;
-		
+
 		NodeMetadata *data = NodeMetadata::deSerialize(is);
 
 		if(data == NULL)
 			continue;
-		
+
 		if(m_data.find(p))
 		{
 			dstream<<"WARNING: NodeMetadataList::deSerialize(): "
-					<<"already set data at position"
-					<<"("<<p.X<<","<<p.Y<<","<<p.Z<<"): Ignoring."
-					<<std::endl;
+			       <<"already set data at position"
+			       <<"("<<p.X<<","<<p.Y<<","<<p.Z<<"): Ignoring."
+			       <<std::endl;
 			delete data;
 			continue;
 		}
@@ -935,12 +1006,12 @@ void NodeMetadataList::deSerialize(std::istream &is)
 		m_data.insert(p, data);
 	}
 }
-	
+
 NodeMetadataList::~NodeMetadataList()
 {
 	for(core::map<v3s16, NodeMetadata*>::Iterator
-			i = m_data.getIterator();
-			i.atEnd()==false; i++)
+	        i = m_data.getIterator();
+	        i.atEnd()==false; i++)
 	{
 		delete i.getNode()->getValue();
 	}
@@ -975,8 +1046,8 @@ bool NodeMetadataList::step(float dtime)
 {
 	bool something_changed = false;
 	for(core::map<v3s16, NodeMetadata*>::Iterator
-			i = m_data.getIterator();
-			i.atEnd()==false; i++)
+	        i = m_data.getIterator();
+	        i.atEnd()==false; i++)
 	{
 		v3s16 p = i.getNode()->getKey();
 		NodeMetadata *meta = i.getNode()->getValue();

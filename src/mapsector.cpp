@@ -23,11 +23,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "exceptions.h"
 
 MapSector::MapSector(NodeContainer *parent, v2s16 pos):
-		differs_from_disk(true),
-		usage_timer(0.0),
-		m_parent(parent),
-		m_pos(pos),
-		m_block_cache(NULL)
+	differs_from_disk(true),
+	usage_timer(0.0),
+	m_parent(parent),
+	m_pos(pos),
+	m_block_cache(NULL)
 {
 	m_mutex.Init();
 	assert(m_mutex.IsInitialized());
@@ -60,10 +60,11 @@ MapBlock * MapSector::getBlockBuffered(s16 y)
 {
 	MapBlock *block;
 
-	if(m_block_cache != NULL && y == m_block_cache_y){
+	if(m_block_cache != NULL && y == m_block_cache_y)
+	{
 		return m_block_cache;
 	}
-	
+
 	// If block doesn't exist, return NULL
 	core::map<s16, MapBlock*>::Node *n = m_blocks.find(y);
 	if(n == NULL)
@@ -71,21 +72,22 @@ MapBlock * MapSector::getBlockBuffered(s16 y)
 		block = NULL;
 	}
 	// If block exists, return it
-	else{
+	else
+	{
 		block = n->getValue();
 	}
-	
+
 	// Cache the last result
 	m_block_cache_y = y;
 	m_block_cache = block;
-	
+
 	return block;
 }
 
 MapBlock * MapSector::getBlockNoCreateNoEx(s16 y)
 {
 	JMutexAutoLock lock(m_mutex);
-	
+
 	return getBlockBuffered(y);
 }
 
@@ -95,7 +97,7 @@ MapBlock * MapSector::getBlockNoCreate(s16 y)
 
 	if(block == NULL)
 		throw InvalidPositionException();
-	
+
 	return block;
 }
 
@@ -106,18 +108,18 @@ MapBlock * MapSector::createBlankBlockNoInsert(s16 y)
 		throw AlreadyExistsException("Block already exists");
 
 	v3s16 blockpos_map(m_pos.X, y, m_pos.Y);
-	
+
 	MapBlock *block = new MapBlock(m_parent, blockpos_map);
-	
+
 	return block;
 }
 
 MapBlock * MapSector::createBlankBlock(s16 y)
 {
 	JMutexAutoLock lock(m_mutex);
-	
+
 	MapBlock *block = createBlankBlockNoInsert(y);
-	
+
 	m_blocks.insert(y, block);
 
 	return block;
@@ -131,13 +133,14 @@ void MapSector::insertBlock(MapBlock *block)
 		JMutexAutoLock lock(m_mutex);
 
 		MapBlock *block2 = getBlockBuffered(block_y);
-		if(block2 != NULL){
+		if(block2 != NULL)
+		{
 			throw AlreadyExistsException("Block already exists");
 		}
 
 		v2s16 p2d(block->getPos().X, block->getPos().Z);
 		assert(p2d == m_pos);
-		
+
 		// Insert into container
 		m_blocks.insert(block_y, block);
 	}
@@ -148,10 +151,10 @@ void MapSector::removeBlock(MapBlock *block)
 	s16 block_y = block->getPos().Y;
 
 	JMutexAutoLock lock(m_mutex);
-	
+
 	// Clear from cache
 	m_block_cache = NULL;
-	
+
 	// Remove from container
 	m_blocks.remove(block_y);
 }
@@ -177,7 +180,7 @@ void MapSector::getBlocks(core::list<MapBlock*> &dest)
 */
 
 ServerMapSector::ServerMapSector(NodeContainer *parent, v2s16 pos):
-		MapSector(parent, pos)
+	MapSector(parent, pos)
 {
 }
 
@@ -198,18 +201,18 @@ void ServerMapSector::serialize(std::ostream &os, u8 version)
 {
 	if(!ser_ver_supported(version))
 		throw VersionMismatchException("ERROR: MapSector format not supported");
-	
+
 	/*
 		[0] u8 serialization version
 		+ heightmap data
 	*/
-	
+
 	// Server has both of these, no need to support not having them.
 	//assert(m_objects != NULL);
 
 	// Write version
 	os.write((char*)&version, 1);
-	
+
 	/*
 		Add stuff here, if needed
 	*/
@@ -217,11 +220,11 @@ void ServerMapSector::serialize(std::ostream &os, u8 version)
 }
 
 ServerMapSector* ServerMapSector::deSerialize(
-		std::istream &is,
-		NodeContainer *parent,
-		v2s16 p2d,
-		core::map<v2s16, MapSector*> & sectors
-	)
+    std::istream &is,
+    NodeContainer *parent,
+    v2s16 p2d,
+    core::map<v2s16, MapSector*> & sectors
+)
 {
 	/*
 		[0] u8 serialization version
@@ -231,18 +234,18 @@ ServerMapSector* ServerMapSector::deSerialize(
 	/*
 		Read stuff
 	*/
-	
+
 	// Read version
 	u8 version = SER_FMT_VER_INVALID;
 	is.read((char*)&version, 1);
-	
+
 	if(!ser_ver_supported(version))
 		throw VersionMismatchException("ERROR: MapSector format not supported");
-	
+
 	/*
 		Add necessary reading stuff here
 	*/
-	
+
 	/*
 		Get or create sector
 	*/
@@ -254,8 +257,8 @@ ServerMapSector* ServerMapSector::deSerialize(
 	if(n != NULL)
 	{
 		dstream<<"WARNING: deSerializing existent sectors not supported "
-				"at the moment, because code hasn't been tested."
-				<<std::endl;
+		       "at the moment, because code hasn't been tested."
+		       <<std::endl;
 
 		MapSector *sector = n->getValue();
 		assert(sector->getId() == MAPSECTOR_SERVER);
@@ -282,7 +285,7 @@ ServerMapSector* ServerMapSector::deSerialize(
 */
 
 ClientMapSector::ClientMapSector(NodeContainer *parent, v2s16 pos):
-		MapSector(parent, pos)
+	MapSector(parent, pos)
 {
 }
 
@@ -299,33 +302,33 @@ void ClientMapSector::deSerialize(std::istream &is)
 		[5] s16 corners[2]
 		[7] s16 corners[3]
 		size = 9
-		
+
 		In which corners are in these positions
 		v2s16(0,0),
 		v2s16(1,0),
 		v2s16(1,1),
 		v2s16(0,1),
 	*/
-	
+
 	// Read version
 	u8 version = SER_FMT_VER_INVALID;
 	is.read((char*)&version, 1);
-	
+
 	if(!ser_ver_supported(version))
 		throw VersionMismatchException("ERROR: MapSector format not supported");
-	
+
 	u8 buf[2];
-	
+
 	// Dummy read corners
 	is.read((char*)buf, 2);
 	is.read((char*)buf, 2);
 	is.read((char*)buf, 2);
 	is.read((char*)buf, 2);
-	
+
 	/*
 		Set stuff in sector
 	*/
-	
+
 	// Nothing here
 
 }

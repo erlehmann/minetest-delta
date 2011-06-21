@@ -31,8 +31,8 @@ namespace fs
 #include <Windows.h>
 #include <stdio.h>
 #include <malloc.h>
-#include <tchar.h> 
-#include <wchar.h> 
+#include <tchar.h>
+#include <wchar.h>
 #include <stdio.h>
 
 #define BUFSIZE MAX_PATH
@@ -51,17 +51,17 @@ std::vector<DirListNode> GetDirListing(std::string pathstring)
 
 	if( DirSpec == NULL )
 	{
-	  printf( "Insufficient memory available\n" );
-	  retval = 1;
-	  goto Cleanup;
+		printf( "Insufficient memory available\n" );
+		retval = 1;
+		goto Cleanup;
 	}
 
 	// Check that the input is not larger than allowed.
 	if (pathstring.size() > (BUFSIZE - 2))
 	{
-	  _tprintf(TEXT("Input directory is too large.\n"));
-	  retval = 3;
-	  goto Cleanup;
+		_tprintf(TEXT("Input directory is too large.\n"));
+		retval = 3;
+		goto Cleanup;
 	}
 
 	//_tprintf (TEXT("Target directory is %s.\n"), pathstring.c_str());
@@ -71,13 +71,13 @@ std::vector<DirListNode> GetDirListing(std::string pathstring)
 	// Find the first file in the directory.
 	hFind = FindFirstFile(DirSpec, &FindFileData);
 
-	if (hFind == INVALID_HANDLE_VALUE) 
+	if (hFind == INVALID_HANDLE_VALUE)
 	{
-	  _tprintf (TEXT("Invalid file handle. Error is %u.\n"), 
-				GetLastError());
-	  retval = (-1);
-	} 
-	else 
+		_tprintf (TEXT("Invalid file handle. Error is %u.\n"),
+		          GetLastError());
+		retval = (-1);
+	}
+	else
 	{
 		// NOTE:
 		// Be very sure to not include '..' in the results, it will
@@ -90,7 +90,7 @@ std::vector<DirListNode> GetDirListing(std::string pathstring)
 			listing.push_back(node);
 
 		// List all the other files in the directory.
-		while (FindNextFile(hFind, &FindFileData) != 0) 
+		while (FindNextFile(hFind, &FindFileData) != 0)
 		{
 			DirListNode node;
 			node.name = FindFileData.cFileName;
@@ -101,12 +101,12 @@ std::vector<DirListNode> GetDirListing(std::string pathstring)
 
 		dwError = GetLastError();
 		FindClose(hFind);
-		if (dwError != ERROR_NO_MORE_FILES) 
+		if (dwError != ERROR_NO_MORE_FILES)
 		{
-		 _tprintf (TEXT("FindNextFile error. Error is %u.\n"), 
-				   dwError);
-		retval = (-1);
-		goto Cleanup;
+			_tprintf (TEXT("FindNextFile error. Error is %u.\n"),
+			          dwError);
+			retval = (-1);
+			goto Cleanup;
 		}
 	}
 	retval  = 0;
@@ -119,7 +119,7 @@ Cleanup:
 	//for(unsigned int i=0; i<listing.size(); i++){
 	//	std::cout<<listing[i].name<<(listing[i].dir?" (dir)":" (file)")<<std::endl;
 	//}
-	
+
 	return listing;
 }
 
@@ -143,7 +143,7 @@ bool RecursiveDelete(std::string path)
 	std::cerr<<"Removing \""<<path<<"\""<<std::endl;
 
 	//return false;
-	
+
 	// This silly function needs a double-null terminated string...
 	// Well, we'll just make sure it has at least two, then.
 	path += "\0\0";
@@ -154,7 +154,7 @@ bool RecursiveDelete(std::string path)
 	sfo.pFrom = path.c_str();
 	sfo.pTo = NULL;
 	sfo.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOCONFIRMMKDIR;
-	
+
 	int r = SHFileOperation(&sfo);
 
 	if(r != 0)
@@ -176,18 +176,21 @@ std::vector<DirListNode> GetDirListing(std::string pathstring)
 {
 	std::vector<DirListNode> listing;
 
-    DIR *dp;
-    struct dirent *dirp;
-    if((dp  = opendir(pathstring.c_str())) == NULL) {
+	DIR *dp;
+	struct dirent *dirp;
+	if((dp  = opendir(pathstring.c_str())) == NULL)
+	{
 		//std::cout<<"Error("<<errno<<") opening "<<pathstring<<std::endl;
-        return listing;
-    }
+		return listing;
+	}
 
-    while ((dirp = readdir(dp)) != NULL) {
+	while ((dirp = readdir(dp)) != NULL)
+	{
 		// NOTE:
 		// Be very sure to not include '..' in the results, it will
 		// result in an epic failure when deleting stuff.
-		if(dirp->d_name[0]!='.'){
+		if(dirp->d_name[0]!='.')
+		{
 			DirListNode node;
 			node.name = dirp->d_name;
 			if(dirp->d_type == DT_DIR) node.dir = true;
@@ -195,8 +198,8 @@ std::vector<DirListNode> GetDirListing(std::string pathstring)
 			if(node.name != "." && node.name != "..")
 				listing.push_back(node);
 		}
-    }
-    closedir(dp);
+	}
+	closedir(dp);
 
 	return listing;
 }
@@ -228,11 +231,11 @@ bool RecursiveDelete(std::string path)
 	/*
 		Execute the 'rm' command directly, by fork() and execve()
 	*/
-	
+
 	std::cerr<<"Removing \""<<path<<"\""<<std::endl;
 
 	//return false;
-	
+
 	pid_t child_pid = fork();
 
 	if(child_pid == 0)
@@ -249,10 +252,10 @@ bool RecursiveDelete(std::string path)
 		argv[3] = NULL;
 
 		std::cerr<<"Executing '"<<argv[0]<<"' '"<<argv[1]<<"' '"
-				<<argv[2]<<"'"<<std::endl;
-		
+		         <<argv[2]<<"'"<<std::endl;
+
 		execv(argv[0], argv);
-		
+
 		// Execv shouldn't return. Failed.
 		return false;
 	}
@@ -261,10 +264,12 @@ bool RecursiveDelete(std::string path)
 		// Parent
 		int child_status;
 		pid_t tpid;
-		do{
+		do
+		{
 			tpid = wait(&child_status);
 			//if(tpid != child_pid) process_terminated(tpid);
-		}while(tpid != child_pid);
+		}
+		while(tpid != child_pid);
 		return (child_status == 0);
 	}
 }
@@ -304,7 +309,7 @@ bool CreateAllDirs(std::string path)
 			return false;
 		basepath = basepath.substr(0,pos);
 	}
-	for(int i=tocreate.size()-1;i>=0;i--)
+	for(int i=tocreate.size()-1; i>=0; i--)
 		CreateDir(tocreate[i]);
 	return true;
 }

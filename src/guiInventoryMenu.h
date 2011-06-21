@@ -27,9 +27,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "modalMenu.h"
 
 void drawInventoryItem(video::IVideoDriver *driver,
-		gui::IGUIFont *font,
-		InventoryItem *item, core::rect<s32> rect,
-		const core::rect<s32> *clip);
+                       gui::IGUIFont *font,
+                       InventoryItem *item, core::rect<s32> rect,
+                       const core::rect<s32> *clip);
 
 class GUIInventoryMenu : public GUIModalMenu
 {
@@ -40,8 +40,8 @@ class GUIInventoryMenu : public GUIModalMenu
 			i = -1;
 		}
 		ItemSpec(const std::string &a_inventoryname,
-				const std::string &a_listname,
-				s32 a_i)
+		         const std::string &a_listname,
+		         s32 a_i)
 		{
 			inventoryname = a_inventoryname;
 			listname = a_listname;
@@ -63,8 +63,8 @@ class GUIInventoryMenu : public GUIModalMenu
 		{
 		}
 		ListDrawSpec(const std::string &a_inventoryname,
-				const std::string &a_listname,
-				v2s32 a_pos, v2s32 a_geom)
+		             const std::string &a_listname,
+		             v2s32 a_pos, v2s32 a_geom)
 		{
 			inventoryname = a_inventoryname;
 			listname = a_listname;
@@ -84,10 +84,10 @@ public:
 		{
 		}
 		DrawSpec(const std::string &a_type,
-				const std::string &a_name,
-				const std::string &a_subname,
-				v2s32 a_pos,
-				v2s32 a_geom)
+		         const std::string &a_name,
+		         const std::string &a_subname,
+		         v2s32 a_pos,
+		         v2s32 a_geom)
 		{
 			type = a_type;
 			name = a_name;
@@ -104,12 +104,12 @@ public:
 	};
 
 	GUIInventoryMenu(gui::IGUIEnvironment* env,
-			gui::IGUIElement* parent, s32 id,
-			IMenuManager *menumgr,
-			v2s16 menu_size,
-			InventoryContext *c,
-			InventoryManager *invmgr
-			);
+	                 gui::IGUIElement* parent, s32 id,
+	                 IMenuManager *menumgr,
+	                 v2s16 menu_size,
+	                 InventoryContext *c,
+	                 InventoryManager *invmgr
+	                );
 	~GUIInventoryMenu();
 
 	void setDrawSpec(core::array<DrawSpec> &init_draw_spec)
@@ -122,13 +122,13 @@ public:
 		Remove and re-add (or reposition) stuff
 	*/
 	void regenerateGui(v2u32 screensize);
-	
+
 	ItemSpec getItemAtPos(v2s32 p) const;
 	void drawList(const ListDrawSpec &s);
 	void drawMenu();
 
 	bool OnEvent(const SEvent& event);
-	
+
 protected:
 	v2s32 getBasePos() const
 	{
@@ -140,7 +140,7 @@ protected:
 	v2s32 padding;
 	v2s32 spacing;
 	v2s32 imgsize;
-	
+
 	InventoryContext *m_c;
 	InventoryManager *m_invmgr;
 

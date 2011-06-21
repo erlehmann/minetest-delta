@@ -301,7 +301,7 @@ Misc. stuff:
 
 Making it more portable:
 ------------------------
- 
+
 Stuff to do before release:
 ---------------------------
 - Player default privileges and default password
@@ -318,25 +318,25 @@ Stuff to do before release:
 */
 
 #ifdef NDEBUG
-	#ifdef _WIN32
-		#pragma message ("Disabling unit tests")
-	#else
-		#warning "Disabling unit tests"
-	#endif
-	// Disable unit tests
-	#define ENABLE_TESTS 0
+#ifdef _WIN32
+#pragma message ("Disabling unit tests")
 #else
-	// Enable unit tests
-	#define ENABLE_TESTS 1
+#warning "Disabling unit tests"
+#endif
+// Disable unit tests
+#define ENABLE_TESTS 0
+#else
+// Enable unit tests
+#define ENABLE_TESTS 1
 #endif
 
 #ifdef _MSC_VER
-	#pragma comment(lib, "Irrlicht.lib")
-	//#pragma comment(lib, "jthread.lib")
-	#pragma comment(lib, "zlibwapi.lib")
-	#pragma comment(lib, "Shell32.lib")
-	// This would get rid of the console window
-	//#pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
+#pragma comment(lib, "Irrlicht.lib")
+//#pragma comment(lib, "jthread.lib")
+#pragma comment(lib, "zlibwapi.lib")
+#pragma comment(lib, "Shell32.lib")
+// This would get rid of the console window
+//#pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
 #endif
 
 #include <iostream>
@@ -525,7 +525,7 @@ public:
 	{
 		return keyIsDown[keyCode];
 	}
-	
+
 	// Checks whether a key was down and resets the state
 	bool WasKeyDown(EKEY_CODE keyCode)
 	{
@@ -548,7 +548,7 @@ public:
 			keyIsDown[i] = false;
 			keyWasDown[i] = false;
 		}
-		
+
 		leftclicked = false;
 		rightclicked = false;
 		leftreleased = false;
@@ -579,7 +579,7 @@ public:
 
 private:
 	IrrlichtDevice *m_device;
-	
+
 	// The current state of keys
 	bool keyIsDown[KEY_KEY_CODES_COUNT];
 	// Whether a key has been pressed or not
@@ -623,7 +623,7 @@ public:
 	{
 		return m_receiver->right_active;
 	}
-	
+
 	virtual bool getLeftClicked()
 	{
 		return m_receiver->leftclicked;
@@ -760,7 +760,7 @@ public:
 			{
 				counter1 = 0.1*Rand(1, 40);
 				keydown[getKeySetting("keymap_jump")] =
-						!keydown[getKeySetting("keymap_jump")];
+				    !keydown[getKeySetting("keymap_jump")];
 			}
 		}
 		{
@@ -770,7 +770,7 @@ public:
 			{
 				counter1 = 0.1*Rand(1, 40);
 				keydown[getKeySetting("keymap_special1")] =
-						!keydown[getKeySetting("keymap_special1")];
+				    !keydown[getKeySetting("keymap_special1")];
 			}
 		}
 		{
@@ -780,7 +780,7 @@ public:
 			{
 				counter1 = 0.1*Rand(1, 40);
 				keydown[getKeySetting("keymap_forward")] =
-						!keydown[getKeySetting("keymap_forward")];
+				    !keydown[getKeySetting("keymap_forward")];
 			}
 		}
 		{
@@ -790,7 +790,7 @@ public:
 			{
 				counter1 = 0.1*Rand(1, 40);
 				keydown[getKeySetting("keymap_left")] =
-						!keydown[getKeySetting("keymap_left")];
+				    !keydown[getKeySetting("keymap_left")];
 			}
 		}
 		{
@@ -867,35 +867,39 @@ void SpeedTests()
 			tempstring = "";
 			tempstring2 = "";
 			const u32 ii = 10;
-			for(u32 i=0; i<ii; i++){
+			for(u32 i=0; i<ii; i++)
+			{
 				tempstring2 += "asd";
 			}
-			for(u32 i=0; i<ii+1; i++){
+			for(u32 i=0; i<ii+1; i++)
+			{
 				tempstring += "asd";
 				if(tempstring == tempstring2)
 					break;
 			}
 		}
 	}
-	
+
 	dstream<<"All of the following tests should take around 100ms each."
-			<<std::endl;
+	       <<std::endl;
 
 	{
 		TimeTaker timer("Testing floating-point conversion speed");
 		tempf = 0.001;
-		for(u32 i=0; i<4000000; i++){
+		for(u32 i=0; i<4000000; i++)
+		{
 			temp16 += tempf;
 			tempf += 0.001;
 		}
 	}
-	
+
 	{
 		TimeTaker timer("Testing floating-point vector speed");
 
 		tempv3f1 = v3f(1,2,3);
 		tempv3f2 = v3f(4,5,6);
-		for(u32 i=0; i<10000000; i++){
+		for(u32 i=0; i<10000000; i++)
+		{
 			tempf += tempv3f1.dotProduct(tempv3f2);
 			tempv3f2 += v3f(7,8,9);
 		}
@@ -903,18 +907,22 @@ void SpeedTests()
 
 	{
 		TimeTaker timer("Testing core::map speed");
-		
+
 		core::map<v2s16, f32> map1;
 		tempf = -324;
 		const s16 ii=300;
-		for(s16 y=0; y<ii; y++){
-			for(s16 x=0; x<ii; x++){
+		for(s16 y=0; y<ii; y++)
+		{
+			for(s16 x=0; x<ii; x++)
+			{
 				map1.insert(v2s16(x,y), tempf);
 				tempf += 1;
 			}
 		}
-		for(s16 y=ii-1; y>=0; y--){
-			for(s16 x=0; x<ii; x++){
+		for(s16 y=ii-1; y>=0; y--)
+		{
+			for(s16 x=0; x<ii; x++)
+			{
 				tempf = map1[v2s16(x,y)];
 			}
 		}
@@ -923,14 +931,16 @@ void SpeedTests()
 	{
 		dstream<<"Around 5000/ms should do well here."<<std::endl;
 		TimeTaker timer("Testing mutex speed");
-		
+
 		JMutex m;
 		m.Init();
 		u32 n = 0;
 		u32 i = 0;
-		do{
+		do
+		{
 			n += 10000;
-			for(; i<n; i++){
+			for(; i<n; i++)
+			{
 				m.Lock();
 				m.Unlock();
 			}
@@ -941,54 +951,54 @@ void SpeedTests()
 		u32 dtime = timer.stop();
 		u32 per_ms = n / dtime;
 		std::cout<<"Done. "<<dtime<<"ms, "
-				<<per_ms<<"/ms"<<std::endl;
+		         <<per_ms<<"/ms"<<std::endl;
 	}
 }
 
 void drawMenuBackground(video::IVideoDriver* driver)
 {
 	core::dimension2d<u32> screensize = driver->getScreenSize();
-		
+
 	video::ITexture *bgtexture =
-			driver->getTexture(getTexturePath("mud.png").c_str());
+	    driver->getTexture(getTexturePath("mud.png").c_str());
 	if(bgtexture)
 	{
 		s32 texturesize = 128;
 		s32 tiled_y = screensize.Height / texturesize + 1;
 		s32 tiled_x = screensize.Width / texturesize + 1;
-		
+
 		for(s32 y=0; y<tiled_y; y++)
-		for(s32 x=0; x<tiled_x; x++)
-		{
-			core::rect<s32> rect(0,0,texturesize,texturesize);
-			rect += v2s32(x*texturesize, y*texturesize);
-			driver->draw2DImage(bgtexture, rect,
-				core::rect<s32>(core::position2d<s32>(0,0),
-				core::dimension2di(bgtexture->getSize())),
-				NULL, NULL, true);
-		}
+			for(s32 x=0; x<tiled_x; x++)
+			{
+				core::rect<s32> rect(0,0,texturesize,texturesize);
+				rect += v2s32(x*texturesize, y*texturesize);
+				driver->draw2DImage(bgtexture, rect,
+				                    core::rect<s32>(core::position2d<s32>(0,0),
+				                                    core::dimension2di(bgtexture->getSize())),
+				                    NULL, NULL, true);
+			}
 	}
-	
+
 	video::ITexture *logotexture =
-			driver->getTexture(getTexturePath("menulogo.png").c_str());
+	    driver->getTexture(getTexturePath("menulogo.png").c_str());
 	if(logotexture)
 	{
 		v2s32 logosize(logotexture->getOriginalSize().Width,
-				logotexture->getOriginalSize().Height);
+		               logotexture->getOriginalSize().Height);
 		logosize *= 4;
 
 		video::SColor bgcolor(255,50,50,50);
 		core::rect<s32> bgrect(0, screensize.Height-logosize.Y-20,
-				screensize.Width, screensize.Height);
+		                       screensize.Width, screensize.Height);
 		driver->draw2DRectangle(bgcolor, bgrect, NULL);
 
 		core::rect<s32> rect(0,0,logosize.X,logosize.Y);
 		rect += v2s32(screensize.Width/2,screensize.Height-10-logosize.Y);
 		rect -= v2s32(logosize.X/2, 0);
 		driver->draw2DImage(logotexture, rect,
-			core::rect<s32>(core::position2d<s32>(0,0),
-			core::dimension2di(logotexture->getSize())),
-			NULL, NULL, true);
+		                    core::rect<s32>(core::position2d<s32>(0,0),
+		                                    core::dimension2di(logotexture->getSize())),
+		                    NULL, NULL, true);
 	}
 }
 
@@ -997,14 +1007,14 @@ int main(int argc, char *argv[])
 	/*
 		Parse command line
 	*/
-	
+
 	// List all allowed options
 	core::map<std::string, ValueSpec> allowed_options;
 	allowed_options.insert("help", ValueSpec(VALUETYPE_FLAG));
 	allowed_options.insert("server", ValueSpec(VALUETYPE_FLAG,
-			"Run server directly"));
+	                       "Run server directly"));
 	allowed_options.insert("config", ValueSpec(VALUETYPE_STRING,
-			"Load configuration from specified file"));
+	                       "Load configuration from specified file"));
 	allowed_options.insert("port", ValueSpec(VALUETYPE_STRING));
 	allowed_options.insert("address", ValueSpec(VALUETYPE_STRING));
 	allowed_options.insert("random-input", ValueSpec(VALUETYPE_FLAG));
@@ -1017,15 +1027,15 @@ int main(int argc, char *argv[])
 	allowed_options.insert("speedtests", ValueSpec(VALUETYPE_FLAG));
 
 	Settings cmd_args;
-	
+
 	bool ret = cmd_args.parseCommandLine(argc, argv, allowed_options);
 
 	if(ret == false || cmd_args.getFlag("help"))
 	{
 		dstream<<"Allowed options:"<<std::endl;
 		for(core::map<std::string, ValueSpec>::Iterator
-				i = allowed_options.getIterator();
-				i.atEnd() == false; i++)
+		        i = allowed_options.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			dstream<<"  --"<<i.getNode()->getKey();
 			if(i.getNode()->getValue().type == VALUETYPE_FLAG)
@@ -1040,13 +1050,13 @@ int main(int argc, char *argv[])
 			if(i.getNode()->getValue().help != NULL)
 			{
 				dstream<<"      "<<i.getNode()->getValue().help
-						<<std::endl;
+				       <<std::endl;
 			}
 		}
 
 		return cmd_args.getFlag("help") ? 0 : 1;
 	}
-	
+
 	/*
 		Low-level initialization
 	*/
@@ -1066,11 +1076,11 @@ int main(int argc, char *argv[])
 
 	porting::signal_handler_init();
 	bool &kill = *porting::signal_handler_killstatus();
-	
+
 	porting::initializePaths();
 	// Create user data directory
 	fs::CreateDir(porting::path_userdata);
-	
+
 	// C-style stuff initialization
 	initializeMaterialProperties();
 
@@ -1079,17 +1089,17 @@ int main(int argc, char *argv[])
 
 	// Print startup message
 	dstream<<DTIME<<"minetest-c55"
-			" with SER_FMT_VER_HIGHEST="<<(int)SER_FMT_VER_HIGHEST
-			<<", "<<BUILD_INFO
-			<<std::endl;
-	
+	       " with SER_FMT_VER_HIGHEST="<<(int)SER_FMT_VER_HIGHEST
+	       <<", "<<BUILD_INFO
+	       <<std::endl;
+
 	/*
 		Basic initialization
 	*/
 
 	// Initialize default settings
 	set_default_settings();
-	
+
 	// Set locale. This is for forcing '.' as the decimal point.
 	std::locale::global(std::locale("C"));
 	// This enables printing all characters in bitmap font
@@ -1098,7 +1108,7 @@ int main(int argc, char *argv[])
 	// Initialize sockets
 	sockets_init();
 	atexit(sockets_cleanup);
-	
+
 	/*
 		Initialization
 	*/
@@ -1106,17 +1116,17 @@ int main(int argc, char *argv[])
 	/*
 		Read config file
 	*/
-	
+
 	// Path of configuration file in use
 	std::string configpath = "";
-	
+
 	if(cmd_args.exists("config"))
 	{
 		bool r = g_settings.readConfigFile(cmd_args.get("config").c_str());
 		if(r == false)
 		{
 			dstream<<"Could not read configuration from \""
-					<<cmd_args.get("config")<<"\""<<std::endl;
+			       <<cmd_args.get("config")<<"\""<<std::endl;
 			return 1;
 		}
 		configpath = cmd_args.get("config");
@@ -1138,7 +1148,7 @@ int main(int argc, char *argv[])
 				break;
 			}
 		}
-		
+
 		// If no path found, use the first one (menu creates the file)
 		if(configpath == "")
 			configpath = filenames[0];
@@ -1153,7 +1163,7 @@ int main(int argc, char *argv[])
 
 		These are needed for unit tests at least.
 	*/
-	
+
 	// Initial call with g_texturesource not set.
 	init_mapnode();
 
@@ -1162,18 +1172,18 @@ int main(int argc, char *argv[])
 	*/
 
 	if((ENABLE_TESTS && cmd_args.getFlag("disable-unittests") == false)
-			|| cmd_args.getFlag("enable-unittests") == true)
+	        || cmd_args.getFlag("enable-unittests") == true)
 	{
 		run_tests();
 	}
-	
+
 	/*for(s16 y=-100; y<100; y++)
 	for(s16 x=-100; x<100; x++)
 	{
 		std::cout<<noise2d_gradient((double)x/10,(double)y/10, 32415)<<std::endl;
 	}
 	return 0;*/
-	
+
 	/*
 		Game parameters
 	*/
@@ -1186,14 +1196,14 @@ int main(int argc, char *argv[])
 		port = g_settings.getU16("port");
 	if(port == 0)
 		port = 30000;
-	
+
 	// Map directory
 	std::string map_dir = porting::path_userdata+"/map";
 	if(cmd_args.exists("map-dir"))
 		map_dir = cmd_args.get("map-dir");
 	else if(g_settings.exists("map-dir"))
 		map_dir = g_settings.get("map-dir");
-	
+
 	// Run dedicated server if asked to
 	if(cmd_args.getFlag("server"))
 	{
@@ -1202,7 +1212,7 @@ int main(int argc, char *argv[])
 		// Create server
 		Server server(map_dir.c_str());
 		server.start(port);
-		
+
 		// Run server
 		dedicated_server_loop(server, kill);
 
@@ -1213,10 +1223,10 @@ int main(int argc, char *argv[])
 	/*
 		More parameters
 	*/
-	
+
 	// Address to connect to
 	std::string address = "";
-	
+
 	if(cmd_args.exists("address"))
 	{
 		address = cmd_args.get("address");
@@ -1225,7 +1235,7 @@ int main(int argc, char *argv[])
 	{
 		address = g_settings.get("address");
 	}
-	
+
 	std::string playername = g_settings.get("name");
 
 	/*
@@ -1233,7 +1243,7 @@ int main(int argc, char *argv[])
 	*/
 
 	// Resolution selection
-	
+
 	bool fullscreen = false;
 	u16 screenW = g_settings.getU16("screenW");
 	u16 screenH = g_settings.getU16("screenH");
@@ -1241,7 +1251,7 @@ int main(int argc, char *argv[])
 	// Determine driver
 
 	video::E_DRIVER_TYPE driverType;
-	
+
 	std::string driverstring = g_settings.get("video_driver");
 
 	if(driverstring == "null")
@@ -1259,7 +1269,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		dstream<<"WARNING: Invalid video_driver specified; defaulting "
-				"to opengl"<<std::endl;
+		       "to opengl"<<std::endl;
 		driverType = video::EDT_OPENGL;
 	}
 
@@ -1271,21 +1281,21 @@ int main(int argc, char *argv[])
 
 	IrrlichtDevice *device;
 	device = createDevice(driverType,
-			core::dimension2d<u32>(screenW, screenH),
-			16, fullscreen, false, false, &receiver);
+	                      core::dimension2d<u32>(screenW, screenH),
+	                      16, fullscreen, false, false, &receiver);
 
 	if (device == 0)
 		return 1; // could not create selected driver.
-	
+
 	// Set device in game parameters
 	device = device;
-	
+
 	// Create time getter
 	g_timegetter = new TimeGetter(device);
-	
+
 	// Create game callback for menus
 	g_gamecallback = new MainGameCallback(device);
-	
+
 	// Create texture source
 	g_texturesource = new TextureSource(device);
 
@@ -1298,17 +1308,17 @@ int main(int argc, char *argv[])
 		SpeedTests();
 		return 0;
 	}
-	
+
 	device->setResizable(true);
 
 	bool random_input = g_settings.getBool("random_input")
-			|| cmd_args.getFlag("random-input");
+	                    || cmd_args.getFlag("random-input");
 	InputHandler *input = NULL;
 	if(random_input)
 		input = new RandomInputHandler();
 	else
 		input = new RealInputHandler(device, &receiver);
-	
+
 	/*
 		Continue initialization
 	*/
@@ -1330,11 +1340,11 @@ int main(int argc, char *argv[])
 		skin->setFont(font);
 	else
 		dstream<<"WARNING: Font file was not found."
-				" Using default font."<<std::endl;
+		       " Using default font."<<std::endl;
 	// If font was not found, this will get us one
 	font = skin->getFont();
 	assert(font);
-	
+
 	u32 text_height = font->getDimension(L"Hello, world!").Height;
 	dstream<<"text_height="<<text_height<<std::endl;
 
@@ -1344,7 +1354,7 @@ int main(int argc, char *argv[])
 	//skin->setColor(gui::EGDC_3D_SHADOW, video::SColor(0,0,0,0));
 	skin->setColor(gui::EGDC_3D_HIGH_LIGHT, video::SColor(255,0,0,0));
 	skin->setColor(gui::EGDC_3D_SHADOW, video::SColor(255,0,0,0));
-	
+
 	/*
 		Preload some textures and stuff
 	*/
@@ -1381,15 +1391,15 @@ int main(int argc, char *argv[])
 				Clear everything from the GUIEnvironment
 			*/
 			guienv->clear();
-			
+
 			/*
 				We need some kind of a root node to be able to add
 				custom gui elements directly on the screen.
 				Otherwise they won't be automatically drawn.
 			*/
 			guiroot = guienv->addStaticText(L"",
-					core::rect<s32>(0, 0, 10000, 10000));
-			
+			                                core::rect<s32>(0, 0, 10000, 10000));
+
 			/*
 				Out-of-game menu loop.
 
@@ -1407,7 +1417,7 @@ int main(int argc, char *argv[])
 				guitext2->setVisible(false);
 				guitext_info->setVisible(false);
 				guitext_chat->setVisible(false);*/
-				
+
 				// Initialize menu data
 				MainMenuData menudata;
 				menudata.address = narrow_to_wide(address);
@@ -1419,24 +1429,24 @@ int main(int argc, char *argv[])
 				menudata.enable_damage = g_settings.getBool("enable_damage");
 
 				GUIMainMenu *menu =
-						new GUIMainMenu(guienv, guiroot, -1, 
-							&g_menumgr, &menudata, g_gamecallback);
+				    new GUIMainMenu(guienv, guiroot, -1,
+				                    &g_menumgr, &menudata, g_gamecallback);
 				menu->allowFocusRemoval(true);
 
 				if(error_message != L"")
 				{
 					dstream<<"WARNING: error_message = "
-							<<wide_to_narrow(error_message)<<std::endl;
+					       <<wide_to_narrow(error_message)<<std::endl;
 
 					GUIMessageMenu *menu2 =
-							new GUIMessageMenu(guienv, guiroot, -1, 
-								&g_menumgr, error_message.c_str());
+					    new GUIMessageMenu(guienv, guiroot, -1,
+					                       &g_menumgr, error_message.c_str());
 					menu2->drop();
 					error_message = L"";
 				}
 
 				video::IVideoDriver* driver = device->getVideoDriver();
-				
+
 				dstream<<"Created main menu"<<std::endl;
 
 				while(device->run() && kill == false)
@@ -1450,22 +1460,22 @@ int main(int argc, char *argv[])
 					drawMenuBackground(driver);
 
 					guienv->drawAll();
-					
+
 					driver->endScene();
-					
+
 					// On some computers framerate doesn't seem to be
 					// automatically limited
 					sleep_ms(25);
 				}
-				
+
 				// Break out of menu-game loop to shut down cleanly
 				if(device->run() == false || kill == true)
 					break;
-				
+
 				dstream<<"Dropping main menu"<<std::endl;
 
 				menu->drop();
-				
+
 				// Delete map if requested
 				if(menudata.delete_map)
 				{
@@ -1487,14 +1497,14 @@ int main(int argc, char *argv[])
 				g_settings.set("smooth_lighting", itos(menudata.smooth_lighting));
 				g_settings.set("creative_mode", itos(menudata.creative_mode));
 				g_settings.set("enable_damage", itos(menudata.enable_damage));
-				
+
 				// Check for valid parameters, restart menu if invalid.
 				if(playername == "")
 				{
 					error_message = L"Name required.";
 					continue;
 				}
-				
+
 				// Save settings
 				g_settings.set("name", playername);
 				g_settings.set("address", address);
@@ -1502,15 +1512,15 @@ int main(int argc, char *argv[])
 				// Update configuration file
 				if(configpath != "")
 					g_settings.updateConfigFile(configpath.c_str());
-			
+
 				// Continue to game
 				break;
 			}
-			
+
 			// Break out of menu-game loop to shut down cleanly
 			if(device->run() == false)
 				break;
-			
+
 			// Initialize mapnode again to enable changed graphics settings
 			init_mapnode();
 
@@ -1518,17 +1528,17 @@ int main(int argc, char *argv[])
 				Run game
 			*/
 			the_game(
-				kill,
-				random_input,
-				input,
-				device,
-				font,
-				map_dir,
-				playername,
-				password,
-				address,
-				port,
-				error_message
+			    kill,
+			    random_input,
+			    input,
+			    device,
+			    font,
+			    map_dir,
+			    playername,
+			    password,
+			    address,
+			    port,
+			    error_message
 			);
 
 		} //try
@@ -1554,18 +1564,18 @@ int main(int argc, char *argv[])
 #endif
 
 	} // Menu-game loop
-	
+
 	delete input;
 
 	/*
 		In the end, delete the Irrlicht device.
 	*/
 	device->drop();
-	
+
 	END_DEBUG_EXCEPTION_HANDLER
-	
+
 	debugstreams_deinit();
-	
+
 	return 0;
 }
 

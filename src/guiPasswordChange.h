@@ -31,11 +31,11 @@ class GUIPasswordChange : public GUIModalMenu
 {
 public:
 	GUIPasswordChange(gui::IGUIEnvironment* env,
-			gui::IGUIElement* parent, s32 id,
-			IMenuManager *menumgr,
-			Client* client);
+	                  gui::IGUIElement* parent, s32 id,
+	                  IMenuManager *menumgr,
+	                  Client* client);
 	~GUIPasswordChange();
-	
+
 	void removeChildren();
 	/*
 		Remove and re-add (or reposition) stuff
@@ -47,7 +47,7 @@ public:
 	bool acceptInput();
 
 	bool OnEvent(const SEvent& event);
-	
+
 private:
 	Client* m_client;
 

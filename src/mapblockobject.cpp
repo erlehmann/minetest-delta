@@ -35,7 +35,7 @@ v3f MapBlockObject::getAbsolutePos()
 {
 	if(m_block == NULL)
 		return m_pos;
-	
+
 	// getPosRelative gets nodepos relative to map origin
 	v3f blockpos = intToFloat(m_block->getPosRelative(), BS);
 	return blockpos + m_pos;
@@ -55,7 +55,7 @@ v3f MovingObject::getAbsoluteShowPos()
 {
 	if(m_block == NULL)
 		return m_pos;
-	
+
 	// getPosRelative gets nodepos relative to map origin
 	v3f blockpos = intToFloat(m_block->getPosRelative(), BS);
 	return blockpos + m_showpos;
@@ -64,17 +64,17 @@ v3f MovingObject::getAbsoluteShowPos()
 void MovingObject::move(float dtime, v3f acceleration)
 {
 	DSTACKF("%s: typeid=%i, pos=(%f,%f,%f), speed=(%f,%f,%f)"
-			", dtime=%f, acc=(%f,%f,%f)",
-			__FUNCTION_NAME,
-			getTypeId(),
-			m_pos.X, m_pos.Y, m_pos.Z,
-			m_speed.X, m_speed.Y, m_speed.Z,
-			dtime,
-			acceleration.X, acceleration.Y, acceleration.Z
-			);
-	
+	        ", dtime=%f, acc=(%f,%f,%f)",
+	        __FUNCTION_NAME,
+	        getTypeId(),
+	        m_pos.X, m_pos.Y, m_pos.Z,
+	        m_speed.X, m_speed.Y, m_speed.Z,
+	        dtime,
+	        acceleration.X, acceleration.Y, acceleration.Z
+	       );
+
 	v3s16 oldpos_i = floatToInt(m_pos, BS);
-	
+
 	if(m_block->isValidPosition(oldpos_i) == false)
 	{
 		// Should have wrapped, cancelling further movement.
@@ -88,12 +88,12 @@ void MovingObject::move(float dtime, v3f acceleration)
 		m_pos += m_speed * dtime;
 		return;
 	}
-	
+
 	// Set insane speed to zero
 	// Otherwise there will be divides by zero and other silly stuff
 	if(m_speed.getLength() > 1000.0*BS)
 		m_speed = v3f(0,0,0);
-		
+
 	// Limit speed to a reasonable value
 	float speed_limit = 20.0*BS;
 	if(m_speed.getLength() > speed_limit)
@@ -115,9 +115,9 @@ void MovingObject::move(float dtime, v3f acceleration)
 		dtime_max_increment = 0.05*BS / speedlength;
 	else
 		dtime_max_increment = 0.5;
-	
+
 	m_touching_ground = false;
-		
+
 	u32 loopcount = 0;
 	do
 	{
@@ -131,109 +131,112 @@ void MovingObject::move(float dtime, v3f acceleration)
 		dtime -= dtime_part;
 
 		// Begin of dtime limited code
-		
+
 		m_speed += acceleration * dtime_part;
 		position += m_speed * dtime_part;
 
 		/*
 			Collision detection
 		*/
-		
+
 		v3s16 pos_i = floatToInt(position, BS);
-		
+
 		// The loop length is limited to the object moving a distance
 		f32 d = (float)BS * 0.15;
 
 		core::aabbox3d<f32> objectbox(
-				m_collision_box->MinEdge + position,
-				m_collision_box->MaxEdge + position
+		    m_collision_box->MinEdge + position,
+		    m_collision_box->MaxEdge + position
 		);
-		
+
 		core::aabbox3d<f32> objectbox_old(
-				m_collision_box->MinEdge + oldpos,
-				m_collision_box->MaxEdge + oldpos
+		    m_collision_box->MinEdge + oldpos,
+		    m_collision_box->MaxEdge + oldpos
 		);
-		
+
 		//TODO: Get these ranges from somewhere
 		for(s16 y = oldpos_i.Y - 1; y <= oldpos_i.Y + 2; y++)
-		for(s16 z = oldpos_i.Z - 1; z <= oldpos_i.Z + 1; z++)
-		for(s16 x = oldpos_i.X - 1; x <= oldpos_i.X + 1; x++)
-		{
-			try{
-				if(content_walkable(m_block->getNodeParent(v3s16(x,y,z)).d)
-						== false)
-					continue;
-			}
-			catch(InvalidPositionException &e)
-			{
-				// Doing nothing here will block the object from
-				// walking over map borders
-			}
-
-			core::aabbox3d<f32> nodebox = getNodeBox(v3s16(x,y,z), BS);
-			
-			// See if the object is touching ground
-			if(
-					fabs(nodebox.MaxEdge.Y-objectbox.MinEdge.Y) < d
-					&& nodebox.MaxEdge.X-d > objectbox.MinEdge.X
-					&& nodebox.MinEdge.X+d < objectbox.MaxEdge.X
-					&& nodebox.MaxEdge.Z-d > objectbox.MinEdge.Z
-					&& nodebox.MinEdge.Z+d < objectbox.MaxEdge.Z
-			){
-				m_touching_ground = true;
-			}
-			
-			if(objectbox.intersectsWithBox(nodebox))
-			{
-					
-		v3f dirs[3] = {
-			v3f(0,0,1), // back
-			v3f(0,1,0), // top
-			v3f(1,0,0), // right
-		};
-		for(u16 i=0; i<3; i++)
-		{
-			f32 nodemax = nodebox.MaxEdge.dotProduct(dirs[i]);
-			f32 nodemin = nodebox.MinEdge.dotProduct(dirs[i]);
-			f32 playermax = objectbox.MaxEdge.dotProduct(dirs[i]);
-			f32 playermin = objectbox.MinEdge.dotProduct(dirs[i]);
-			f32 playermax_old = objectbox_old.MaxEdge.dotProduct(dirs[i]);
-			f32 playermin_old = objectbox_old.MinEdge.dotProduct(dirs[i]);
-
-			bool main_edge_collides = 
-				((nodemax > playermin && nodemax <= playermin_old + d
-					&& m_speed.dotProduct(dirs[i]) < 0)
-				||
-				(nodemin < playermax && nodemin >= playermax_old - d
-					&& m_speed.dotProduct(dirs[i]) > 0));
-
-			bool other_edges_collide = true;
-			for(u16 j=0; j<3; j++)
-			{
-				if(j == i)
-					continue;
-				f32 nodemax = nodebox.MaxEdge.dotProduct(dirs[j]);
-				f32 nodemin = nodebox.MinEdge.dotProduct(dirs[j]);
-				f32 playermax = objectbox.MaxEdge.dotProduct(dirs[j]);
-				f32 playermin = objectbox.MinEdge.dotProduct(dirs[j]);
-				if(!(nodemax - d > playermin && nodemin + d < playermax))
+			for(s16 z = oldpos_i.Z - 1; z <= oldpos_i.Z + 1; z++)
+				for(s16 x = oldpos_i.X - 1; x <= oldpos_i.X + 1; x++)
 				{
-					other_edges_collide = false;
-					break;
-				}
-			}
-			
-			if(main_edge_collides && other_edges_collide)
-			{
-				m_speed -= m_speed.dotProduct(dirs[i]) * dirs[i];
-				position -= position.dotProduct(dirs[i]) * dirs[i];
-				position += oldpos.dotProduct(dirs[i]) * dirs[i];
-			}
-		
-		}
-		
-			} // if(objectbox.intersectsWithBox(nodebox))
-		} // for y
+					try
+					{
+						if(content_walkable(m_block->getNodeParent(v3s16(x,y,z)).d)
+						        == false)
+							continue;
+					}
+					catch(InvalidPositionException &e)
+					{
+						// Doing nothing here will block the object from
+						// walking over map borders
+					}
+
+					core::aabbox3d<f32> nodebox = getNodeBox(v3s16(x,y,z), BS);
+
+					// See if the object is touching ground
+					if(
+					    fabs(nodebox.MaxEdge.Y-objectbox.MinEdge.Y) < d
+					    && nodebox.MaxEdge.X-d > objectbox.MinEdge.X
+					    && nodebox.MinEdge.X+d < objectbox.MaxEdge.X
+					    && nodebox.MaxEdge.Z-d > objectbox.MinEdge.Z
+					    && nodebox.MinEdge.Z+d < objectbox.MaxEdge.Z
+					)
+					{
+						m_touching_ground = true;
+					}
+
+					if(objectbox.intersectsWithBox(nodebox))
+					{
+
+						v3f dirs[3] =
+						{
+							v3f(0,0,1), // back
+							v3f(0,1,0), // top
+							v3f(1,0,0), // right
+						};
+						for(u16 i=0; i<3; i++)
+						{
+							f32 nodemax = nodebox.MaxEdge.dotProduct(dirs[i]);
+							f32 nodemin = nodebox.MinEdge.dotProduct(dirs[i]);
+							f32 playermax = objectbox.MaxEdge.dotProduct(dirs[i]);
+							f32 playermin = objectbox.MinEdge.dotProduct(dirs[i]);
+							f32 playermax_old = objectbox_old.MaxEdge.dotProduct(dirs[i]);
+							f32 playermin_old = objectbox_old.MinEdge.dotProduct(dirs[i]);
+
+							bool main_edge_collides =
+							    ((nodemax > playermin && nodemax <= playermin_old + d
+							      && m_speed.dotProduct(dirs[i]) < 0)
+							     ||
+							     (nodemin < playermax && nodemin >= playermax_old - d
+							      && m_speed.dotProduct(dirs[i]) > 0));
+
+							bool other_edges_collide = true;
+							for(u16 j=0; j<3; j++)
+							{
+								if(j == i)
+									continue;
+								f32 nodemax = nodebox.MaxEdge.dotProduct(dirs[j]);
+								f32 nodemin = nodebox.MinEdge.dotProduct(dirs[j]);
+								f32 playermax = objectbox.MaxEdge.dotProduct(dirs[j]);
+								f32 playermin = objectbox.MinEdge.dotProduct(dirs[j]);
+								if(!(nodemax - d > playermin && nodemin + d < playermax))
+								{
+									other_edges_collide = false;
+									break;
+								}
+							}
+
+							if(main_edge_collides && other_edges_collide)
+							{
+								m_speed -= m_speed.dotProduct(dirs[i]) * dirs[i];
+								position -= position.dotProduct(dirs[i]) * dirs[i];
+								position += oldpos.dotProduct(dirs[i]) * dirs[i];
+							}
+
+						}
+
+					} // if(objectbox.intersectsWithBox(nodebox))
+				} // for y
 
 	} // End of dtime limited loop
 	while(dtime > 0.001);
@@ -264,9 +267,9 @@ void RatObject::addToScene(scene::ISceneManager *smgr)
 {
 	if(m_node != NULL)
 		return;
-	
+
 	video::IVideoDriver* driver = smgr->getVideoDriver();
-	
+
 	scene::SMesh *mesh = new scene::SMesh();
 	scene::IMeshBuffer *buf = new scene::SMeshBuffer();
 	video::SColor c(255,255,255,255);
@@ -283,7 +286,7 @@ void RatObject::addToScene(scene::ISceneManager *smgr)
 	buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
 	buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
 	buf->getMaterial().setTexture
-			(0, driver->getTexture(getTexturePath("rat.png").c_str()));
+	(0, driver->getTexture(getTexturePath("rat.png").c_str()));
 	buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
 	buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
 	buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
@@ -304,9 +307,9 @@ void ItemObject::addToScene(scene::ISceneManager *smgr)
 {
 	if(m_node != NULL)
 		return;
-	
+
 	//video::IVideoDriver* driver = smgr->getVideoDriver();
-	
+
 	// Get image of item for showing
 	video::ITexture *texture = getItemImage();
 
@@ -316,31 +319,31 @@ void ItemObject::addToScene(scene::ISceneManager *smgr)
 
 	scene::SMesh *mesh = new scene::SMesh();
 	{
-	scene::IMeshBuffer *buf = new scene::SMeshBuffer();
-	video::SColor c(255,255,255,255);
-	video::S3DVertex vertices[4] =
-	{
-		/*video::S3DVertex(BS/2,-BS/2,0, 0,0,0, c, 0,1),
-		video::S3DVertex(-BS/2,-BS/2,0, 0,0,0, c, 1,1),
-		video::S3DVertex(-BS/2,BS/2,0, 0,0,0, c, 1,0),
-		video::S3DVertex(BS/2,BS/2,0, 0,0,0, c, 0,0),*/
-		video::S3DVertex(BS/3,-BS/2,0, 0,0,0, c, 0,1),
-		video::S3DVertex(-BS/3,-BS/2,0, 0,0,0, c, 1,1),
-		video::S3DVertex(-BS/3,-BS/2+BS*2/3,0, 0,0,0, c, 1,0),
-		video::S3DVertex(BS/3,-BS/2+BS*2/3,0, 0,0,0, c, 0,0),
-	};
-	u16 indices[] = {0,1,2,2,3,0};
-	buf->append(vertices, 4, indices, 6);
-	// Set material
-	buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
-	buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
-	buf->getMaterial().setTexture(0, texture);
-	buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
-	buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
-	buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
-	// Add to mesh
-	mesh->addMeshBuffer(buf);
-	buf->drop();
+		scene::IMeshBuffer *buf = new scene::SMeshBuffer();
+		video::SColor c(255,255,255,255);
+		video::S3DVertex vertices[4] =
+		{
+			/*video::S3DVertex(BS/2,-BS/2,0, 0,0,0, c, 0,1),
+			video::S3DVertex(-BS/2,-BS/2,0, 0,0,0, c, 1,1),
+			video::S3DVertex(-BS/2,BS/2,0, 0,0,0, c, 1,0),
+			video::S3DVertex(BS/2,BS/2,0, 0,0,0, c, 0,0),*/
+			video::S3DVertex(BS/3,-BS/2,0, 0,0,0, c, 0,1),
+			video::S3DVertex(-BS/3,-BS/2,0, 0,0,0, c, 1,1),
+			video::S3DVertex(-BS/3,-BS/2+BS*2/3,0, 0,0,0, c, 1,0),
+			video::S3DVertex(BS/3,-BS/2+BS*2/3,0, 0,0,0, c, 0,0),
+		};
+		u16 indices[] = {0,1,2,2,3,0};
+		buf->append(vertices, 4, indices, 6);
+		// Set material
+		buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
+		buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
+		buf->getMaterial().setTexture(0, texture);
+		buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
+		buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
+		buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+		// Add to mesh
+		mesh->addMeshBuffer(buf);
+		buf->drop();
 	}
 	m_node = smgr->addMeshSceneNode(mesh, NULL);
 	// Set it to use the materials of the meshbuffers directly.
@@ -369,18 +372,19 @@ video::ITexture * ItemObject::getItemImage()
 
 InventoryItem * ItemObject::createInventoryItem()
 {
-	try{
+	try
+	{
 		std::istringstream is(m_itemstring, std::ios_base::binary);
 		InventoryItem *item = InventoryItem::deSerialize(is);
 		dstream<<__FUNCTION_NAME<<": m_itemstring=\""
-				<<m_itemstring<<"\" -> item="<<item
-				<<std::endl;
+		       <<m_itemstring<<"\" -> item="<<item
+		       <<std::endl;
 		return item;
 	}
 	catch(SerializationError &e)
 	{
 		dstream<<__FUNCTION_NAME<<": serialization error: "
-				<<"m_itemstring=\""<<m_itemstring<<"\""<<std::endl;
+		       <<"m_itemstring=\""<<m_itemstring<<"\""<<std::endl;
 		return NULL;
 	}
 }
@@ -393,59 +397,61 @@ void PlayerObject::addToScene(scene::ISceneManager *smgr)
 {
 	if(m_node != NULL)
 		return;
-	
+
 	video::IVideoDriver* driver = smgr->getVideoDriver();
 
 	// Attach a simple mesh to the player for showing an image
 	scene::SMesh *mesh = new scene::SMesh();
-	{ // Front
-	scene::IMeshBuffer *buf = new scene::SMeshBuffer();
-	video::SColor c(255,255,255,255);
-	video::S3DVertex vertices[4] =
 	{
-		video::S3DVertex(-BS/2,0,0, 0,0,0, c, 0,1),
-		video::S3DVertex(BS/2,0,0, 0,0,0, c, 1,1),
-		video::S3DVertex(BS/2,BS*2,0, 0,0,0, c, 1,0),
-		video::S3DVertex(-BS/2,BS*2,0, 0,0,0, c, 0,0),
-	};
-	u16 indices[] = {0,1,2,2,3,0};
-	buf->append(vertices, 4, indices, 6);
-	// Set material
-	buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
-	//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
-	buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player.png").c_str()));
-	buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
-	buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
-	//buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
-	buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
-	// Add to mesh
-	mesh->addMeshBuffer(buf);
-	buf->drop();
+		// Front
+		scene::IMeshBuffer *buf = new scene::SMeshBuffer();
+		video::SColor c(255,255,255,255);
+		video::S3DVertex vertices[4] =
+		{
+			video::S3DVertex(-BS/2,0,0, 0,0,0, c, 0,1),
+			video::S3DVertex(BS/2,0,0, 0,0,0, c, 1,1),
+			video::S3DVertex(BS/2,BS*2,0, 0,0,0, c, 1,0),
+			video::S3DVertex(-BS/2,BS*2,0, 0,0,0, c, 0,0),
+		};
+		u16 indices[] = {0,1,2,2,3,0};
+		buf->append(vertices, 4, indices, 6);
+		// Set material
+		buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
+		//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
+		buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player.png").c_str()));
+		buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
+		buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
+		//buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
+		buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+		// Add to mesh
+		mesh->addMeshBuffer(buf);
+		buf->drop();
 	}
-	{ // Back
-	scene::IMeshBuffer *buf = new scene::SMeshBuffer();
-	video::SColor c(255,255,255,255);
-	video::S3DVertex vertices[4] =
 	{
-		video::S3DVertex(BS/2,0,0, 0,0,0, c, 1,1),
-		video::S3DVertex(-BS/2,0,0, 0,0,0, c, 0,1),
-		video::S3DVertex(-BS/2,BS*2,0, 0,0,0, c, 0,0),
-		video::S3DVertex(BS/2,BS*2,0, 0,0,0, c, 1,0),
-	};
-	u16 indices[] = {0,1,2,2,3,0};
-	buf->append(vertices, 4, indices, 6);
-	// Set material
-	buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
-	//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
-	buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player_back.png").c_str()));
-	buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
-	buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
-	buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
-	// Add to mesh
-	mesh->addMeshBuffer(buf);
-	buf->drop();
+		// Back
+		scene::IMeshBuffer *buf = new scene::SMeshBuffer();
+		video::SColor c(255,255,255,255);
+		video::S3DVertex vertices[4] =
+		{
+			video::S3DVertex(BS/2,0,0, 0,0,0, c, 1,1),
+			video::S3DVertex(-BS/2,0,0, 0,0,0, c, 0,1),
+			video::S3DVertex(-BS/2,BS*2,0, 0,0,0, c, 0,0),
+			video::S3DVertex(BS/2,BS*2,0, 0,0,0, c, 1,0),
+		};
+		u16 indices[] = {0,1,2,2,3,0};
+		buf->append(vertices, 4, indices, 6);
+		// Set material
+		buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
+		//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
+		buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player_back.png").c_str()));
+		buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
+		buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
+		buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+		// Add to mesh
+		mesh->addMeshBuffer(buf);
+		buf->drop();
 	}
-	
+
 	m_node = smgr->addMeshSceneNode(mesh, NULL);
 	mesh->drop();
 	updateNodePos();
@@ -482,15 +488,15 @@ void MapBlockObjectList::serialize(std::ostream &os, u8 version)
 	os.write((char*)buf, 2);
 
 	for(core::map<s16, MapBlockObject*>::Iterator
-			i = m_objects.getIterator();
-			i.atEnd() == false; i++)
+	        i = m_objects.getIterator();
+	        i.atEnd() == false; i++)
 	{
 		i.getNode()->getValue()->serialize(os, version);
 	}
 }
 
 void MapBlockObjectList::update(std::istream &is, u8 version,
-		scene::ISceneManager *smgr, u32 daynight_ratio)
+                                scene::ISceneManager *smgr, u32 daynight_ratio)
 {
 	JMutexAutoLock lock(m_mutex);
 
@@ -503,14 +509,14 @@ void MapBlockObjectList::update(std::istream &is, u8 version,
 	*/
 	core::map<s16, bool> ids_to_delete;
 	for(core::map<s16, MapBlockObject*>::Iterator
-			i = m_objects.getIterator();
-			i.atEnd() == false; i++)
+	        i = m_objects.getIterator();
+	        i.atEnd() == false; i++)
 	{
 		ids_to_delete.insert(i.getNode()->getKey(), true);
 	}
-	
+
 	u8 buf[6];
-	
+
 	is.read((char*)buf, 2);
 	u16 count = readU16(buf);
 
@@ -519,19 +525,19 @@ void MapBlockObjectList::update(std::istream &is, u8 version,
 		// Read id
 		is.read((char*)buf, 2);
 		s16 id = readS16(buf);
-		
+
 		// Read position
 		// stored as x1000/BS v3s16
 		is.read((char*)buf, 6);
 		v3s16 pos_i = readV3S16(buf);
 		v3f pos((f32)pos_i.X/1000*BS,
-				(f32)pos_i.Y/1000*BS,
-				(f32)pos_i.Z/1000*BS);
+		        (f32)pos_i.Y/1000*BS,
+		        (f32)pos_i.Z/1000*BS);
 
 		// Read typeId
 		is.read((char*)buf, 2);
 		u16 type_id = readU16(buf);
-		
+
 		bool create_new = false;
 
 		// Find an object with the id
@@ -603,16 +609,17 @@ void MapBlockObjectList::update(std::istream &is, u8 version,
 
 		// Now there is an object in obj.
 		// Update it.
-		
+
 		obj->update(is, version);
-		
+
 		/*
 			Update light on client
 		*/
 		if(smgr != NULL)
 		{
 			u8 light = LIGHT_MAX;
-			try{
+			try
+			{
 				v3s16 relpos_i = floatToInt(obj->m_pos, BS);
 				MapNode n = m_block->getNodeParent(relpos_i);
 				light = n.getLightBlend(daynight_ratio);
@@ -620,7 +627,7 @@ void MapBlockObjectList::update(std::istream &is, u8 version,
 			catch(InvalidPositionException &e) {}
 			obj->updateLight(light);
 		}
-		
+
 		// Remove from deletion list
 		if(ids_to_delete.find(id) != NULL)
 			ids_to_delete.remove(id);
@@ -628,8 +635,8 @@ void MapBlockObjectList::update(std::istream &is, u8 version,
 
 	// Delete all objects whose ids_to_delete remain in ids_to_delete
 	for(core::map<s16, bool>::Iterator
-			i = ids_to_delete.getIterator();
-			i.atEnd() == false; i++)
+	        i = ids_to_delete.getIterator();
+	        i.atEnd() == false; i++)
 	{
 		s16 id = i.getNode()->getKey();
 
@@ -655,13 +662,13 @@ s16 MapBlockObjectList::getFreeId() throw(ContainerFullException)
 			return id;
 		if(id == 32767)
 			throw ContainerFullException
-					("MapBlockObjectList doesn't fit more objects");
+			("MapBlockObjectList doesn't fit more objects");
 		id++;
 	}
 }
 
 void MapBlockObjectList::add(MapBlockObject *object)
-		throw(ContainerFullException, AlreadyExistsException)
+throw(ContainerFullException, AlreadyExistsException)
 {
 	if(object == NULL)
 	{
@@ -680,13 +687,13 @@ void MapBlockObjectList::add(MapBlockObject *object)
 	if(m_objects.find(object->m_id) != NULL)
 	{
 		dstream<<"MapBlockObjectList::add(): "
-				"object with same id already exists"<<std::endl;
+		       "object with same id already exists"<<std::endl;
 		throw AlreadyExistsException
-				("MapBlockObjectList already has given id");
+		("MapBlockObjectList already has given id");
 	}
-	
+
 	object->m_block = m_block;
-	
+
 	/*v3f p = object->m_pos;
 	dstream<<"MapBlockObjectList::add(): "
 			<<"m_block->getPos()=("
@@ -697,7 +704,7 @@ void MapBlockObjectList::add(MapBlockObject *object)
 			<<" pos="
 			<<"("<<p.X<<","<<p.Y<<","<<p.Z<<")"
 			<<std::endl;*/
-	
+
 	m_objects.insert(object->m_id, object);
 }
 
@@ -706,8 +713,8 @@ void MapBlockObjectList::clear()
 	JMutexAutoLock lock(m_mutex);
 
 	for(core::map<s16, MapBlockObject*>::Iterator
-			i = m_objects.getIterator();
-			i.atEnd() == false; i++)
+	        i = m_objects.getIterator();
+	        i.atEnd() == false; i++)
 	{
 		MapBlockObject *obj = i.getNode()->getValue();
 		//FIXME: This really shouldn't be NULL at any time,
@@ -730,7 +737,7 @@ void MapBlockObjectList::remove(s16 id)
 	n = m_objects.find(id);
 	if(n == NULL)
 		return;
-	
+
 	n->getValue()->removeFromScene();
 	delete n->getValue();
 	m_objects.remove(id);
@@ -749,35 +756,36 @@ MapBlockObject * MapBlockObjectList::get(s16 id)
 void MapBlockObjectList::step(float dtime, bool server, u32 daynight_ratio)
 {
 	DSTACK(__FUNCTION_NAME);
-	
+
 	JMutexAutoLock lock(m_mutex);
-	
+
 	core::map<s16, bool> ids_to_delete;
 
 	{
 		DSTACKF("%s: stepping objects", __FUNCTION_NAME);
 
 		for(core::map<s16, MapBlockObject*>::Iterator
-				i = m_objects.getIterator();
-				i.atEnd() == false; i++)
+		        i = m_objects.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			MapBlockObject *obj = i.getNode()->getValue();
-			
+
 			DSTACKF("%s: stepping object type %i", __FUNCTION_NAME,
-					obj->getTypeId());
+			        obj->getTypeId());
 
 			if(server)
 			{
 				// Update light
 				u8 light = LIGHT_MAX;
-				try{
+				try
+				{
 					v3s16 relpos_i = floatToInt(obj->m_pos, BS);
 					MapNode n = m_block->getNodeParent(relpos_i);
 					light = n.getLightBlend(daynight_ratio);
 				}
 				catch(InvalidPositionException &e) {}
 				obj->updateLight(light);
-				
+
 				bool to_delete = obj->serverStep(dtime, daynight_ratio);
 
 				if(to_delete)
@@ -795,8 +803,8 @@ void MapBlockObjectList::step(float dtime, bool server, u32 daynight_ratio)
 
 		// Delete objects in delete queue
 		for(core::map<s16, bool>::Iterator
-				i = ids_to_delete.getIterator();
-				i.atEnd() == false; i++)
+		        i = ids_to_delete.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			s16 id = i.getNode()->getKey();
 
@@ -806,20 +814,20 @@ void MapBlockObjectList::step(float dtime, bool server, u32 daynight_ratio)
 			m_objects.remove(id);
 		}
 	}
-	
+
 	/*
 		Wrap objects on server
 	*/
 
 	if(server == false)
 		return;
-	
+
 	{
 		DSTACKF("%s: object wrap loop", __FUNCTION_NAME);
 
 		for(core::map<s16, MapBlockObject*>::Iterator
-				i = m_objects.getIterator();
-				i.atEnd() == false; i++)
+		        i = m_objects.getIterator();
+		        i.atEnd() == false; i++)
 		{
 			MapBlockObject *obj = i.getNode()->getValue();
 
@@ -848,7 +856,7 @@ void MapBlockObjectList::step(float dtime, bool server, u32 daynight_ratio)
 bool MapBlockObjectList::wrapObject(MapBlockObject *object)
 {
 	DSTACK(__FUNCTION_NAME);
-	
+
 	// No lock here; this is called so that the lock is already locked.
 	//JMutexAutoLock lock(m_mutex);
 
@@ -861,12 +869,12 @@ bool MapBlockObjectList::wrapObject(MapBlockObject *object)
 	if(parentcontainer->nodeContainerId() != NODECONTAINER_ID_MAP)
 	{
 		dstream<<"WARNING: Wrapping object not possible: "
-				"MapBlock's parent is not map"<<std::endl;
+		       "MapBlock's parent is not map"<<std::endl;
 		return true;
 	}
 	// OK, we have the map!
 	Map *map = (Map*)parentcontainer;
-	
+
 	// Calculate blockpos on map
 	v3s16 oldblock_pos_i_on_map = m_block->getPosRelative();
 	v3f pos_f_on_oldblock = object->m_pos;
@@ -876,7 +884,8 @@ bool MapBlockObjectList::wrapObject(MapBlockObject *object)
 
 	// Get new block
 	MapBlock *newblock;
-	try{
+	try
+	{
 		newblock = map->getBlockNoCreate(pos_blocks_on_map);
 	}
 	catch(InvalidPositionException &e)
@@ -899,20 +908,20 @@ bool MapBlockObjectList::wrapObject(MapBlockObject *object)
 	if(newblock == m_block)
 	{
 		dstream<<"WARNING: Wrapping object not possible: "
-				"newblock == oldblock"<<std::endl;
+		       "newblock == oldblock"<<std::endl;
 		return true;
 	}
-	
+
 	// Calculate position on new block
 	v3f oldblock_pos_f_on_map = intToFloat(oldblock_pos_i_on_map, BS);
 	v3s16 newblock_pos_i_on_map = newblock->getPosRelative();
 	v3f newblock_pos_f_on_map = intToFloat(newblock_pos_i_on_map, BS);
 	v3f pos_f_on_newblock = pos_f_on_oldblock
-			- newblock_pos_f_on_map + oldblock_pos_f_on_map;
+	                        - newblock_pos_f_on_map + oldblock_pos_f_on_map;
 
 	// Remove object from this block
 	m_objects.remove(object->m_id);
-	
+
 	// Add object to new block
 	object->m_pos = pos_f_on_newblock;
 	object->m_id = -1;
@@ -925,11 +934,11 @@ bool MapBlockObjectList::wrapObject(MapBlockObject *object)
 }
 
 void MapBlockObjectList::getObjects(v3f origin, f32 max_d,
-		core::array<DistanceSortedObject> &dest)
+                                    core::array<DistanceSortedObject> &dest)
 {
 	for(core::map<s16, MapBlockObject*>::Iterator
-			i = m_objects.getIterator();
-			i.atEnd() == false; i++)
+	        i = m_objects.getIterator();
+	        i.atEnd() == false; i++)
 	{
 		MapBlockObject *obj = i.getNode()->getValue();
 

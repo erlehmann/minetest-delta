@@ -57,7 +57,7 @@ u64 stringToPrivs(std::wstring str)
 	std::vector<std::wstring> pr;
 	pr=str_split(str, ',');
 	for(std::vector<std::wstring>::iterator i = pr.begin();
-		i != pr.end(); ++i)
+	        i != pr.end(); ++i)
 	{
 		if(*i == L"build")
 			privs |= PRIV_BUILD;
@@ -116,7 +116,7 @@ void Player::accelerate(v3f target_speed, f32 max_increase)
 	f32 dl = dl_wanted;
 	if(dl > max_increase)
 		dl = max_increase;
-	
+
 	v3f d = d_wanted.normalize() * dl;
 
 	m_speed.X += d.X;
@@ -168,12 +168,12 @@ void Player::serialize(std::ostream &os)
 void Player::deSerialize(std::istream &is)
 {
 	Settings args;
-	
+
 	for(;;)
 	{
 		if(is.eof())
 			throw SerializationError
-					("Player::deSerialize(): PlayerArgsEnd not found");
+			("Player::deSerialize(): PlayerArgsEnd not found");
 		std::string line;
 		std::getline(is, line);
 		std::string trimmedline = trim(line);
@@ -192,17 +192,24 @@ void Player::deSerialize(std::istream &is)
 	m_pitch = args.getFloat("pitch");
 	m_yaw = args.getFloat("yaw");
 	m_position = args.getV3F("position");
-	try{
+	try
+	{
 		craftresult_is_preview = args.getBool("craftresult_is_preview");
-	}catch(SettingNotFoundException &e){
+	}
+	catch(SettingNotFoundException &e)
+	{
 		craftresult_is_preview = true;
 	}
-	try{
+	try
+	{
 		hp = args.getS32("hp");
-	}catch(SettingNotFoundException &e){
+	}
+	catch(SettingNotFoundException &e)
+	{
 		hp = 20;
 	}
-	try{
+	try
+	{
 		std::string sprivs = args.get("privs");
 		if(sprivs == "all")
 		{
@@ -213,7 +220,9 @@ void Player::deSerialize(std::istream &is)
 			std::istringstream ss(sprivs);
 			ss>>privs;
 		}
-	}catch(SettingNotFoundException &e){
+	}
+	catch(SettingNotFoundException &e)
+	{
 		privs = PRIV_DEFAULT;
 	}
 
@@ -227,9 +236,9 @@ void Player::deSerialize(std::istream &is)
 #ifndef SERVER
 
 RemotePlayer::RemotePlayer(
-		scene::ISceneNode* parent,
-		IrrlichtDevice *device,
-		s32 id):
+    scene::ISceneNode* parent,
+    IrrlichtDevice *device,
+    s32 id):
 	scene::ISceneNode(parent, (device==NULL)?NULL:device->getSceneManager(), id),
 	m_text(NULL)
 {
@@ -245,57 +254,59 @@ RemotePlayer::RemotePlayer(
 		// Add a text node for showing the name
 		wchar_t wname[1] = {0};
 		m_text = mgr->addTextSceneNode(gui->getBuiltInFont(),
-				wname, video::SColor(255,255,255,255), this);
+		                               wname, video::SColor(255,255,255,255), this);
 		m_text->setPosition(v3f(0, (f32)BS*2.1, 0));
 
 		// Attach a simple mesh to the player for showing an image
 		scene::SMesh *mesh = new scene::SMesh();
-		{ // Front
-		scene::IMeshBuffer *buf = new scene::SMeshBuffer();
-		video::SColor c(255,255,255,255);
-		video::S3DVertex vertices[4] =
 		{
-			video::S3DVertex(-BS/2,0,0, 0,0,0, c, 0,1),
-			video::S3DVertex(BS/2,0,0, 0,0,0, c, 1,1),
-			video::S3DVertex(BS/2,BS*2,0, 0,0,0, c, 1,0),
-			video::S3DVertex(-BS/2,BS*2,0, 0,0,0, c, 0,0),
-		};
-		u16 indices[] = {0,1,2,2,3,0};
-		buf->append(vertices, 4, indices, 6);
-		// Set material
-		buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
-		//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
-		buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player.png").c_str()));
-		buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
-		buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
-		//buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
-		buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
-		// Add to mesh
-		mesh->addMeshBuffer(buf);
-		buf->drop();
+			// Front
+			scene::IMeshBuffer *buf = new scene::SMeshBuffer();
+			video::SColor c(255,255,255,255);
+			video::S3DVertex vertices[4] =
+			{
+				video::S3DVertex(-BS/2,0,0, 0,0,0, c, 0,1),
+				video::S3DVertex(BS/2,0,0, 0,0,0, c, 1,1),
+				video::S3DVertex(BS/2,BS*2,0, 0,0,0, c, 1,0),
+				video::S3DVertex(-BS/2,BS*2,0, 0,0,0, c, 0,0),
+			};
+			u16 indices[] = {0,1,2,2,3,0};
+			buf->append(vertices, 4, indices, 6);
+			// Set material
+			buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
+			//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
+			buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player.png").c_str()));
+			buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
+			buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
+			//buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
+			buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+			// Add to mesh
+			mesh->addMeshBuffer(buf);
+			buf->drop();
 		}
-		{ // Back
-		scene::IMeshBuffer *buf = new scene::SMeshBuffer();
-		video::SColor c(255,255,255,255);
-		video::S3DVertex vertices[4] =
 		{
-			video::S3DVertex(BS/2,0,0, 0,0,0, c, 1,1),
-			video::S3DVertex(-BS/2,0,0, 0,0,0, c, 0,1),
-			video::S3DVertex(-BS/2,BS*2,0, 0,0,0, c, 0,0),
-			video::S3DVertex(BS/2,BS*2,0, 0,0,0, c, 1,0),
-		};
-		u16 indices[] = {0,1,2,2,3,0};
-		buf->append(vertices, 4, indices, 6);
-		// Set material
-		buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
-		//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
-		buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player_back.png").c_str()));
-		buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
-		buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
-		buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
-		// Add to mesh
-		mesh->addMeshBuffer(buf);
-		buf->drop();
+			// Back
+			scene::IMeshBuffer *buf = new scene::SMeshBuffer();
+			video::SColor c(255,255,255,255);
+			video::S3DVertex vertices[4] =
+			{
+				video::S3DVertex(BS/2,0,0, 0,0,0, c, 1,1),
+				video::S3DVertex(-BS/2,0,0, 0,0,0, c, 0,1),
+				video::S3DVertex(-BS/2,BS*2,0, 0,0,0, c, 0,0),
+				video::S3DVertex(BS/2,BS*2,0, 0,0,0, c, 1,0),
+			};
+			u16 indices[] = {0,1,2,2,3,0};
+			buf->append(vertices, 4, indices, 6);
+			// Set material
+			buf->getMaterial().setFlag(video::EMF_LIGHTING, false);
+			//buf->getMaterial().setFlag(video::EMF_BACK_FACE_CULLING, false);
+			buf->getMaterial().setTexture(0, driver->getTexture(getTexturePath("player_back.png").c_str()));
+			buf->getMaterial().setFlag(video::EMF_BILINEAR_FILTER, false);
+			buf->getMaterial().setFlag(video::EMF_FOG_ENABLE, true);
+			buf->getMaterial().MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+			// Add to mesh
+			mesh->addMeshBuffer(buf);
+			buf->drop();
 		}
 		m_node = mgr->addMeshSceneNode(mesh, this);
 		mesh->drop();
@@ -333,7 +344,7 @@ void RemotePlayer::move(f32 dtime, Map &map, f32 pos_max_d)
 	if(moveratio > 1.5)
 		moveratio = 1.5;
 	m_showpos = m_oldpos + movevector * moveratio;
-	
+
 	ISceneNode::setPosition(m_showpos);
 }
 
@@ -358,7 +369,7 @@ LocalPlayer::~LocalPlayer()
 }
 
 void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
-		core::list<CollisionInfo> *collision_info)
+                       core::list<CollisionInfo> *collision_info)
 {
 	v3f position = getPosition();
 	v3f oldpos = position;
@@ -383,14 +394,15 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
 	/*
 		Collision detection
 	*/
-	
+
 	// Player position in nodes
 	v3s16 pos_i = floatToInt(position, BS);
-	
+
 	/*
 		Check if player is in water (the oscillating value)
 	*/
-	try{
+	try
+	{
 		// If in water, the threshold of coming out is at higher y
 		if(in_water)
 		{
@@ -412,7 +424,8 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
 	/*
 		Check if player is in water (the stable value)
 	*/
-	try{
+	try
+	{
 		v3s16 pp = floatToInt(position + v3f(0,0,0), BS);
 		in_water_stable = content_liquid(map.getNode(pp).d);
 	}
@@ -434,7 +447,7 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
 
 	float player_radius = BS*0.35;
 	float player_height = BS*1.7;
-	
+
 	// Maximum distance over border for sneaking
 	f32 sneak_max = BS*0.4;
 
@@ -444,7 +457,7 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
 	*/
 	/*if(control.sneak)
 		player_radius = sneak_max + d*1.1;*/
-	
+
 	/*
 		If sneaking, keep in range from the last walked node and don't
 		fall off from it
@@ -455,7 +468,7 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
 		v3f lwn_f = intToFloat(m_sneak_node, BS);
 		position.X = rangelim(position.X, lwn_f.X-maxd, lwn_f.X+maxd);
 		position.Z = rangelim(position.Z, lwn_f.Z-maxd, lwn_f.Z+maxd);
-		
+
 		f32 min_y = lwn_f.Y + 0.5*BS;
 		if(position.Y < min_y)
 		{
@@ -469,20 +482,20 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
 		Calculate player collision box (new and old)
 	*/
 	core::aabbox3d<f32> playerbox(
-		position.X - player_radius,
-		position.Y - 0.0,
-		position.Z - player_radius,
-		position.X + player_radius,
-		position.Y + player_height,
-		position.Z + player_radius
+	    position.X - player_radius,
+	    position.Y - 0.0,
+	    position.Z - player_radius,
+	    position.X + player_radius,
+	    position.Y + player_height,
+	    position.Z + player_radius
 	);
 	core::aabbox3d<f32> playerbox_old(
-		oldpos.X - player_radius,
-		oldpos.Y - 0.0,
-		oldpos.Z - player_radius,
-		oldpos.X + player_radius,
-		oldpos.Y + player_height,
-		oldpos.Z + player_radius
+	    oldpos.X - player_radius,
+	    oldpos.Y - 0.0,
+	    oldpos.Z - player_radius,
+	    oldpos.X + player_radius,
+	    oldpos.Y + player_height,
+	    oldpos.Z + player_radius
 	);
 
 	/*
@@ -492,147 +505,150 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
 		Player is allowed to jump when this is true.
 	*/
 	touching_ground = false;
-	
+
 	/*std::cout<<"Checking collisions for ("
 			<<oldpos_i.X<<","<<oldpos_i.Y<<","<<oldpos_i.Z
 			<<") -> ("
 			<<pos_i.X<<","<<pos_i.Y<<","<<pos_i.Z
 			<<"):"<<std::endl;*/
-	
+
 	/*
 		Go through every node around the player
 	*/
 	for(s16 y = oldpos_i.Y - 1; y <= oldpos_i.Y + 2; y++)
-	for(s16 z = oldpos_i.Z - 1; z <= oldpos_i.Z + 1; z++)
-	for(s16 x = oldpos_i.X - 1; x <= oldpos_i.X + 1; x++)
-	{
-		try{
-			// Player collides into walkable nodes
-			if(content_walkable(map.getNode(v3s16(x,y,z)).d) == false)
-				continue;
-		}
-		catch(InvalidPositionException &e)
-		{
-			// Doing nothing here will block the player from
-			// walking over map borders
-		}
-
-		core::aabbox3d<f32> nodebox = getNodeBox(v3s16(x,y,z), BS);
-		
-		/*
-			See if the player is touching ground.
-
-			Player touches ground if player's minimum Y is near node's
-			maximum Y and player's X-Z-area overlaps with the node's
-			X-Z-area.
-
-			Use 0.15*BS so that it is easier to get on a node.
-		*/
-		if(
-				//fabs(nodebox.MaxEdge.Y-playerbox.MinEdge.Y) < d
-				fabs(nodebox.MaxEdge.Y-playerbox.MinEdge.Y) < 0.15*BS
-				&& nodebox.MaxEdge.X-d > playerbox.MinEdge.X
-				&& nodebox.MinEdge.X+d < playerbox.MaxEdge.X
-				&& nodebox.MaxEdge.Z-d > playerbox.MinEdge.Z
-				&& nodebox.MinEdge.Z+d < playerbox.MaxEdge.Z
-		){
-			touching_ground = true;
-		}
-		
-		// If player doesn't intersect with node, ignore node.
-		if(playerbox.intersectsWithBox(nodebox) == false)
-			continue;
-		
-		/*
-			Go through every axis
-		*/
-		v3f dirs[3] = {
-			v3f(0,0,1), // back-front
-			v3f(0,1,0), // top-bottom
-			v3f(1,0,0), // right-left
-		};
-		for(u16 i=0; i<3; i++)
-		{
-			/*
-				Calculate values along the axis
-			*/
-			f32 nodemax = nodebox.MaxEdge.dotProduct(dirs[i]);
-			f32 nodemin = nodebox.MinEdge.dotProduct(dirs[i]);
-			f32 playermax = playerbox.MaxEdge.dotProduct(dirs[i]);
-			f32 playermin = playerbox.MinEdge.dotProduct(dirs[i]);
-			f32 playermax_old = playerbox_old.MaxEdge.dotProduct(dirs[i]);
-			f32 playermin_old = playerbox_old.MinEdge.dotProduct(dirs[i]);
-			
-			/*
-				Check collision for the axis.
-				Collision happens when player is going through a surface.
-			*/
-			/*f32 neg_d = d;
-			f32 pos_d = d;
-			// Make it easier to get on top of a node
-			if(i == 1)
-				neg_d = 0.15*BS;
-			bool negative_axis_collides =
-				(nodemax > playermin && nodemax <= playermin_old + neg_d
-					&& m_speed.dotProduct(dirs[i]) < 0);
-			bool positive_axis_collides =
-				(nodemin < playermax && nodemin >= playermax_old - pos_d
-					&& m_speed.dotProduct(dirs[i]) > 0);*/
-			bool negative_axis_collides =
-				(nodemax > playermin && nodemax <= playermin_old + d
-					&& m_speed.dotProduct(dirs[i]) < 0);
-			bool positive_axis_collides =
-				(nodemin < playermax && nodemin >= playermax_old - d
-					&& m_speed.dotProduct(dirs[i]) > 0);
-			bool main_axis_collides =
-					negative_axis_collides || positive_axis_collides;
-			
-			/*
-				Check overlap of player and node in other axes
-			*/
-			bool other_axes_overlap = true;
-			for(u16 j=0; j<3; j++)
+		for(s16 z = oldpos_i.Z - 1; z <= oldpos_i.Z + 1; z++)
+			for(s16 x = oldpos_i.X - 1; x <= oldpos_i.X + 1; x++)
 			{
-				if(j == i)
+				try
+				{
+					// Player collides into walkable nodes
+					if(content_walkable(map.getNode(v3s16(x,y,z)).d) == false)
+						continue;
+				}
+				catch(InvalidPositionException &e)
+				{
+					// Doing nothing here will block the player from
+					// walking over map borders
+				}
+
+				core::aabbox3d<f32> nodebox = getNodeBox(v3s16(x,y,z), BS);
+
+				/*
+					See if the player is touching ground.
+
+					Player touches ground if player's minimum Y is near node's
+					maximum Y and player's X-Z-area overlaps with the node's
+					X-Z-area.
+
+					Use 0.15*BS so that it is easier to get on a node.
+				*/
+				if(
+				    //fabs(nodebox.MaxEdge.Y-playerbox.MinEdge.Y) < d
+				    fabs(nodebox.MaxEdge.Y-playerbox.MinEdge.Y) < 0.15*BS
+				    && nodebox.MaxEdge.X-d > playerbox.MinEdge.X
+				    && nodebox.MinEdge.X+d < playerbox.MaxEdge.X
+				    && nodebox.MaxEdge.Z-d > playerbox.MinEdge.Z
+				    && nodebox.MinEdge.Z+d < playerbox.MaxEdge.Z
+				)
+				{
+					touching_ground = true;
+				}
+
+				// If player doesn't intersect with node, ignore node.
+				if(playerbox.intersectsWithBox(nodebox) == false)
 					continue;
-				f32 nodemax = nodebox.MaxEdge.dotProduct(dirs[j]);
-				f32 nodemin = nodebox.MinEdge.dotProduct(dirs[j]);
-				f32 playermax = playerbox.MaxEdge.dotProduct(dirs[j]);
-				f32 playermin = playerbox.MinEdge.dotProduct(dirs[j]);
-				if(!(nodemax - d > playermin && nodemin + d < playermax))
-				{
-					other_axes_overlap = false;
-					break;
-				}
-			}
-			
-			/*
-				If this is a collision, revert the position in the main
-				direction.
-			*/
-			if(other_axes_overlap && main_axis_collides)
-			{
-				v3f old_speed = m_speed;
 
-				m_speed -= m_speed.dotProduct(dirs[i]) * dirs[i];
-				position -= position.dotProduct(dirs[i]) * dirs[i];
-				position += oldpos.dotProduct(dirs[i]) * dirs[i];
-				
-				if(collision_info)
+				/*
+					Go through every axis
+				*/
+				v3f dirs[3] =
 				{
-					// Report fall collision
-					if(old_speed.Y < m_speed.Y - 0.1)
+					v3f(0,0,1), // back-front
+					v3f(0,1,0), // top-bottom
+					v3f(1,0,0), // right-left
+				};
+				for(u16 i=0; i<3; i++)
+				{
+					/*
+						Calculate values along the axis
+					*/
+					f32 nodemax = nodebox.MaxEdge.dotProduct(dirs[i]);
+					f32 nodemin = nodebox.MinEdge.dotProduct(dirs[i]);
+					f32 playermax = playerbox.MaxEdge.dotProduct(dirs[i]);
+					f32 playermin = playerbox.MinEdge.dotProduct(dirs[i]);
+					f32 playermax_old = playerbox_old.MaxEdge.dotProduct(dirs[i]);
+					f32 playermin_old = playerbox_old.MinEdge.dotProduct(dirs[i]);
+
+					/*
+						Check collision for the axis.
+						Collision happens when player is going through a surface.
+					*/
+					/*f32 neg_d = d;
+					f32 pos_d = d;
+					// Make it easier to get on top of a node
+					if(i == 1)
+						neg_d = 0.15*BS;
+					bool negative_axis_collides =
+						(nodemax > playermin && nodemax <= playermin_old + neg_d
+							&& m_speed.dotProduct(dirs[i]) < 0);
+					bool positive_axis_collides =
+						(nodemin < playermax && nodemin >= playermax_old - pos_d
+							&& m_speed.dotProduct(dirs[i]) > 0);*/
+					bool negative_axis_collides =
+					    (nodemax > playermin && nodemax <= playermin_old + d
+					     && m_speed.dotProduct(dirs[i]) < 0);
+					bool positive_axis_collides =
+					    (nodemin < playermax && nodemin >= playermax_old - d
+					     && m_speed.dotProduct(dirs[i]) > 0);
+					bool main_axis_collides =
+					    negative_axis_collides || positive_axis_collides;
+
+					/*
+						Check overlap of player and node in other axes
+					*/
+					bool other_axes_overlap = true;
+					for(u16 j=0; j<3; j++)
 					{
-						CollisionInfo info;
-						info.t = COLLISION_FALL;
-						info.speed = m_speed.Y - old_speed.Y;
-						collision_info->push_back(info);
+						if(j == i)
+							continue;
+						f32 nodemax = nodebox.MaxEdge.dotProduct(dirs[j]);
+						f32 nodemin = nodebox.MinEdge.dotProduct(dirs[j]);
+						f32 playermax = playerbox.MaxEdge.dotProduct(dirs[j]);
+						f32 playermin = playerbox.MinEdge.dotProduct(dirs[j]);
+						if(!(nodemax - d > playermin && nodemin + d < playermax))
+						{
+							other_axes_overlap = false;
+							break;
+						}
 					}
+
+					/*
+						If this is a collision, revert the position in the main
+						direction.
+					*/
+					if(other_axes_overlap && main_axis_collides)
+					{
+						v3f old_speed = m_speed;
+
+						m_speed -= m_speed.dotProduct(dirs[i]) * dirs[i];
+						position -= position.dotProduct(dirs[i]) * dirs[i];
+						position += oldpos.dotProduct(dirs[i]) * dirs[i];
+
+						if(collision_info)
+						{
+							// Report fall collision
+							if(old_speed.Y < m_speed.Y - 0.1)
+							{
+								CollisionInfo info;
+								info.t = COLLISION_FALL;
+								info.speed = m_speed.Y - old_speed.Y;
+								collision_info->push_back(info);
+							}
+						}
+					}
+
 				}
-			}
-		
-		}
-	} // xyz
+			} // xyz
 
 	/*
 		Check the nodes under the player to see from which node the
@@ -655,39 +671,40 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
 		}*/
 		v3s16 new_sneak_node = m_sneak_node;
 		for(s16 x=-1; x<=1; x++)
-		for(s16 z=-1; z<=1; z++)
-		{
-			v3s16 p = pos_i_bottom + v3s16(x,0,z);
-			v3f pf = intToFloat(p, BS);
-			v2f node_p2df(pf.X, pf.Z);
-			f32 distance_f = player_p2df.getDistanceFrom(node_p2df);
-			f32 max_axis_distance_f = MYMAX(
-					fabs(player_p2df.X-node_p2df.X),
-					fabs(player_p2df.Y-node_p2df.Y));
-					
-			if(distance_f > min_distance_f ||
-					max_axis_distance_f > 0.5*BS + sneak_max + 0.1*BS)
-				continue;
-
-			try{
-				// The node to be sneaked on has to be walkable
-				if(content_walkable(map.getNode(p).d) == false)
-					continue;
-				// And the node above it has to be nonwalkable
-				if(content_walkable(map.getNode(p+v3s16(0,1,0)).d) == true)
-					continue;
-			}
-			catch(InvalidPositionException &e)
+			for(s16 z=-1; z<=1; z++)
 			{
-				continue;
+				v3s16 p = pos_i_bottom + v3s16(x,0,z);
+				v3f pf = intToFloat(p, BS);
+				v2f node_p2df(pf.X, pf.Z);
+				f32 distance_f = player_p2df.getDistanceFrom(node_p2df);
+				f32 max_axis_distance_f = MYMAX(
+				                              fabs(player_p2df.X-node_p2df.X),
+				                              fabs(player_p2df.Y-node_p2df.Y));
+
+				if(distance_f > min_distance_f ||
+				        max_axis_distance_f > 0.5*BS + sneak_max + 0.1*BS)
+					continue;
+
+				try
+				{
+					// The node to be sneaked on has to be walkable
+					if(content_walkable(map.getNode(p).d) == false)
+						continue;
+					// And the node above it has to be nonwalkable
+					if(content_walkable(map.getNode(p+v3s16(0,1,0)).d) == true)
+						continue;
+				}
+				catch(InvalidPositionException &e)
+				{
+					continue;
+				}
+
+				min_distance_f = distance_f;
+				new_sneak_node = p;
 			}
 
-			min_distance_f = distance_f;
-			new_sneak_node = p;
-		}
-		
 		bool sneak_node_found = (min_distance_f < 100000.0*BS*0.9);
-		
+
 		if(control.sneak && m_sneak_node_exists)
 		{
 			if(sneak_node_found)
@@ -706,7 +723,7 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
 		if(sneak_node_found && control.sneak)
 			touching_ground = true;
 	}
-	
+
 	/*
 		Set new position
 	*/
@@ -726,13 +743,13 @@ void LocalPlayer::applyControl(float dtime)
 	// Random constants
 	f32 walk_acceleration = 4.0 * BS;
 	f32 walkspeed_max = 4.0 * BS;
-	
+
 	setPitch(control.pitch);
 	setYaw(control.yaw);
-	
+
 	v3f move_direction = v3f(0,0,1);
 	move_direction.rotateXZBy(getYaw());
-	
+
 	v3f speed = v3f(0,0,0);
 
 	bool free_move = g_settings.getBool("free_move");
@@ -748,11 +765,11 @@ void LocalPlayer::applyControl(float dtime)
 
 	// Whether superspeed mode is used or not
 	bool superspeed = false;
-	
+
 	// If free movement and fast movement, always move fast
 	if(free_move && fast_move)
 		superspeed = true;
-	
+
 	// Auxiliary button 1 (E)
 	if(control.aux1)
 	{
@@ -837,13 +854,13 @@ void LocalPlayer::applyControl(float dtime)
 		speed = speed.normalize() * walkspeed_max / 3.0;
 	else
 		speed = speed.normalize() * walkspeed_max;
-	
+
 	f32 inc = walk_acceleration * BS * dtime;
-	
+
 	// Faster acceleration if fast and free movement
 	if(free_move && fast_move)
 		inc = walk_acceleration * BS * dtime * 10;
-	
+
 	// Accelerate to target speed with maximum increment
 	accelerate(speed, inc);
 }
