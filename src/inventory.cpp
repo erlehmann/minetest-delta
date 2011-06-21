@@ -1,25 +1,22 @@
 /*
-Minetest-c55
-Copyright (C) 2010 celeron55, Perttu Ahola <celeron55@gmail.com>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along
-with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-*/
-
-/*
-(c) 2010 Perttu Ahola <celeron55@gmail.com>
-*/
+ *Minetest-delta
+ *Copyright (C) 2011 Free Software Foundation, Inc. <http://fsf.org/>
+ *Copyright (C) 2011 Sebastian Rühl <https://launchpad.net/~sebastian-ruehl>
+ *Copyright (C) 2011 MirceaKitsune <https://github.com/MirceaKitsune>
+ *
+ *This program is free software: you can redistribute it and/or modify
+ *it under the terms of the GNU General Public License as published by
+ *the Free Software Foundation, either version 2 of the License, or
+ *(at your option) any later version.
+ *
+ *This program is distributed in the hope that it will be useful,
+ *but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *GNU General Public License for more details.
+ *
+ *You should have received a copy of the GNU General Public License
+ *along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "inventory.h"
 #include "serialization.h"
@@ -299,11 +296,11 @@ MapBlockObject * MapBlockObjectItem::createObject
 /*
 	Inventory
 */
-
 InventoryList::InventoryList(std::string name, u32 size)
 {
 	m_name = name;
 	m_size = size;
+	m_readOnly = false;
 	clearItems();
 	//m_dirty = false;
 }
@@ -607,6 +604,11 @@ InventoryItem * InventoryList::takeItem(u32 i, u32 count)
 	return false;
 }
 
+void InventoryList::setReadOnly(bool readOnly)
+{
+	m_readOnly = readOnly;
+}
+
 void InventoryList::decrementMaterials(u16 count)
 {
 	for(u32 i=0; i<m_items.size(); i++)
@@ -801,6 +803,9 @@ void IMoveAction::apply(InventoryContext *c, InventoryManager *mgr)
 	InventoryList *list_from = inv_from->getList(from_list);
 	InventoryList *list_to = inv_to->getList(to_list);
 
+	// Check if destination is read only
+	if(list_to->m_readOnly)
+		return;
 	/*dstream<<"list_from="<<list_from<<" list_to="<<list_to
 			<<std::endl;*/
 	/*if(list_from)
@@ -931,16 +936,17 @@ bool ItemSpec::checkItem(InventoryItem *item)
 	return true;
 }
 
-bool checkItemCombination(InventoryItem **items, ItemSpec *specs)
+bool checkItemCombination(InventoryItem **items, ItemSpec *specs, u8 size)
 {
 	u16 items_min_x = 100;
 	u16 items_max_x = 100;
 	u16 items_min_y = 100;
 	u16 items_max_y = 100;
-	for(u16 y=0; y<3; y++)
-		for(u16 x=0; x<3; x++)
+	u8 rcs = sqrt((double)size);
+	for(u16 y=0; y<rcs; y++)
+		for(u16 x=0; x<rcs; x++)
 		{
-			if(items[y*3 + x] == NULL)
+			if(items[y*rcs + x] == NULL)
 				continue;
 			if(items_min_x == 100 || x < items_min_x)
 				items_min_x = x;
@@ -962,10 +968,10 @@ bool checkItemCombination(InventoryItem **items, ItemSpec *specs)
 	u16 specs_max_x = 100;
 	u16 specs_min_y = 100;
 	u16 specs_max_y = 100;
-	for(u16 y=0; y<3; y++)
-		for(u16 x=0; x<3; x++)
+	for(u16 y=0; y<rcs; y++)
+		for(u16 x=0; x<rcs; x++)
 		{
-			if(specs[y*3 + x].type == ITEM_NONE)
+			if(specs[y*rcs + x].type == ITEM_NONE)
 				continue;
 			if(specs_min_x == 100 || x < specs_min_x)
 				specs_min_x = x;
@@ -994,8 +1000,8 @@ bool checkItemCombination(InventoryItem **items, ItemSpec *specs)
 			u16 items_y = items_min_y + y;
 			u16 specs_x = specs_min_x + x;
 			u16 specs_y = specs_min_y + y;
-			InventoryItem *item = items[items_y * 3 + items_x];
-			ItemSpec &spec = specs[specs_y * 3 + specs_x];
+			InventoryItem *item = items[items_y * rcs + items_x];
+			ItemSpec &spec = specs[specs_y * rcs + specs_x];
 
 			if(spec.checkItem(item) == false)
 				return false;

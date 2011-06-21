@@ -1,6 +1,8 @@
 /*
 Minetest-c55
 Copyright (C) 2010-2011 celeron55, Perttu Ahola <celeron55@gmail.com>
+Copyright (C) 2011 Sebastian Rühl <https://launchpad.net/~sebastian-ruehl>
+Copyright (C) 2011 MirceaKitsune <https://github.com/MirceaKitsune>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,6 +28,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "guiInventoryMenu.h"
 #include "guiTextInputMenu.h"
 #include "guiFurnaceMenu.h"
+#include "guiWorkbenchMenu.h"
 #include "materials.h"
 #include "config.h"
 #include "clouds.h"
@@ -1162,7 +1165,7 @@ void the_game(
 			                        v2s32(0, 3), v2s32(8, 4)));
 			draw_spec.push_back(GUIInventoryMenu::DrawSpec(
 			                        "list", "current_player", "craft",
-			                        v2s32(3, 0), v2s32(3, 3)));
+			                        v2s32(3, 0), v2s32(2, 2)));
 			draw_spec.push_back(GUIInventoryMenu::DrawSpec(
 			                        "list", "current_player", "craftresult",
 			                        v2s32(7, 1), v2s32(1, 1)));
@@ -1757,6 +1760,16 @@ void the_game(
 
 						menu->drop();
 
+					}
+					else if (meta && meta->typeId() == CONTENT_WORKBENCH
+					         && !random_input)
+					{
+						dstream << "Workbench node right-clicked" << std::endl;
+
+						GUIWorkbenchMenu *menu = new GUIWorkbenchMenu(guienv,
+						        guiroot, -1, &g_menumgr, nodepos, &client);
+
+						menu->drop();
 					}
 					else if(meta && meta->typeId() == CONTENT_FURNACE && !random_input)
 					{

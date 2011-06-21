@@ -3622,7 +3622,6 @@ void Server::SendBlocks(float dtime)
 /*
 	Something random
 */
-
 void Server::UpdateCrafting(u16 peer_id)
 {
 	DSTACK(__FUNCTION_NAME);
@@ -3631,24 +3630,29 @@ void Server::UpdateCrafting(u16 peer_id)
 	assert(player);
 
 	/*
-		Calculate crafting stuff
-	*/
-	if(g_settings.getBool("creative_mode") == false)
+	 Calculate crafting stuff
+	 */
+	if (g_settings.getBool("creative_mode") == false)
 	{
+		// we can then optain the list with the id workbench_craft and workbench_craftresult
 		InventoryList *clist = player->inventory.getList("craft");
 		InventoryList *rlist = player->inventory.getList("craftresult");
 
-		if(rlist->getUsedSlots() == 0)
+		// TODO: Can this be put somewhere else, so it doesn't execute more than once?
+		rlist->setReadOnly(true); // Set craft result as read only
+
+		if (rlist->getUsedSlots() == 0)
 			player->craftresult_is_preview = true;
 
-		if(rlist && player->craftresult_is_preview)
+		if (rlist && player->craftresult_is_preview)
 		{
 			rlist->clearItems();
 		}
-		if(clist && rlist && player->craftresult_is_preview)
+		if (clist && rlist && player->craftresult_is_preview)
 		{
-			InventoryItem *items[9];
-			for(u16 i=0; i<9; i++)
+			//TODO: get from PLAYER CONSTANT
+			InventoryItem *items[4];
+			for (u16 i = 0; i < 4; i++)
 			{
 				items[i] = clist->getItem(i);
 			}
@@ -3656,11 +3660,11 @@ void Server::UpdateCrafting(u16 peer_id)
 			bool found = false;
 
 			// Wood
-			if(!found)
+			if (!found)
 			{
-				ItemSpec specs[9];
+				ItemSpec specs[4];
 				specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_TREE);
-				if(checkItemCombination(items, specs))
+				if (checkItemCombination(items, specs, 4))
 				{
 					rlist->addItem(new MaterialItem(CONTENT_WOOD, 4));
 					found = true;
@@ -3668,429 +3672,48 @@ void Server::UpdateCrafting(u16 peer_id)
 			}
 
 			// Stick
-			if(!found)
+			if (!found)
 			{
-				ItemSpec specs[9];
+				ItemSpec specs[4];
 				specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				if(checkItemCombination(items, specs))
+				if (checkItemCombination(items, specs, 4))
 				{
 					rlist->addItem(new CraftItem("Stick", 4));
 					found = true;
 				}
 			}
 
-			// Fence
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[3] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[5] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[6] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[8] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new MaterialItem(CONTENT_FENCE, 2));
-					found = true;
-				}
-			}
-
-			// Sign
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[5] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					//rlist->addItem(new MapBlockObjectItem("Sign"));
-					rlist->addItem(new MaterialItem(CONTENT_SIGN_WALL, 1));
-					found = true;
-				}
-			}
-
 			// Torch
-			if(!found)
+			if (!found)
 			{
-				ItemSpec specs[9];
+				ItemSpec specs[4];
 				specs[0] = ItemSpec(ITEM_CRAFT, "lump_of_coal");
+				specs[2] = ItemSpec(ITEM_CRAFT, "Stick");
+				if (checkItemCombination(items, specs, 4))
+				{
+					rlist->addItem(new MaterialItem(CONTENT_TORCH, 4));
+					found = true;
+				}
+				specs[1] = ItemSpec(ITEM_CRAFT, "lump_of_coal");
 				specs[3] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
+				if (checkItemCombination(items, specs, 4))
 				{
 					rlist->addItem(new MaterialItem(CONTENT_TORCH, 4));
 					found = true;
 				}
 			}
 
-			// Wooden pick
-			if(!found)
+			// Workbench
+			if (!found)
 			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("WPick", 0));
-					found = true;
-				}
-			}
-
-			// Stone pick
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("STPick", 0));
-					found = true;
-				}
-			}
-
-			// Steel pick
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[2] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("SteelPick", 0));
-					found = true;
-				}
-			}
-
-			// Mese pick
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_MESE);
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_MESE);
-				specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_MESE);
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("MesePick", 0));
-					found = true;
-				}
-			}
-
-			// Wooden shovel
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("WShovel", 0));
-					found = true;
-				}
-			}
-
-			// Stone shovel
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("STShovel", 0));
-					found = true;
-				}
-			}
-
-			// Steel shovel
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("SteelShovel", 0));
-					found = true;
-				}
-			}
-
-			// Wooden axe
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("WAxe", 0));
-					found = true;
-				}
-			}
-
-			// Stone axe
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("STAxe", 0));
-					found = true;
-				}
-			}
-
-			// Steel axe
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[3] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("SteelAxe", 0));
-					found = true;
-				}
-			}
-
-			// Wooden sword
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("WSword", 0));
-					found = true;
-				}
-			}
-
-			// Stone sword
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("STSword", 0));
-					found = true;
-				}
-			}
-
-			// Steel sword
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[4] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new ToolItem("SteelSword", 0));
-					found = true;
-				}
-			}
-
-			// Rail
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[1] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[2] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[3] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[5] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[6] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-				specs[8] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new MaterialItem(CONTENT_RAIL, 15));
-					found = true;
-				}
-			}
-
-			// Chest
-			if(!found)
-			{
-				ItemSpec specs[9];
+				ItemSpec specs[4];
 				specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 				specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 				specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[5] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				if(checkItemCombination(items, specs))
+				if (checkItemCombination(items, specs, 4))
 				{
-					rlist->addItem(new MaterialItem(CONTENT_CHEST, 1));
-					found = true;
-				}
-			}
-
-			// Furnace
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[5] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new MaterialItem(CONTENT_FURNACE, 1));
-					found = true;
-				}
-			}
-
-			// Steel block
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[2] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[3] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[4] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[5] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[6] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[7] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				specs[8] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new MaterialItem(CONTENT_STEEL, 1));
-					found = true;
-				}
-			}
-
-			// Sandstone
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
-				specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
-				specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
-				specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new MaterialItem(CONTENT_SANDSTONE, 1));
-					found = true;
-				}
-			}
-
-			// Clay
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[3] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
-				specs[4] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
-				specs[6] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
-				specs[7] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new MaterialItem(CONTENT_CLAY, 1));
-					found = true;
-				}
-			}
-
-			// Brick
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[3] = ItemSpec(ITEM_CRAFT, "clay_brick");
-				specs[4] = ItemSpec(ITEM_CRAFT, "clay_brick");
-				specs[6] = ItemSpec(ITEM_CRAFT, "clay_brick");
-				specs[7] = ItemSpec(ITEM_CRAFT, "clay_brick");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new MaterialItem(CONTENT_BRICK, 1));
-					found = true;
-				}
-			}
-
-			// Paper
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
-				specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
-				specs[5] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new CraftItem("paper", 1));
-					found = true;
-				}
-			}
-
-			// Book
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[1] = ItemSpec(ITEM_CRAFT, "paper");
-				specs[4] = ItemSpec(ITEM_CRAFT, "paper");
-				specs[7] = ItemSpec(ITEM_CRAFT, "paper");
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new CraftItem("book", 1));
-					found = true;
-				}
-			}
-
-			// Book shelf
-			if(!found)
-			{
-				ItemSpec specs[9];
-				specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[3] = ItemSpec(ITEM_CRAFT, "book");
-				specs[4] = ItemSpec(ITEM_CRAFT, "book");
-				specs[5] = ItemSpec(ITEM_CRAFT, "book");
-				specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-				if(checkItemCombination(items, specs))
-				{
-					rlist->addItem(new MaterialItem(CONTENT_BOOKSHELF, 1));
+					rlist->addItem(new MaterialItem(CONTENT_WORKBENCH, 1));
 					found = true;
 				}
 			}
