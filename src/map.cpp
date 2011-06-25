@@ -28,6 +28,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "mineral.h"
 #include "noise.h"
 #include "serverobject.h"
+#include "content_mapnode.h"
 
 /*
 	Map
@@ -2156,6 +2157,16 @@ double get_mud_add_amount(u64 seed, v2s16 p)
 			seed+91013, 3, 0.55));
 }
 
+bool get_have_sand(u64 seed, v2s16 p2d)
+{
+	// Determine whether to have sand here
+	double sandnoise = noise2d_perlin(
+			0.5+(float)p2d.X/500, 0.5+(float)p2d.Y/500,
+			seed+59420, 3, 0.50);
+
+	return (sandnoise > -0.15);
+}
+
 /*
 	Adds random objects to block, depending on the content of the block
 */
@@ -2727,7 +2738,7 @@ void makeChunk(ChunkMakeData *data)
 
 		// Randomize mineral
 		u8 mineral;
-		if(myrand()%3 != 0)
+		if(myrand()%4 != 0 || (orp.Y + of.Y) > 10)
 			mineral = MINERAL_COAL;
 		else
 			mineral = MINERAL_IRON;
@@ -3145,12 +3156,7 @@ void makeChunk(ChunkMakeData *data)
 		// Node position in 2d
 		v2s16 p2d = data->sectorpos_base*MAP_BLOCKSIZE + v2s16(x,z);
 		
-		// Determine whether to have sand here
-		double sandnoise = noise2d_perlin(
-				0.5+(float)p2d.X/500, 0.5+(float)p2d.Y/500,
-				data->seed+59420, 3, 0.50);
-
-		bool have_sand = (sandnoise > -0.15);
+		bool have_sand = get_have_sand(data->seed, p2d);
 
 		if(have_sand == false)
 			continue;
@@ -4162,7 +4168,7 @@ MapBlock * ServerMap::generateBlock(
 			if(real_y > surface_y)
 			{
 				// If under water level, it's water
-				if(real_y < WATER_LEVEL)
+				if(real_y <= WATER_LEVEL)
 				{
 					n.d = water_material;
 					n.setLight(LIGHTBANK_DAY,
@@ -4597,8 +4603,7 @@ continue_generating:
 		/*
 			Add iron
 		*/
-		//TODO: change to iron_amount or whatever
-		u16 iron_amount = 15;
+		u16 iron_amount = 8;
 		u16 iron_rareness = 60 / iron_amount;
 		if(iron_rareness == 0)
 			iron_rareness = 1;
@@ -4881,7 +4886,7 @@ MapBlock * ServerMap::emergeBlock(
 		bool black_air_left = false;
 		bool bottom_invalid =
 				block->propagateSunlight(light_sources, true,
-				&black_air_left, true);
+				&black_air_left);
 
 		// If sunlight didn't reach everywhere and part of block is
 		// above ground, lighting has to be properly updated
@@ -5040,9 +5045,7 @@ void ServerMap::save(bool only_changed)
 	
 	u32 sector_meta_count = 0;
 	u32 block_count = 0;
-	
-	{ //sectorlock
-	//JMutexAutoLock lock(m_sector_mutex); // Bulk comment-out
+	u32 block_count_all = 0; // Number of blocks in memory
 	
 	core::map<v2s16, MapSector*>::Iterator i = m_sectors.getIterator();
 	for(; i.atEnd() == false; i++)
@@ -5061,6 +5064,9 @@ void ServerMap::save(bool only_changed)
 		for(j=blocks.begin(); j!=blocks.end(); j++)
 		{
 			MapBlock *block = *j;
+			
+			block_count_all++;
+
 			if(block->getChangedFlag() || only_changed == false)
 			{
 				saveBlock(block);
@@ -5075,8 +5081,6 @@ void ServerMap::save(bool only_changed)
 		}
 	}
 
-	}//sectorlock
-	
 	/*
 		Only print if something happened or saved whole map
 	*/
@@ -5086,6 +5090,7 @@ void ServerMap::save(bool only_changed)
 		dstream<<DTIME<<"ServerMap: Written: "
 				<<sector_meta_count<<" sector metadata files, "
 				<<block_count<<" block files"
+				<<", "<<block_count_all<<" blocks in memory."
 				<<std::endl;
 	}
 }
@@ -5593,9 +5598,12 @@ void ServerMap::loadBlock(std::string sectordir, std::string blockfile, MapSecto
 	catch(SerializationError &e)
 	{
 		dstream<<"WARNING: Invalid block data on disk "
-				"(SerializationError). Ignoring. "
-				"A new one will be generated."
+				<<"fullpath="<<fullpath
+				<<" (SerializationError). "
+				<<"what()="<<e.what()
 				<<std::endl;
+				//" Ignoring. A new one will be generated.
+		assert(0);
 
 		// TODO: Backup file; name is in fullpath.
 	}
@@ -5709,6 +5717,14 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 	DSTACK(__FUNCTION_NAME);
 
 	bool is_transparent_pass = pass == scene::ESNRP_TRANSPARENT;
+	
+	/*
+		This is called two times per frame, reset on the non-transparent one
+	*/
+	if(pass == scene::ESNRP_SOLID)
+	{
+		m_last_drawn_sectors.clear();
+	}
 
 	/*
 		Get time for measuring timeout.
@@ -5745,9 +5761,9 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 			p_nodes_min.Y / MAP_BLOCKSIZE - 1,
 			p_nodes_min.Z / MAP_BLOCKSIZE - 1);
 	v3s16 p_blocks_max(
-			p_nodes_max.X / MAP_BLOCKSIZE + 1,
-			p_nodes_max.Y / MAP_BLOCKSIZE + 1,
-			p_nodes_max.Z / MAP_BLOCKSIZE + 1);
+			p_nodes_max.X / MAP_BLOCKSIZE,
+			p_nodes_max.Y / MAP_BLOCKSIZE,
+			p_nodes_max.Z / MAP_BLOCKSIZE);
 	
 	u32 vertex_count = 0;
 	
@@ -5756,9 +5772,6 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 	
 	u32 blocks_would_have_drawn = 0;
 	u32 blocks_drawn = 0;
-
-	//NOTE: The sectors map should be locked but we're not doing it
-	// because it'd cause too much delays
 
 	int timecheck_counter = 0;
 	core::map<v2s16, MapSector*>::Iterator si;
@@ -5799,6 +5812,8 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 		/*
 			Draw blocks
 		*/
+		
+		u32 sector_blocks_drawn = 0;
 
 		core::list< MapBlock * >::Iterator i;
 		for(i=sectorblocks.begin(); i!=sectorblocks.end(); i++)
@@ -5891,7 +5906,9 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 						&& m_control.range_all == false
 						&& d > m_control.wanted_min_range * BS)
 					continue;
+
 				blocks_drawn++;
+				sector_blocks_drawn++;
 
 				u32 c = mesh->getMeshBufferCount();
 
@@ -5917,6 +5934,11 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 				}
 			}
 		} // foreach sectorblocks
+
+		if(sector_blocks_drawn != 0)
+		{
+			m_last_drawn_sectors[sp] = true;
+		}
 	}
 	
 	m_control.blocks_drawn = blocks_drawn;

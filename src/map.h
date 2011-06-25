@@ -41,13 +41,23 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "mapchunk.h"
 #include "nodemetadata.h"
 
+/*
+	MapEditEvent
+*/
+
 #define MAPTYPE_BASE 0
 #define MAPTYPE_SERVER 1
 #define MAPTYPE_CLIENT 2
 
 enum MapEditEventType{
+	// Node added (changed from air or something else to something)
 	MEET_ADDNODE,
+	// Node removed (changed to air)
 	MEET_REMOVENODE,
+	// Node metadata of block changed (not knowing which node exactly)
+	// p stores block coordinate
+	MEET_BLOCK_NODE_METADATA_CHANGED,
+	// Anything else
 	MEET_OTHER
 };
 
@@ -586,6 +596,8 @@ public:
 
 	bool isSavingEnabled(){ return m_map_saving_enabled; }
 
+	u64 getSeed(){ return m_seed; }
+
 private:
 	// Seed used for all kinds of randomness
 	u64 m_seed;
@@ -732,6 +744,12 @@ public:
 	// For debug printing
 	virtual void PrintInfo(std::ostream &out);
 	
+	// Check if sector was drawn on last render()
+	bool sectorWasDrawn(v2s16 p)
+	{
+		return (m_last_drawn_sectors.find(p) != NULL);
+	}
+	
 private:
 	Client *m_client;
 	
@@ -746,7 +764,8 @@ private:
 	v3f m_camera_position;
 	v3f m_camera_direction;
 	JMutex m_camera_mutex;
-
+	
+	core::map<v2s16, bool> m_last_drawn_sectors;
 };
 
 #endif

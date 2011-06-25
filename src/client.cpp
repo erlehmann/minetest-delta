@@ -306,8 +306,14 @@ void Client::step(float dtime)
 			SharedBuffer<u8> data(2+1+PLAYERNAME_SIZE+PASSWORD_SIZE);
 			writeU16(&data[0], TOSERVER_INIT);
 			writeU8(&data[2], SER_FMT_VER_HIGHEST);
+
 			memset((char*)&data[3], 0, PLAYERNAME_SIZE);
 			snprintf((char*)&data[3], PLAYERNAME_SIZE, "%s", myplayer->getName());
+
+			/*dstream<<"Client: password hash is \""<<m_password<<"\""
+					<<std::endl;*/
+
+			memset((char*)&data[23], 0, PASSWORD_SIZE);
 			snprintf((char*)&data[23], PASSWORD_SIZE, "%s", m_password.c_str());
 
 			// Send as unreliable
@@ -610,6 +616,13 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 sender_peer_id)
 		// to be processed even if the serialisation format has
 		// not been agreed yet, the same as TOCLIENT_INIT.
 		m_access_denied = true;
+		m_access_denied_reason = L"Unknown";
+		if(datasize >= 4)
+		{
+			std::string datastring((char*)&data[2], datasize-2);
+			std::istringstream is(datastring, std::ios_base::binary);
+			m_access_denied_reason = deSerializeWideString(is);
+		}
 		return;
 	}
 

@@ -61,6 +61,12 @@ configure_file(
 )
 
 set(common_SRCS
+	content_inventory.cpp
+	content_nodemeta.cpp
+	content_craft.cpp
+	content_mapblock.cpp
+	content_mapnode.cpp
+	auth.cpp
 	collision.cpp
 	nodemetadata.cpp
 	serverobject.cpp
@@ -95,10 +101,11 @@ set(common_SRCS
 # Client sources
 set(minetest_SRCS
 	${common_SRCS}
+	mapblock_mesh.cpp
+	farmesh.cpp
 	keycode.cpp
 	clouds.cpp
 	clientobject.cpp
-	guiFurnaceMenu.cpp
 	guiMainMenu.cpp
 	guiKeyChangeMenu.cpp
 	guiMessageMenu.cpp
@@ -181,21 +188,22 @@ else()
 	# Probably GCC
 	
 	if(WARN_ALL)
-		set(WARNING_FLAGS "-Wall")
+		set(RELEASE_WARNING_FLAGS "-Wall")
 	else()
-		set(WARNING_FLAGS "")
+		set(RELEASE_WARNING_FLAGS "")
 	endif()
-
+	
 	if(NOT APPLE)
 		set(WARNING_FLAGS "${WARNING_FLAGS} -Wno-unused-but-set-variable")
 	endif()
+	
 	if(APPLE)
 		set(CMAKE_OSX_ARCHITECTURES i386 CACHE STRING "do not build for 64-bit" FORCE)
 		set(ARCH i386)
 	endif()
-	
-	set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG ${WARNING_FLAGS} -O3 -ffast-math -Wall -fomit-frame-pointer -pipe -funroll-loops")
-	set(CMAKE_CXX_FLAGS_DEBUG "-g -O1 -Wall")
+
+	set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG ${RELEASE_WARNING_FLAGS} ${WARNING_FLAGS} -O3 -ffast-math -Wall -fomit-frame-pointer -pipe -funroll-loops")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -O1 -Wall ${WARNING_FLAGS}")
 
 	if(USE_GPROF)
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg")
