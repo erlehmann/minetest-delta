@@ -506,12 +506,19 @@ void TextureSource::buildMainAtlas()
 	sourcelist.push_back("stone.png");
 	sourcelist.push_back("mud.png");
 	sourcelist.push_back("sand.png");
+	sourcelist.push_back("sandstone.png");
+	sourcelist.push_back("clay.png");
+	sourcelist.push_back("brick.png");
 	sourcelist.push_back("grass.png");
 	sourcelist.push_back("grass_footsteps.png");
 	sourcelist.push_back("tree.png");
 	sourcelist.push_back("tree_top.png");
 	sourcelist.push_back("water.png");
 	sourcelist.push_back("leaves.png");
+	sourcelist.push_back("cactus_side.png");
+	sourcelist.push_back("cactus_top.png");
+	sourcelist.push_back("papyrus.png");
+	sourcelist.push_back("bookshelf.png");
 	sourcelist.push_back("glass.png");
 	sourcelist.push_back("mud.png^grass_side.png");
 	sourcelist.push_back("cobble.png");
@@ -1085,7 +1092,7 @@ bool generate_image(std::string part_of_name, video::IImage *& baseimg,
 					imagename_right, device);
 			assert(img_top && img_left && img_right);
 
-			// TODO: Create textures from images
+			// FIXME: Create textures from left and right images
 			video::ITexture *texture_top = driver->addTexture(
 					(imagename_top + "__temp__").c_str(), img_top);
 			assert(texture_top);

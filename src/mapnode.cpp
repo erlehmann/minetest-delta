@@ -137,7 +137,6 @@ void init_mapnode()
 		for(u16 j=0; j<6; j++)
 			f->tiles[j].material_type = initial_material_type;
 	}
-
 	/*
 		Initialize mapnode content
 	*/

@@ -48,6 +48,13 @@ void content_mapnode_init();
 #define CONTENT_STEEL 19
 #define CONTENT_GLASS 20
 #define CONTENT_FENCE 21
+#define CONTENT_SANDSTONE 22
+#define CONTENT_CACTUS 23
+#define CONTENT_BRICK 24
+#define CONTENT_CLAY 25
+#define CONTENT_PAPYRUS 26
+#define CONTENT_BOOKSHELF 27
+#define CONTENT_RAIL 28
 
 #endif
 
