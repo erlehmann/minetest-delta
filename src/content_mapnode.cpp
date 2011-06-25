@@ -87,7 +87,7 @@ void content_mapnode_init()
 	setDirtLikeDiggingProperties(f->digging_properties, 1.0);
 	
 	i = CONTENT_SANDSTONE;
-	f = &g_content_features[i];
+	f = &content_features(i);
 	f->setAllTextures("sandstone.png");
 	f->setInventoryTextureCube("sandstone.png", "sandstone.png", "sandstone.png");
 	f->param_type = CPT_MINERAL;
@@ -96,7 +96,7 @@ void content_mapnode_init()
 	setDirtLikeDiggingProperties(f->digging_properties, 1.0);
 	
 	i = CONTENT_CLAY;
-	f = &g_content_features[i];
+	f = &content_features(i);
 	f->setAllTextures("clay.png");
 	f->setInventoryTextureCube("clay.png", "clay.png", "clay.png");
 	f->param_type = CPT_MINERAL;
@@ -105,7 +105,7 @@ void content_mapnode_init()
 	setDirtLikeDiggingProperties(f->digging_properties, 1.0);
 	
 	i = CONTENT_BRICK;
-	f = &g_content_features[i];
+	f = &content_features(i);
 	f->setAllTextures("brick.png");
 	f->setInventoryTextureCube("brick.png", "brick.png", "brick.png");
 	f->param_type = CPT_MINERAL;
@@ -142,7 +142,7 @@ void content_mapnode_init()
 	setWoodLikeDiggingProperties(f->digging_properties, 0.15);
 
 	i = CONTENT_CACTUS;
-	f = &g_content_features[i];
+	f = &content_features(i);
 	f->setAllTextures("cactus_side.png");
 	f->setTexture(0, "cactus_top.png");
 	f->setTexture(1, "cactus_top.png");
@@ -153,7 +153,7 @@ void content_mapnode_init()
 	setWoodLikeDiggingProperties(f->digging_properties, 0.75);
 
 	i = CONTENT_PAPYRUS;
-	f = &g_content_features[i];
+	f = &content_features(i);
 	f->setInventoryTexture("papyrus.png");
 	f->light_propagates = true;
 	f->param_type = CPT_LIGHT;
@@ -164,7 +164,7 @@ void content_mapnode_init()
 	setWoodLikeDiggingProperties(f->digging_properties, 0.25);
 
  	i = CONTENT_BOOKSHELF;
- 	f = &g_content_features[i];
+ 	f = &content_features(i);
  	f->setAllTextures("bookshelf.png");
 	f->setTexture(0, "wood.png");
 	f->setTexture(1, "wood.png");
@@ -197,7 +197,7 @@ void content_mapnode_init()
 	setWoodLikeDiggingProperties(f->digging_properties, 0.75);
 
 	i = CONTENT_RAIL;
-	f = &g_content_features[i];
+	f = &content_features(i);
 	f->setInventoryTexture("rail.png");
 	f->light_propagates = true;
 	f->param_type = CPT_LIGHT;
