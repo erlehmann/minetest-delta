@@ -201,6 +201,11 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 
 		// Get result of crafting grid
 		InventoryItem *result = craft_get_result_3x3(items);
+
+		// If the craft result doesn't match the current crafting pattern, clear it
+		if(result != rlist->getItem(0))
+			rlist->clearItems();
+
 		if(result)
 		{
 			m_crafted = true;
@@ -209,10 +214,6 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 			if (rlist->getUsedSlots() == 0)
 				rlist->addItem(result);
 		}
-
-		// If the craft result doesn't match the current crafting pattern, clear it
-		if(result != rlist->getItem(0))
-			rlist->clearItems();
 	}
 	return true;
 }
