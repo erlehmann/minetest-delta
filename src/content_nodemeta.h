@@ -81,6 +81,7 @@ public:
 
 	virtual bool nodeRemovalDisabled();
 	virtual bool step(float dtime);
+	virtual std::string getInventoryDrawSpecString();
 
 private:
 	Inventory *m_inventory;

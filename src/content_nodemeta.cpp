@@ -612,6 +612,14 @@ bool WorkbenchNodeMetadata::step(float dtime) {
 	}
 	return true;
 }
+std::string WorkbenchNodeMetadata::getInventoryDrawSpecString()
+{
+	return
+		"invsize[8,8;]"
+		"list[current_name;workbench_craft;2,0;3,3;]"
+		"list[current_name;workbench_craftresult;7,1;1,1;]"
+		"list[current_player;main;0,4;8,4;]";
+}
 
 /*
 	FurnaceNodeMetadata
