@@ -352,7 +352,7 @@ void content_mapnode_init()
 	setWoodLikeDiggingProperties(f->digging_properties, 1.0);
 
 	i = CONTENT_WORKBENCH;
-	f = &g_content_features[i];
+	f = &content_features(i);
 	f->param_type = CPT_FACEDIR_SIMPLE;
 	f->setAllTextures("workbench_side.png");
 	f->setTexture(0, "workbench_side.png");
