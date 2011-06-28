@@ -355,7 +355,7 @@ void content_mapnode_init()
 	f = &content_features(i);
 	f->param_type = CPT_FACEDIR_SIMPLE;
 	f->setAllTextures("workbench_side.png");
-	f->setTexture(0, "workbench_side.png");
+	f->setTexture(0, "workbench_top.png");
 	f->setTexture(1, "workbench_top.png");
 	f->setTexture(5, "workbench_front.png"); // Z-
 	f->setInventoryTexture("workbench_top.png");
