@@ -26,7 +26,62 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 	items: actually *items[9]
 	return value: allocates a new item, or returns NULL.
 */
-InventoryItem *craft_get_result(InventoryItem **items)
+InventoryItem *craft_get_result_2x2(InventoryItem **items)
+{
+	// Wood
+	{
+		ItemSpec specs[4];
+		specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_TREE);
+		if(checkItemCombination(items, specs))
+		{
+			return new MaterialItem(CONTENT_WOOD, 4);
+		}
+	}	
+
+	// Stick
+	{
+		ItemSpec specs[4];
+		specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		if(checkItemCombination(items, specs))
+		{
+			return new CraftItem("Stick", 4);
+		}
+	}
+
+	// Torch
+	{
+		ItemSpec specs[4];
+		specs[0] = ItemSpec(ITEM_CRAFT, "lump_of_coal");
+		specs[2] = ItemSpec(ITEM_CRAFT, "Stick");
+		if(checkItemCombination(items, specs))
+		{
+			return new MaterialItem(CONTENT_TORCH, 4);
+		}
+		specs[1] = ItemSpec(ITEM_CRAFT, "lump_of_coal");
+		specs[3] = ItemSpec(ITEM_CRAFT, "Stick");
+		if(checkItemCombination(items, specs))
+		{
+			return new MaterialItem(CONTENT_TORCH, 4);
+		}
+	}
+
+	// Workbench
+	{
+		ItemSpec specs[4];
+		specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		if(checkItemCombination(items, specs))
+		{
+			return new MaterialItem(CONTENT_WORKBENCH, 1);
+		}
+	}
+
+	return NULL;
+}
+
+InventoryItem *craft_get_result_3x3(InventoryItem **items)
 {
 	// Wood
 	{

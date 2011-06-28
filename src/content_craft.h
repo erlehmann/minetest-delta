@@ -27,7 +27,8 @@ class Player;
 	items: actually *items[9]
 	return value: allocates a new item, or returns NULL.
 */
-InventoryItem *craft_get_result(InventoryItem **items);
+InventoryItem *craft_get_result_2x2(InventoryItem **items);
+InventoryItem *craft_get_result_3x3(InventoryItem **items);
 
 void craft_set_creative_inventory(Player *player);
 
