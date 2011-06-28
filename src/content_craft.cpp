@@ -32,17 +32,17 @@ InventoryItem *craft_get_result_2x2(InventoryItem **items)
 	{
 		ItemSpec specs[4];
 		specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_TREE);
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 2))
 		{
 			return new MaterialItem(CONTENT_WOOD, 4);
 		}
-	}	
+	}
 
 	// Stick
 	{
 		ItemSpec specs[4];
 		specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 2))
 		{
 			return new CraftItem("Stick", 4);
 		}
@@ -53,13 +53,13 @@ InventoryItem *craft_get_result_2x2(InventoryItem **items)
 		ItemSpec specs[4];
 		specs[0] = ItemSpec(ITEM_CRAFT, "lump_of_coal");
 		specs[2] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 2))
 		{
 			return new MaterialItem(CONTENT_TORCH, 4);
 		}
 		specs[1] = ItemSpec(ITEM_CRAFT, "lump_of_coal");
 		specs[3] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 2))
 		{
 			return new MaterialItem(CONTENT_TORCH, 4);
 		}
@@ -72,7 +72,7 @@ InventoryItem *craft_get_result_2x2(InventoryItem **items)
 		specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 2))
 		{
 			return new MaterialItem(CONTENT_WORKBENCH, 1);
 		}
@@ -87,7 +87,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 	{
 		ItemSpec specs[9];
 		specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_TREE);
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_WOOD, 4);
 		}
@@ -97,7 +97,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 	{
 		ItemSpec specs[9];
 		specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new CraftItem("Stick", 4);
 		}
@@ -112,7 +112,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[6] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[8] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_FENCE, 2);
 		}
@@ -128,7 +128,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[5] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			//return new MapBlockObjectItem("Sign");
 			return new MaterialItem(CONTENT_SIGN_WALL, 1);
@@ -140,7 +140,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		ItemSpec specs[9];
 		specs[0] = ItemSpec(ITEM_CRAFT, "lump_of_coal");
 		specs[3] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_TORCH, 4);
 		}
@@ -154,7 +154,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("WPick", 0);
 		}
@@ -168,7 +168,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("STPick", 0);
 		}
@@ -182,7 +182,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[2] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("SteelPick", 0);
 		}
@@ -196,7 +196,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[2] = ItemSpec(ITEM_MATERIAL, CONTENT_MESE);
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("MesePick", 0);
 		}
@@ -208,7 +208,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("WShovel", 0);
 		}
@@ -220,7 +220,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("STShovel", 0);
 		}
@@ -232,7 +232,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("SteelShovel", 0);
 		}
@@ -246,7 +246,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("WAxe", 0);
 		}
@@ -260,7 +260,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("STAxe", 0);
 		}
@@ -274,7 +274,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[3] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("SteelAxe", 0);
 		}
@@ -286,7 +286,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("WSword", 0);
 		}
@@ -298,7 +298,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 		specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("STSword", 0);
 		}
@@ -310,7 +310,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 		specs[4] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new ToolItem("SteelSword", 0);
 		}
@@ -328,7 +328,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[6] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[8] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_RAIL, 15);
 		}
@@ -345,7 +345,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_CHEST, 1);
 		}
@@ -358,7 +358,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_WORKBENCH, 1);
 		}
@@ -375,7 +375,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 		specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 		specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_FURNACE, 1);
 		}
@@ -393,7 +393,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[6] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 		specs[7] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 		specs[8] = ItemSpec(ITEM_CRAFT, "steel_ingot");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_STEEL, 1);
 		}
@@ -406,7 +406,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
 		specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
 		specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_SAND);
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_SANDSTONE, 1);
 		}
@@ -419,7 +419,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[4] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
 		specs[6] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
 		specs[7] = ItemSpec(ITEM_CRAFT, "lump_of_clay");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_CLAY, 1);
 		}
@@ -432,7 +432,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[4] = ItemSpec(ITEM_CRAFT, "clay_brick");
 		specs[6] = ItemSpec(ITEM_CRAFT, "clay_brick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "clay_brick");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_BRICK, 1);
 		}
@@ -444,7 +444,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
 		specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
 		specs[5] = ItemSpec(ITEM_MATERIAL, CONTENT_PAPYRUS);
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new CraftItem("paper", 1);
 		}
@@ -456,7 +456,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[1] = ItemSpec(ITEM_CRAFT, "paper");
 		specs[4] = ItemSpec(ITEM_CRAFT, "paper");
 		specs[7] = ItemSpec(ITEM_CRAFT, "paper");
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new CraftItem("book", 1);
 		}
@@ -474,7 +474,7 @@ InventoryItem *craft_get_result_3x3(InventoryItem **items)
 		specs[6] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[7] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[8] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
-		if(checkItemCombination(items, specs))
+		if(checkItemCombination(items, specs, 3))
 		{
 			return new MaterialItem(CONTENT_BOOKSHELF, 1);
 		}
