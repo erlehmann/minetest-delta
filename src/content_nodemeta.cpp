@@ -267,6 +267,7 @@ NodeMetadata* FurnaceNodeMetadata::create(std::istream &is)
 	FurnaceNodeMetadata *d = new FurnaceNodeMetadata();
 
 	d->m_inventory->deSerialize(is);
+	d->m_inventory->getList("dst")->setReadOnly(true); // Set result as read only
 
 	int temp;
 	is>>temp;

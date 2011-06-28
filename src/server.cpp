@@ -3874,7 +3874,7 @@ void Server::UpdateCrafting(u16 peer_id) {
 	 Calculate crafting stuff
 	 */
 	if (g_settings.getBool("creative_mode") == false) {
-		// we can then optain the list with the id workbench_craft and workbench_craftresult
+		// we can then optain the list with the id craft and craftresult
 		InventoryList *clist = player->inventory.getList("craft");
 		InventoryList *rlist = player->inventory.getList("craftresult");
 

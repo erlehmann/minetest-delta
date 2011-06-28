@@ -28,6 +28,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 InventoryItem *craft_get_result_2x2(InventoryItem **items)
 {
+	// 2 x 2 crafting recipes, used by the inventory
+
 	// Wood
 	{
 		ItemSpec specs[4];
@@ -57,12 +59,6 @@ InventoryItem *craft_get_result_2x2(InventoryItem **items)
 		{
 			return new MaterialItem(CONTENT_TORCH, 4);
 		}
-		specs[1] = ItemSpec(ITEM_CRAFT, "lump_of_coal");
-		specs[3] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs, 2))
-		{
-			return new MaterialItem(CONTENT_TORCH, 4);
-		}
 	}
 
 	// Workbench
@@ -83,6 +79,8 @@ InventoryItem *craft_get_result_2x2(InventoryItem **items)
 
 InventoryItem *craft_get_result_3x3(InventoryItem **items)
 {
+	// 3 x 3 crafting recipes, used by the workbench
+
 	// Wood
 	{
 		ItemSpec specs[9];
@@ -535,6 +533,7 @@ void craft_set_creative_inventory(Player *player)
 		CONTENT_WATERSOURCE,
 		CONTENT_CLOUD,
 		CONTENT_CHEST,
+		CONTENT_WORKBENCH,
 		CONTENT_FURNACE,
 		CONTENT_SIGN_WALL,
 		CONTENT_IGNORE
