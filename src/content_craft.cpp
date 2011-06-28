@@ -296,6 +296,19 @@ InventoryItem *craft_get_result(InventoryItem **items)
 		}
 	}
 
+	// Workbench
+	{
+		ItemSpec specs[9];
+		specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		specs[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		if(checkItemCombination(items, specs))
+		{
+			return new MaterialItem(CONTENT_WORKBENCH, 1);
+		}
+	}
+
 	// Furnace
 	{
 		ItemSpec specs[9];

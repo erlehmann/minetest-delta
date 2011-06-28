@@ -107,7 +107,6 @@ set(minetest_SRCS
 	keycode.cpp
 	clouds.cpp
 	clientobject.cpp
-	guiWorkbenchMenu.cpp
 	guiMainMenu.cpp
 	guiKeyChangeMenu.cpp
 	guiMessageMenu.cpp

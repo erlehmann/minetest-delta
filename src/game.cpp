@@ -25,7 +25,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "guiPasswordChange.h"
 #include "guiInventoryMenu.h"
 #include "guiTextInputMenu.h"
-#include "guiWorkbenchMenu.h"
 #include "materials.h"
 #include "config.h"
 #include "clouds.h"
@@ -1803,16 +1802,6 @@ void the_game(
 					(new GUITextInputMenu(guienv, guiroot, -1,
 							&g_menumgr, dest,
 							wtext))->drop();
-				}
-				if (meta && meta->typeId() == CONTENT_WORKBENCH
-										&& !random_input)
-				{
-					dstream << "Workbench node right-clicked" << std::endl;
-
-					GUIWorkbenchMenu *menu = new GUIWorkbenchMenu(guienv,
-					guiroot, -1, &g_menumgr, nodepos, &client);
-
-					menu->drop();
 				}
 				else
 				{
