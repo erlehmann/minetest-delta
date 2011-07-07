@@ -14,7 +14,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
 #include "environment.h"
@@ -1002,51 +1002,33 @@ void ServerEnvironment::step(float dtime)
 		removeRemovedObjects();
 	}
 
-	if(g_settings.getBool("enable_experimental"))
-	{
-
-	/*
-		TEST CODE
-	*/
-#if 1
 	m_random_spawn_timer -= dtime;
-	if(m_random_spawn_timer < 0)
+	if(m_random_spawn_timer < 0 && getDayNightRatio()  == 350)
 	{
-		//m_random_spawn_timer += myrand_range(2.0, 20.0);
-		//m_random_spawn_timer += 2.0;
-		m_random_spawn_timer += 200.0;
+		m_random_spawn_timer += 10.0;
 
 		/*
 			Find some position
 		*/
-
-		/*v2s16 p2d(myrand_range(-5,5), myrand_range(-5,5));
-		s16 y = 1 + getServerMap().findGroundLevel(p2d);
-		v3f pos(p2d.X*BS,y*BS,p2d.Y*BS);*/
 		
 		Player *player = getRandomConnectedPlayer();
 		v3f pos(0,0,0);
 		if(player)
 			pos = player->getPosition();
+		// Enforce minimum distance
 		pos += v3f(
-			myrand_range(-3,3)*BS,
+			(myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS,
 			0,
-			myrand_range(-3,3)*BS
+			(myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS
 		);
 
 		/*
 			Create a ServerActiveObject
 		*/
 
-		//TestSAO *obj = new TestSAO(this, 0, pos);
-		//ServerActiveObject *obj = new ItemSAO(this, 0, pos, "CraftItem Stick 1");
-		//ServerActiveObject *obj = new RatSAO(this, 0, pos);
 		ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
 		addActiveObject(obj);
 	}
-#endif
-
-	} // enable_experimental
 }
 
 ServerActiveObject* ServerEnvironment::getActiveObject(u16 id)
