@@ -1241,7 +1241,6 @@ void Map::removeNodeAndUpdate(v3s16 p,
 
 	/*
 		Add neighboring liquid nodes to transform queue.
-
 		Also add horizontal neighbors of node on top of removed node
 		because they could be affected of the water on top flowing
 		down instead of into them.
