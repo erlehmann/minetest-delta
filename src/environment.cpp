@@ -1002,10 +1002,12 @@ void ServerEnvironment::step(float dtime)
 		removeRemovedObjects();
 	}
 
-	m_random_spawn_timer -= dtime;
+    if (getDayNightRatio() == 350)
+        m_random_spawn_timer -= dtime;
+
 	if(m_random_spawn_timer < 0 && getDayNightRatio()  == 350)
 	{
-		m_random_spawn_timer += 10.0;
+		m_random_spawn_timer += 2.0;
 
 		/*
 			Find some position
