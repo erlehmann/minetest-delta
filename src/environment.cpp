@@ -1009,28 +1009,30 @@ void ServerEnvironment::step(float dtime)
 	{
 		m_random_spawn_timer += 2.0;
 
-		/*
-			Find some position
-		*/
-		
-		Player *player = getRandomConnectedPlayer();
-		v3f pos(0,0,0);
-		if(player)
+        core::list<Player*> players = getPlayers(true);
+
+        for (core::list<Player*>::Iterator i = players.begin();
+                i != players.end(); i++)
+        {
+            Player *player = *i;
+            
+		    v3f pos(0,0,0);
 			pos = player->getPosition();
-		// Enforce minimum distance
-		pos += v3f(
-			(myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS,
-			0,
-			(myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS
-		);
+		    // Enforce minimum distance
+		    pos += v3f(
+			    (myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS,
+			    0,
+	    		(myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS
+		    );
 
-		/*
-			Create a ServerActiveObject
-		*/
+		    /*
+			    Create a ServerActiveObject
+		    */
 
-		ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
-		addActiveObject(obj);
-	}
+		    ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
+		    addActiveObject(obj);
+        }
+    }
 }
 
 ServerActiveObject* ServerEnvironment::getActiveObject(u16 id)
