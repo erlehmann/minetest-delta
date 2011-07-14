@@ -523,20 +523,27 @@ void Oerkki1SAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 	*/
 	bool player_is_close = false;
 	v3f near_player_pos;
-	// Check connected players
+	
+    // Move toward the closest given player
 	core::list<Player*> players = m_env->getPlayers(true);
 	core::list<Player*>::Iterator i;
 	for(i = players.begin();
 			i != players.end(); i++)
 	{
 		Player *player = *i;
-		v3f playerpos = player->getPosition();
-		if(m_base_position.getDistanceFrom(playerpos) < BS*15.0)
-		{
-			player_is_close = true;
-			near_player_pos = playerpos;
-			break;
-		}
+        v3f playerpos = player->getPosition();
+        if (!nearest && m_base_position.getDistanceFrom(playerpos) < BS*15.0)
+        {
+            near_player_pos = playerpos;
+            player_is_close = true;
+        }
+        else
+        {
+		    if(m_base_position.getDistanceFrom(playerpos) < m_base_position.getDistanceFrom(new_player_pos))
+		    {
+			    near_player_pos = playerpos;
+		    }
+        }
 	}
 
 	m_is_active = player_is_close;
