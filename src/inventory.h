@@ -488,11 +488,16 @@ public:
 	// Returns NULL if couldn't take any.
 	InventoryItem * takeItem(u32 i, u32 count);
 
+	// Sets the List read only
+	void setReadOnly(bool readOnly);
+
 	// Decrements amount of every material item
 	void decrementMaterials(u16 count);
 
 	void print(std::ostream &o);
-	
+
+	bool m_readOnly;
+
 private:
 	core::array<InventoryItem*> m_items;
 	u32 m_size;
@@ -683,7 +688,7 @@ struct ItemSpec
 	items: a pointer to an array of 9 pointers to items
 	specs: a pointer to an array of 9 ItemSpecs
 */
-bool checkItemCombination(InventoryItem **items, ItemSpec *specs);
+bool checkItemCombination(InventoryItem **items, ItemSpec *specs, int gridsize);
 
 #endif
 

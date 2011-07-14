@@ -20,6 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "content_nodemeta.h"
 #include "inventory.h"
 #include "content_mapnode.h"
+#include "content_craft.h"
 
 /*
 	SignNodeMetadata
@@ -118,6 +119,114 @@ std::string ChestNodeMetadata::getInventoryDrawSpecString()
 }
 
 /*
+ WorkbenchNodeMetadata
+ */
+
+// Prototype
+WorkbenchNodeMetadata proto_WorkbenchNodeMetadata;
+
+WorkbenchNodeMetadata::WorkbenchNodeMetadata() {
+	NodeMetadata::registerType(typeId(), create);
+
+	m_inventory = new Inventory();
+	m_inventory->addList("workbench_craft", 3 * 3);
+	m_inventory->addList("workbench_craftresult", 1);
+	m_crafted = false;
+}
+WorkbenchNodeMetadata::~WorkbenchNodeMetadata() {
+	delete m_inventory;
+}
+u16 WorkbenchNodeMetadata::typeId() const {
+	return CONTENT_WORKBENCH;
+}
+NodeMetadata* WorkbenchNodeMetadata::create(std::istream &is) {
+	WorkbenchNodeMetadata *d = new WorkbenchNodeMetadata();
+	d->m_inventory->deSerialize(is);
+	d->m_inventory->getList("workbench_craftresult")->setReadOnly(true); // Set craft result as read only
+	return d;
+}
+NodeMetadata* WorkbenchNodeMetadata::clone() {
+	WorkbenchNodeMetadata *d = new WorkbenchNodeMetadata();
+	*d->m_inventory = *m_inventory;
+	return d;
+}
+void WorkbenchNodeMetadata::serializeBody(std::ostream &os) {
+	m_inventory->serialize(os);
+}
+std::string WorkbenchNodeMetadata::infoText() {
+	return "Workbench";
+}
+bool WorkbenchNodeMetadata::nodeRemovalDisabled() {
+	/*
+	 Disable removal if workbench contains something
+	 */
+	InventoryList *list = m_inventory->getList("workbench_craft");
+	if (list == NULL)
+		return false;
+	if (list->getUsedSlots() == 0)
+		return false;
+	return true;
+}
+
+bool WorkbenchNodeMetadata::step(float dtime) {
+	// This can be instant
+	/* Update at a fixed frequency
+	const float interval = 0.5;
+	m_step_accumulator += dtime;
+	if (m_step_accumulator < interval)
+		return false;
+	m_step_accumulator -= interval;
+	dtime = interval; */
+
+	InventoryList* clist = m_inventory->getList("workbench_craft");
+	assert(clist);
+	InventoryList* rlist = m_inventory->getList("workbench_craftresult");
+	assert(rlist);
+
+	if (rlist->getUsedSlots() != 0)
+		m_crafted = false;
+
+	if (m_crafted) {
+		// We have crafted something, so we decrement the clist
+		clist->decrementMaterials(1);
+		m_crafted = false;
+		return false;
+	}
+
+	if (clist && rlist) {
+		InventoryItem *items[WORKBENCH_SIZE];
+		for (u16 i = 0; i < WORKBENCH_SIZE; i++) {
+			items[i] = clist->getItem(i);
+		}
+
+		// Get result of crafting grid
+		InventoryItem *result = craft_get_result_3x3(items);
+
+		// If the craft result doesn't match the current crafting pattern, clear it
+		if(result != rlist->getItem(0))
+			rlist->clearItems();
+
+		if(result)
+		{
+			m_crafted = true;
+
+			// If the craft result has not been added yet, do so
+			if (rlist->getUsedSlots() == 0)
+				rlist->addItem(result);
+		}
+	}
+	return true;
+}
+std::string WorkbenchNodeMetadata::getInventoryDrawSpecString()
+{
+	return
+		"invsize[8,8;]"
+		"list[current_name;workbench_craft;2,0;3,3;]"
+		"list[current_name;workbench_craftresult;7,1;1,1;]"
+		"list[current_player;main;0,4;8,4;]";
+}
+
+/*
 	FurnaceNodeMetadata
 */
 
@@ -158,6 +267,7 @@ NodeMetadata* FurnaceNodeMetadata::create(std::istream &is)
 	FurnaceNodeMetadata *d = new FurnaceNodeMetadata();
 
 	d->m_inventory->deSerialize(is);
+	d->m_inventory->getList("dst")->setReadOnly(true); // Set result as read only
 
 	int temp;
 	is>>temp;

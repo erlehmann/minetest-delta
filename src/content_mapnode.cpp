@@ -351,7 +351,21 @@ void content_mapnode_init()
 	if(f->initial_metadata == NULL)
 		f->initial_metadata = new ChestNodeMetadata();
 	setWoodLikeDiggingProperties(f->digging_properties, 1.0);
-	
+
+	i = CONTENT_WORKBENCH;
+	f = &content_features(i);
+	f->param_type = CPT_FACEDIR_SIMPLE;
+	f->setAllTextures("workbench_side.png");
+	f->setTexture(0, "workbench_top.png");
+	f->setTexture(1, "workbench_top.png");
+	f->setTexture(5, "workbench_front.png"); // Z-
+	f->setInventoryTexture("workbench_top.png");
+	f->setInventoryTextureCube("workbench_top.png", "workbench_side.png", "workbench_side.png");
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	if(f->initial_metadata == NULL)
+		f->initial_metadata = new WorkbenchNodeMetadata();
+	setWoodLikeDiggingProperties(f->digging_properties, 1.0);
+
 	i = CONTENT_FURNACE;
 	f = &content_features(i);
 	f->param_type = CPT_FACEDIR_SIMPLE;

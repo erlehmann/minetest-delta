@@ -227,4 +227,3 @@ bool NodeMetadataList::step(float dtime)
 	}
 	return something_changed;
 }
-
