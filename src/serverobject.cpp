@@ -461,7 +461,6 @@ Oerkki1SAO proto_Oerkki1SAO(NULL, 0, v3f(0,0,0));
 
 Oerkki1SAO::Oerkki1SAO(ServerEnvironment *env, u16 id, v3f pos):
 	ServerActiveObject(env, id, pos),
-	m_is_active(false),
 	m_speed_f(0,0,0)
 {
 	ServerActiveObject::registerType(getType(), create);
@@ -497,12 +496,6 @@ void Oerkki1SAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 {
 	assert(m_env);
 
-	if(m_is_active == false)
-	{
-		if(m_inactive_interval.step(dtime, 0.5)==false)
-			return;
-	}
-
 	/*
 		The AI
 	*/
@@ -521,8 +514,8 @@ void Oerkki1SAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 	/*
 		Move around if some player is close
 	*/
-	bool player_is_close = false;
 	v3f near_player_pos;
+    Player *nearest = NULL;
 	
     // Move toward the closest given player
 	core::list<Player*> players = m_env->getPlayers(true);
@@ -532,68 +525,61 @@ void Oerkki1SAO::step(float dtime, Queue<ActiveObjectMessage> &messages,
 	{
 		Player *player = *i;
         v3f playerpos = player->getPosition();
-        if (!nearest && m_base_position.getDistanceFrom(playerpos) < BS*15.0)
+        if (!nearest)
         {
             near_player_pos = playerpos;
-            player_is_close = true;
+            nearest = player;
         }
         else
         {
-		    if(m_base_position.getDistanceFrom(playerpos) < m_base_position.getDistanceFrom(new_player_pos))
+		    if(m_base_position.getDistanceFrom(playerpos) < m_base_position.getDistanceFrom(near_player_pos))
 		    {
+                nearest = player;
 			    near_player_pos = playerpos;
 		    }
         }
 	}
 
-	m_is_active = player_is_close;
-	
-	if(player_is_close == false)
+    if (!nearest) return; // Nobody on the server...
+
+    // Move around
+
+	v3f ndir = near_player_pos - m_base_position;
+	ndir.Y = 0;
+	ndir /= ndir.getLength();
+	f32 nyaw = 180./PI*atan2(ndir.Z,ndir.X);
+	if(nyaw < m_yaw - 180)
+		nyaw += 360;
+	else if(nyaw > m_yaw + 180)
+		nyaw -= 360;
+	m_yaw = 0.95*m_yaw + 0.05*nyaw;
+	m_yaw = wrapDegrees(m_yaw);
+
+	v3f dir(cos(m_yaw/180*PI),0,sin(m_yaw/180*PI));
+	f32 speed = 2*BS;
+	m_speed_f.X = speed * dir.X;
+	m_speed_f.Z = speed * dir.Z;
+
+	if(m_touching_ground && (m_oldpos - m_base_position).getLength()
+			< dtime*speed/2)
 	{
-		m_speed_f.X = 0;
-		m_speed_f.Z = 0;
-	}
-	else
-	{
-		// Move around
-
-		v3f ndir = near_player_pos - m_base_position;
-		ndir.Y = 0;
-		ndir /= ndir.getLength();
-		f32 nyaw = 180./PI*atan2(ndir.Z,ndir.X);
-		if(nyaw < m_yaw - 180)
-			nyaw += 360;
-		else if(nyaw > m_yaw + 180)
-			nyaw -= 360;
-		m_yaw = 0.95*m_yaw + 0.05*nyaw;
-		m_yaw = wrapDegrees(m_yaw);
-
-		v3f dir(cos(m_yaw/180*PI),0,sin(m_yaw/180*PI));
-		f32 speed = 2*BS;
-		m_speed_f.X = speed * dir.X;
-		m_speed_f.Z = speed * dir.Z;
-
-		if(m_touching_ground && (m_oldpos - m_base_position).getLength()
-				< dtime*speed/2)
+		m_counter1 -= dtime;
+		if(m_counter1 < 0.0)
 		{
-			m_counter1 -= dtime;
-			if(m_counter1 < 0.0)
-			{
-				m_counter1 += 1.0;
-				// Jump
-				m_speed_f.Y = 5.0*BS;
-			}
+			m_counter1 += 1.0;
+			// Jump
+			m_speed_f.Y = 5.0*BS;
 		}
+	}
 
+	{
+		m_counter2 -= dtime;
+		if(m_counter2 < 0.0)
 		{
-			m_counter2 -= dtime;
-			if(m_counter2 < 0.0)
-			{
-				m_counter2 += (float)(myrand()%100)/100*3.0;
-				//m_yaw += ((float)(myrand()%200)-100)/100*180;
-				m_yaw += ((float)(myrand()%200)-100)/100*90;
-				m_yaw = wrapDegrees(m_yaw);
-			}
+			m_counter2 += (float)(myrand()%100)/100*3.0;
+			//m_yaw += ((float)(myrand()%200)-100)/100*180;
+			m_yaw += ((float)(myrand()%200)-100)/100*90;
+			m_yaw = wrapDegrees(m_yaw);
 		}
 	}
 	
