@@ -1,0 +1,3 @@
+[submodule "minetest-mac"]
+	path = minetest-mac
+	url = https://github.com/toabi/minetest-mac.git
