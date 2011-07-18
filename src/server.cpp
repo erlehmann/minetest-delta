@@ -2824,6 +2824,35 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 					}
 				}*/
 			}
+            else if (std::string("FoodItem") == item->getName())
+            {
+                Player *player = m_env.getPlayer(peer_id);
+                player->hp = 20;
+                SendPlayerHP(player);
+                
+                if(g_settings.getBool("creative_mode") == false)
+				{
+					// Delete item if all gone
+					if(item->getCount() <= 1)
+					{
+						if(item->getCount() < 1)
+							dstream<<"WARNING: Server: dropped more food"
+									<<" than the slot contains"<<std::endl;
+						
+						InventoryList *ilist = player->inventory.getList("main");
+						if(ilist)
+							// Remove from inventory and send inventory
+							ilist->deleteItem(item_i);
+					}
+					// Else decrement it
+					else
+						item->remove(1);
+					
+					// Send inventory
+					UpdateCrafting(peer_id);
+					SendInventory(peer_id);
+				}
+			}
 			/*
 				Place other item (not a block)
 			*/

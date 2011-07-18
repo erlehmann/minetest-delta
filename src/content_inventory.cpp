@@ -91,7 +91,7 @@ s16 item_craft_get_drop_count(const std::string &subname)
 
 bool item_craft_is_cookable(const std::string &subname)
 {
-	if(subname == "lump_of_iron" || subname == "lump_of_clay")
+	if(subname == "lump_of_iron" || subname == "lump_of_clay" || subname == "rat")
 		return true;
 		
 	return false;
@@ -103,6 +103,8 @@ InventoryItem* item_craft_create_cook_result(const std::string &subname)
 		return new CraftItem("steel_ingot", 1);
 	else if(subname == "lump_of_clay")
 		return new CraftItem("clay_brick", 1);
+    else if(subname == "rat")
+        return new FoodItem(1);
 
 	return NULL;
 }

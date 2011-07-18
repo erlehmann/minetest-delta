@@ -314,6 +314,54 @@ private:
 	std::string m_subname;
 };
 
+class FoodItem : public InventoryItem
+{
+public:
+    FoodItem(u16 count) : InventoryItem(count)
+    { 
+        // Satisfy g++ 
+    }
+    
+    virtual const char* getName() const
+    {
+        return "FoodItem";
+    }
+
+#ifndef SERVER
+    video::ITexture *getImage()
+    {
+        if(g_texturesource == NULL)
+            return NULL;
+
+        return g_texturesource->getTextureRaw(std::string("meat.png"));
+    }
+#endif
+
+    virtual bool addableTo(InventoryItem *other)
+    {
+        return (std::string(other->getName()) == "FoodItem");
+    }
+
+    virtual InventoryItem* clone()
+    {
+        return new FoodItem(m_count);
+    }
+
+    virtual void serialize(std::ostream &os)
+    {
+        os<<getName();
+        os<<" ";
+        os<<m_count;
+    }
+
+    u16 freeSpace()
+    {
+        if(m_count > QUANTITY_ITEM_MAX_COUNT)
+            return 0;
+        return QUANTITY_ITEM_MAX_COUNT - m_count;
+    }
+};
+
 class ToolItem : public InventoryItem
 {
 public:

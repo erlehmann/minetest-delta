@@ -87,6 +87,12 @@ InventoryItem* InventoryItem::deSerialize(std::istream &is)
 		is>>wear;
 		return new ToolItem(toolname, wear);
 	}
+    else if(name == "FoodItem")
+    {
+        u16 count;
+        is>>count;
+        return new FoodItem(count);
+    }
 	else
 	{
 		dstream<<"Unknown InventoryItem name=\""<<name<<"\""<<std::endl;
