@@ -937,51 +937,37 @@ void ServerEnvironment::step(float dtime)
 		removeRemovedObjects();
 	}
 
-	if(g_settings.getBool("enable_experimental"))
+    if (getDayNightRatio() == 350)
+        m_random_spawn_timer -= dtime;
+
+	if(m_random_spawn_timer < 0 && getDayNightRatio()  == 350)
 	{
+		m_random_spawn_timer += 2.0;
 
-	/*
-		TEST CODE
-	*/
-#if 1
-	m_random_spawn_timer -= dtime;
-	if(m_random_spawn_timer < 0)
-	{
-		//m_random_spawn_timer += myrand_range(2.0, 20.0);
-		//m_random_spawn_timer += 2.0;
-		m_random_spawn_timer += 200.0;
+        core::list<Player*> players = getPlayers(true);
 
-		/*
-			Find some position
-		*/
-
-		/*v2s16 p2d(myrand_range(-5,5), myrand_range(-5,5));
-		s16 y = 1 + getServerMap().findGroundLevel(p2d);
-		v3f pos(p2d.X*BS,y*BS,p2d.Y*BS);*/
-		
-		Player *player = getRandomConnectedPlayer();
-		v3f pos(0,0,0);
-		if(player)
+        for (core::list<Player*>::Iterator i = players.begin();
+                i != players.end(); i++)
+        {
+            Player *player = *i;
+            
+		    v3f pos(0,0,0);
 			pos = player->getPosition();
-		pos += v3f(
-			myrand_range(-3,3)*BS,
-			0,
-			myrand_range(-3,3)*BS
-		);
+		    // Enforce minimum distance
+		    pos += v3f(
+			    (myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS,
+			    0,
+	    		(myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS
+		    );
 
-		/*
-			Create a ServerActiveObject
-		*/
+		    /*
+			    Create a ServerActiveObject
+		    */
 
-		//TestSAO *obj = new TestSAO(this, 0, pos);
-		//ServerActiveObject *obj = new ItemSAO(this, 0, pos, "CraftItem Stick 1");
-		//ServerActiveObject *obj = new RatSAO(this, 0, pos);
-		ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
-		addActiveObject(obj);
-	}
-#endif
-
-	} // enable_experimental
+		    ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
+		    addActiveObject(obj);
+        }
+    }
 }
 
 ServerActiveObject* ServerEnvironment::getActiveObject(u16 id)
