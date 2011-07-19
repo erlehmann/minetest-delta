@@ -262,6 +262,7 @@ void content_mapnode_init()
 	f->diggable = false;
 	f->buildable_to = true;
 	f->air_equivalent = true;
+	f->flowable = true;
 	
 	i = CONTENT_WATER;
 	f = &content_features(i);
@@ -319,6 +320,7 @@ void content_mapnode_init()
 	f->walkable = false;
 	f->wall_mounted = true;
 	f->air_equivalent = true;
+	f->flowable = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
 	f->light_source = LIGHT_MAX-1;
 	f->digging_properties.set("", DiggingProperties(true, 0.0, 0));

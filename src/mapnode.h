@@ -141,6 +141,9 @@ struct ContentFeatures
 	// If true, node is equivalent to air. Torches are, air is. Water is not.
 	// Is used for example to check whether a mud block can have grass on.
 	bool air_equivalent;
+	// If true, liquid can flow a node with this content (in which case the
+	// content will be replacecd)
+	bool flowable;
 	
 	// Inventory item string as which the node appears in inventory when dug.
 	// Mineral overrides this.
@@ -179,6 +182,7 @@ struct ContentFeatures
 		liquid_type = LIQUID_NONE;
 		wall_mounted = false;
 		air_equivalent = false;
+		flowable = false;
 		dug_item = "";
 		initial_metadata = NULL;
 		liquid_alternative_flowing = CONTENT_IGNORE;
