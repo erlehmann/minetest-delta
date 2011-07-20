@@ -401,6 +401,8 @@ Doing currently:
 #include "keycode.h"
 #include "tile.h"
 
+#include "gettext.h"
+
 // This makes textures
 ITextureSource *g_texturesource = NULL;
 
@@ -1058,7 +1060,6 @@ int main(int argc, char *argv[])
 	std::locale::global(std::locale("C"));
 	// This enables printing all characters in bitmap font
 	setlocale(LC_CTYPE, "en_US");
-
 	/*
 		Parse command line
 	*/
@@ -1130,6 +1131,10 @@ int main(int argc, char *argv[])
 
 	// Create user data directory
 	fs::CreateDir(porting::path_userdata);
+
+	setlocale(LC_ALL, "");
+	bindtextdomain("minetest-c55", (porting::path_userdata+"/locale").c_str());
+	textdomain("minetest-c55");
 	
 	// Initialize debug streams
 #ifdef RUN_IN_PLACE
@@ -1345,6 +1350,9 @@ int main(int argc, char *argv[])
 	
 	// Set device in game parameters
 	device = device;
+
+	// Set the window caption
+	device->setWindowCaption(L"Minetest [Main Menu]");
 	
 	// Create time getter
 	g_timegetter = new IrrlichtTimeGetter(device);
