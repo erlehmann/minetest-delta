@@ -241,9 +241,9 @@ void GUIMainMenu::regenerateGui(v2u32 screensize)
 
 	// Key change button
 	{
-		core::rect<s32> rect(0, 0, 100, 30);
+		core::rect<s32> rect(0, 0, 150, 30);
 		//rect += topleft_client + v2s32(size_client.X/2-180/2, 225-30/2);
-		rect += topleft_client + v2s32(size_client.X-180-40-100-20, 150+25);
+		rect += topleft_client + v2s32(size_client.X-180-40-150-20, 150+25);
 		Environment->addButton(rect, this, GUI_ID_CHANGE_KEYS_BUTTON, chartowchar_t(gettext("Change keys")));
 	}
 	/*

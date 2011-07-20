@@ -1133,8 +1133,8 @@ int main(int argc, char *argv[])
 	fs::CreateDir(porting::path_userdata);
 
 	setlocale(LC_ALL, "");
-	bindtextdomain("minetest-c55", (porting::path_userdata+"/locale").c_str());
-	textdomain("minetest-c55");
+	bindtextdomain(PROJECT_NAME, (porting::path_userdata+"/locale").c_str());
+	textdomain(PROJECT_NAME);
 	
 	// Initialize debug streams
 #ifdef RUN_IN_PLACE

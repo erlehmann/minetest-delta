@@ -5,7 +5,7 @@ if(${CMAKE_VERSION} STREQUAL "2.8.2")
 endif(${CMAKE_VERSION} STREQUAL "2.8.2")
 
 # This can be read from ${PROJECT_NAME} after project() is called
-project(minetest)
+project(minetest-delta)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 2)
@@ -48,15 +48,15 @@ if(WIN32)
 	set(EXAMPLE_CONF_DIR ".")
 elseif(APPLE)
 	# random placeholders
-	set(DATADIR "share/minetest")
+	set(DATADIR "share/${PROJECT_NAME}")
 	set(BINDIR "bin")
-	set(DOCDIR "share/doc/minetest")
+	set(DOCDIR "share/doc/${PROJECT_NAME}")
 	set(EXAMPLE_CONF_DIR ".")
 elseif(UNIX) # Linux, BSD etc
-	set(DATADIR "share/minetest")
+	set(DATADIR "share/${PROJECT_NAME}")
 	set(BINDIR "bin")
-	set(DOCDIR "share/doc/minetest")
-	set(EXAMPLE_CONF_DIR "share/doc/minetest")
+	set(DOCDIR "share/doc/${PROJECT_NAME}")
+	set(EXAMPLE_CONF_DIR "share/doc/${PROJECT_NAME}")
 endif()
 
 install(FILES "doc/README.txt" DESTINATION "${DOCDIR}")
@@ -82,10 +82,10 @@ if(WIN32)
 	# For some reason these aren't copied otherwise
 	# NOTE: For some reason now it seems to work without these
 	#if(BUILD_CLIENT)
-	#	install(FILES bin/minetest.exe DESTINATION bin)
+	#	install(FILES bin/${PROJECT_NAME}.exe DESTINATION bin)
 	#endif()
 	#if(BUILD_SERVER)
-	#	install(FILES bin/minetestserver.exe DESTINATION bin)
+	#	install(FILES bin/${PROJECT_NAME}server.exe DESTINATION bin)
 	#endif()
 
 	set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${VERSION_STRING}-win32")
@@ -93,7 +93,7 @@ if(WIN32)
 	set(CPACK_GENERATOR ZIP)
 
 	# This might be needed for some installer
-	#set(CPACK_PACKAGE_EXECUTABLES bin/minetest.exe "Minetest" bin/minetestserver.exe "Minetest Server")
+	#set(CPACK_PACKAGE_EXECUTABLES bin/${PROJECT_NAME}.exe "Minetest" bin/${PROJECT_NAME}server.exe "Minetest Server")
 elseif(APPLE)
 	# TODO
 	# see http://cmake.org/Wiki/CMake:CPackPackageGenerators#Bundle_.28OSX_only.29
@@ -103,7 +103,7 @@ elseif(APPLE)
 	set(CPACK_BUNDLE_NAME ${PROJECT_NAME})
 	set(CPACK_BUNDLE_ICON "")
 	set(CPACK_BUNDLE_PLIST "")
-	set(CPACK_BUNDLE_STARTUP_COMMAND "Contents/MacOS/minetest")
+	set(CPACK_BUNDLE_STARTUP_COMMAND "Contents/MacOS/${PROJECT_NAME}")
 	set(CPACK_GENERATOR "Bundle")
 else()
 	set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${VERSION_STRING}-linux")
