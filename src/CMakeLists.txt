@@ -31,7 +31,7 @@ if(WIN32)
 			CACHE PATH "gettext include directory")
 	set(GETTEXT_BIN_DIR "${PROJECT_SOURCE_DIR}/../../gettext/bin"
 			CACHE PATH "gettext bin directory")
-	set(GETTEXT_LIBRARIES "${PROJECT_SOURCE_DIR}/../../gettext/lib/intl.lib"
+	set(GETTEXT_LIBRARIES "${PROJECT_SOURCE_DIR}/../../gettext/lib/libintl.lib"
 			CACHE FILEPATH "gettext intl.lib")
 	set(IRRLICHT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/../../irrlicht-1.7.2"
 			CACHE PATH "irrlicht dir")
