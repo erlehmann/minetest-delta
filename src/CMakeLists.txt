@@ -27,6 +27,14 @@ if(WIN32)
 			CACHE FILEPATH "Path to zlibwapi.lib")
 	set(ZLIB_DLL "${PROJECT_SOURCE_DIR}/../../zlib125dll/dll32/zlibwapi.dll"
 			CACHE FILEPATH "Path to zlibwapi.dll (for installation)")
+	set(GETTEXT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/../../gettext/include"
+			CACHE PATH "gettext include directory")
+	set(GETTEXT_BIN_DIR "${PROJECT_SOURCE_DIR}/../../gettext/bin"
+			CACHE PATH "gettext bin directory")
+	set(GETTEXT_LIBRARIES "${PROJECT_SOURCE_DIR}/../../gettext/lib/intl.lib"
+			CACHE FILEPATH "gettext intl.lib")
+	set(IRRLICHT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/../../irrlicht-1.7.2"
+			CACHE PATH "irrlicht dir")
 else()
 	# Unix probably
 	if(BUILD_CLIENT)
@@ -35,6 +43,8 @@ else()
 		find_package(JPEG REQUIRED)
 		find_package(BZip2 REQUIRED)
 		find_package(PNG REQUIRED)
+		find_package(Jthread REQUIRED)
+		find_package(Sqlite3 REQUIRED)
 		if(APPLE)
 			FIND_LIBRARY(CARBON_LIB Carbon)
 			FIND_LIBRARY(COCOA_LIB Cocoa)
@@ -134,8 +144,9 @@ include_directories(
 	${ZLIB_INCLUDE_DIR}
 	${CMAKE_BUILD_TYPE}
 	${PNG_INCLUDE_DIR}
-	"${PROJECT_SOURCE_DIR}/jthread"
-	"${PROJECT_SOURCE_DIR}/sqlite"
+	${GETTEXT_INCLUDE_DIR}
+	${JTHREAD_INCLUDE_DIR}
+	${SQLITE3_INCLUDE_DIR}
 )
 
 set(EXECUTABLE_OUTPUT_PATH ../bin)
@@ -151,10 +162,11 @@ if(BUILD_CLIENT)
 		${BZIP2_LIBRARIES}
 		${PNG_LIBRARIES}
 		${X11_LIBRARIES}
+		${GETTEXT_LIBRARIES}
 		${PLATFORM_LIBS}
 		${CLIENT_PLATFORM_LIBS}
-		jthread
-		sqlite3
+		${JTHREAD_LIBRARY}
+		${SQLITE3_LIBRARY}
 	)
 endif(BUILD_CLIENT)
 
@@ -164,8 +176,8 @@ if(BUILD_SERVER)
 		minetestserver
 		${ZLIB_LIBRARIES}
 		${PLATFORM_LIBS}
-		jthread
-		sqlite3
+		${JTHREAD_LIBRARY}
+		${SQLITE3_LIBRARY}
 	)
 endif(BUILD_SERVER)
 
@@ -208,6 +220,10 @@ else()
 		set(ARCH i386)
 	endif()
 
+	if(WIN32)
+		set(CMAKE_EXE_LINKER_FLAGS "-lintl -L ${GETTEXT_BIN_DIR}")
+	endif()
+
 	set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG ${RELEASE_WARNING_FLAGS} ${WARNING_FLAGS} -O3 -ffast-math -Wall -fomit-frame-pointer -pipe -funroll-loops")
 	set(CMAKE_CXX_FLAGS_DEBUG "-g -O1 -Wall ${WARNING_FLAGS}")
 
@@ -239,12 +255,18 @@ if(BUILD_CLIENT)
 
 	install(FILES ${images} DESTINATION ${DATADIR})
 
+	install(FILES ${CMAKE_BINARY_DIR}/locale/de/LC_MESSAGES/minetest-c55.mo DESTINATION locale/de/LC_MESSAGES)
+ 
 	if(WIN32)
 		if(DEFINED IRRLICHT_DLL)
 			install(FILES ${IRRLICHT_DLL} DESTINATION ${BINDIR})
 		endif()
 		if(DEFINED ZLIB_DLL)
 			install(FILES ${ZLIB_DLL} DESTINATION ${BINDIR})
+		endif()
+		if(DEFINED GETTEXT_BIN_DIR)
+			install(FILES ${GETTEXT_BIN_DIR}/libintl3.dll DESTINATION ${BINDIR})
+			install(FILES ${GETTEXT_BIN_DIR}/libiconv2.dll DESTINATION ${BINDIR})
 		endif()
 	endif()
 endif(BUILD_CLIENT)
@@ -253,9 +275,37 @@ if(BUILD_SERVER)
 	install(TARGETS minetestserver DESTINATION ${BINDIR})
 endif(BUILD_SERVER)
 
+if(WIN32)
+	set(GETTEXT_MSGFMT "${GETTEXT_BIN_DIR}/msgfmt" CACHE FILEPATH "path to msgfmt")
+elseif(APPLE)
+	set(GETTEXT_MSGFMT "${GETTEXT_BIN_DIR}/msgfmt" CACHE FILEPATH "path to msgfmt")
+else()
+	set(GETTEXT_MSGFMT "msgfmt")
+endif()
+
+add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/locale/de/LC_MESSAGES COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/locale/de/LC_MESSAGES COMMENT "mo-update [de]: Creating locale directory.")
+
+add_custom_command(
+		OUTPUT ${CMAKE_BINARY_DIR}/locale/de/LC_MESSAGES/minetest-c55.mo
+		COMMAND ${GETTEXT_MSGFMT} -o ${CMAKE_BINARY_DIR}/locale/de/LC_MESSAGES/minetest-c55.mo ${CMAKE_SOURCE_DIR}/po/de/minetest-c55.po 
+		DEPENDS 
+			${CMAKE_BINARY_DIR}/locale/de/LC_MESSAGES
+			${CMAKE_SOURCE_DIR}/po/de/minetest-c55.po
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/po/de
+		COMMENT "mo-update [de]: Creating mo file."
+		)
+add_custom_target(translation_de ALL COMMENT "mo update [de]" DEPENDS ${CMAKE_BINARY_DIR}/locale/de/LC_MESSAGES/minetest-c55.mo)
+
 # Subdirectories
 
-add_subdirectory(jthread)
+if (JTHREAD_FOUND)
+else (JTHREAD_FOUND)
+	add_subdirectory(jthread)
+endif (JTHREAD_FOUND)
+
+if (SQLITE3_FOUND)
+else (SQLITE3_FOUND)
 add_subdirectory(sqlite)
+endif (SQLITE3_FOUND)
 
 #end
