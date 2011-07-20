@@ -1,4 +1,5 @@
 #! /bin/bash
-xgettext -n -o minetest-c55.pot ./src/*.cpp ./src/*.h
-msgmerge -U ./po/de/minetest-c55.po minetest-c55.pot
-rm minetest-c55.pot
+PROJECT_NAME=minetest-delta
+xgettext -n -o $PROJECT_NAME.pot ./src/*.cpp ./src/*.h
+msgmerge -U ./po/de/$PROJECT_NAME.po $PROJECT_NAME.pot
+rm $PROJECT_NAME.pot

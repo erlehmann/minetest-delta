@@ -22,6 +22,7 @@
 		#define RUN_IN_PLACE_BOOLSTRING "0"
 	#endif
 	#define BUILD_INFO "NON-CMAKE RUN_IN_PLACE="RUN_IN_PLACE_BOOLSTRING" BUILD_TYPE="BUILD_TYPE
+	#define PROJECT_NAME "minetest-c55"
 #endif
 
 #endif
