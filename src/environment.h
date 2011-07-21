@@ -264,6 +264,7 @@ private:
 	Queue<ActiveObjectMessage> m_active_object_messages;
 	// Some timers
 	float m_random_spawn_timer; // used for experimental code
+    float m_night_spawn_timer;
 	float m_send_recommended_timer;
 	IntervalLimiter m_object_management_interval;
 	// List of active blocks
