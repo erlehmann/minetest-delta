@@ -2128,9 +2128,9 @@ void the_game(
 			);*/
 			core::rect<s32> rect(
 					10,
-					50,
-					screensize.X - 10,
-					50 + guitext_chat->getTextHeight()
+					screensize.Y - 200,
+					screensize.X - 100,
+					screensize.Y - 200 + guitext_chat->getTextHeight()
 			);
 
 			guitext_chat->setRelativePosition(rect);
