@@ -1755,7 +1755,7 @@ u16 ClientEnvironment::addActiveObject(ClientActiveObject *object)
 		delete object;
 		return 0;
 	}
-	dstream<<"INGO: ClientEnvironment::addActiveObject(): "
+	dstream<<"INFO: ClientEnvironment::addActiveObject(): "
 			<<"added (id="<<object->getId()<<")"<<std::endl;
 	m_active_objects.insert(object->getId(), object);
 	object->addToScene(m_smgr);
