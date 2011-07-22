@@ -336,6 +336,10 @@ void draw_hotbar(video::IVideoDriver *driver, gui::IGUIFont *font,
 					core::rect<s32>(rect.UpperLeftCorner - v2s32(1,1)*padding,
 							rect.LowerRightCorner + v2s32(1,1)*padding),
 					NULL);
+			driver->draw2DRectangle(video::SColor(170,0,0,0),
+					core::rect<s32>(rect.UpperLeftCorner - v2s32(1,1)*padding + 2,
+							rect.LowerRightCorner + v2s32(1,1)*padding - 2),
+					NULL);
 		}
 		else
 		{
@@ -2124,9 +2128,9 @@ void the_game(
 			);*/
 			core::rect<s32> rect(
 					10,
-					50,
-					screensize.X - 10,
-					50 + guitext_chat->getTextHeight()
+					screensize.Y - 200,
+					screensize.X - 100,
+					screensize.Y - 200 + guitext_chat->getTextHeight()
 			);
 
 			guitext_chat->setRelativePosition(rect);

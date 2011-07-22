@@ -83,10 +83,14 @@ void GUITextInputMenu::regenerateGui(v2u32 screensize)
 		Calculate new sizes and positions
 	*/
 	core::rect<s32> rect(
-			screensize.X/2 - 580/2,
-			screensize.Y/2 - 300/2,
-			screensize.X/2 + 580/2,
-			screensize.Y/2 + 300/2
+//			screensize.X/2 - 580/2,
+//			screensize.Y/2 - 300/2,
+//			screensize.X/2 + 580/2,
+//			screensize.Y/2 + 300/2
+			10,
+			screensize.Y - 200,
+			screensize.X - 100,
+			screensize.Y - 58
 	);
 	
 	DesiredRect = rect;
@@ -98,16 +102,17 @@ void GUITextInputMenu::regenerateGui(v2u32 screensize)
 		Add stuff
 	*/
 	{
-		core::rect<s32> rect(0, 0, 300, 30);
-		rect = rect + v2s32(size.X/2-300/2, size.Y/2-30/2-25);
+		core::rect<s32> rect(0, 0, size.X-100-9, 30);
+		rect = rect + v2s32(3, size.Y-8-25);
 		gui::IGUIElement *e = 
 		Environment->addEditBox(text.c_str(), rect, true, this, 256);
 		Environment->setFocus(e);
 	}
 	{
-		core::rect<s32> rect(0, 0, 140, 30);
-		rect = rect + v2s32(size.X/2-140/2, size.Y/2-30/2+25);
-		Environment->addButton(rect, this, 257, chartowchar_t(gettext("Proceed")));
+		core::rect<s32> rect(0, 0, 100, 30);
+		rect = rect + v2s32(size.X-100-3, size.Y-8-25);
+		Environment->addButton(rect, this, 257, 
+			chartowchar_t(gettext("Proceed")));
 	}
 }
 

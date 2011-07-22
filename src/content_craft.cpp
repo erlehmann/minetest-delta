@@ -186,12 +186,19 @@ InventoryItem *craft_get_result(InventoryItem **items)
 	// Wooden axe
 	{
 		ItemSpec specs[9];
+		ItemSpec specs1[9];
 		specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		specs1[0] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		specs1[1] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		specs1[3] = ItemSpec(ITEM_CRAFT, "Stick");
+		specs1[4] = ItemSpec(ITEM_MATERIAL, CONTENT_WOOD);
+		specs1[6] = ItemSpec(ITEM_CRAFT, "Stick");
+		if(checkItemCombination(items, specs) || 
+		   checkItemCombination(items, specs1))
 		{
 			return new ToolItem("WAxe", 0);
 		}
@@ -200,12 +207,19 @@ InventoryItem *craft_get_result(InventoryItem **items)
 	// Stone axe
 	{
 		ItemSpec specs[9];
+		ItemSpec specs1[9];
 		specs[0] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 		specs[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 		specs[3] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		specs1[0] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
+		specs1[1] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
+		specs1[3] = ItemSpec(ITEM_CRAFT, "Stick");
+		specs1[4] = ItemSpec(ITEM_MATERIAL, CONTENT_COBBLE);
+		specs1[6] = ItemSpec(ITEM_CRAFT, "Stick");
+		if(checkItemCombination(items, specs) || 
+		   checkItemCombination(items, specs1))
 		{
 			return new ToolItem("STAxe", 0);
 		}
@@ -214,12 +228,19 @@ InventoryItem *craft_get_result(InventoryItem **items)
 	// Steel axe
 	{
 		ItemSpec specs[9];
+		ItemSpec specs1[9];
 		specs[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 		specs[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 		specs[3] = ItemSpec(ITEM_CRAFT, "steel_ingot");
 		specs[4] = ItemSpec(ITEM_CRAFT, "Stick");
 		specs[7] = ItemSpec(ITEM_CRAFT, "Stick");
-		if(checkItemCombination(items, specs))
+		specs1[0] = ItemSpec(ITEM_CRAFT, "steel_ingot");
+		specs1[1] = ItemSpec(ITEM_CRAFT, "steel_ingot");
+		specs1[3] = ItemSpec(ITEM_CRAFT, "Stick");
+		specs1[4] = ItemSpec(ITEM_CRAFT, "steel_ingot");
+		specs1[6] = ItemSpec(ITEM_CRAFT, "Stick");
+		if(checkItemCombination(items, specs) || 
+		   checkItemCombination(items, specs1))
 		{
 			return new ToolItem("SteelAxe", 0);
 		}
