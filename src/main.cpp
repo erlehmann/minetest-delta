@@ -54,6 +54,24 @@ A list of "active blocks" in which stuff happens. (+=done)
 	  	+ This was left to be done by the old system and it sends only the
 		  nearest ones.
 
+Vim conversion regexpes for moving to extended content type storage:
+%s/\(\.\|->\)d \([!=]=\)/\1getContent() \2/g
+%s/content_features(\([^.]*\)\.d)/content_features(\1)/g
+%s/\(\.\|->\)d = \([^;]*\);/\1setContent(\2);/g
+%s/\(getNodeNoExNoEmerge([^)]*)\)\.d/\1.getContent()/g
+%s/\(getNodeNoExNoEmerge(.*)\)\.d/\1.getContent()/g
+%s/\.d;/.getContent();/g
+%s/\(content_liquid\|content_flowing_liquid\|make_liquid_flowing\|content_pointable\)(\([^.]*\).d)/\1(\2.getContent())/g
+Other things to note:
+- node.d = node.param0 (only in raw serialization; use getContent() otherwise)
+- node.param = node.param1
+- node.dir = node.param2
+- content_walkable(node.d) etc should be changed to
+  content_features(node).walkable etc
+- Also check for lines that store the result of getContent to a 8-bit
+  variable and fix them (result of getContent() must be stored in
+  content_t, which is 16-bit)
+
 Old, wild and random suggestions that probably won't be done:
 -------------------------------------------------------------
 
@@ -312,13 +330,16 @@ Map:
 
 TODO: Mineral and ground material properties
       - This way mineral ground toughness can be calculated with just
-	    some formula, as well as tool strengths
+	    some formula, as well as tool strengths. Sounds too.
 	  - There are TODOs in appropriate files: material.h, content_mapnode.h
 
 TODO: Flowing water to actually contain flow direction information
       - There is a space for this - it just has to be implemented.
 
 TODO: Consider smoothening cave floors after generating them
+
+TODO: Fix make_tree, make_* to use seed-position-consistent pseudorandom
+	  - delta also
 
 Misc. stuff:
 ------------
@@ -332,12 +353,13 @@ TODO: Think about using same bits for material for fences and doors, for
 TODO: Move mineral to param2, increment map serialization version, add
       conversion
 
-TODO: Restart irrlicht completely when coming back to main menu from game.
+SUGG: Restart irrlicht completely when coming back to main menu from game.
 	- This gets rid of everything that is stored in irrlicht's caches.
+	- This might be needed for texture pack selection in menu
 
 TODO: Merge bahamada's audio stuff (clean patch available)
 
-TODO: Merge key configuration menu (no clean patch available)
+TODO: Move content_features to mapnode_content_features.{h,cpp} or so
 
 Making it more portable:
 ------------------------
@@ -1060,6 +1082,7 @@ int main(int argc, char *argv[])
 	std::locale::global(std::locale("C"));
 	// This enables printing all characters in bitmap font
 	setlocale(LC_CTYPE, "en_US");
+
 	/*
 		Parse command line
 	*/
@@ -1652,3 +1675,4 @@ int main(int argc, char *argv[])
 }
 
 //END
+
