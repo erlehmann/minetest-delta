@@ -61,6 +61,38 @@ struct TestUtilities
 		assert(is_yes("FAlse") == false);
 	}
 };
+
+struct TestSettings
+{
+	void Run()
+	{
+		Settings s;
+		// Test reading of settings
+		s.parseConfigLine("leet = 1337");
+		s.parseConfigLine("leetleet = 13371337");
+		s.parseConfigLine("leetleet_neg = -13371337");
+		s.parseConfigLine("floaty_thing = 1.1");
+		s.parseConfigLine("stringy_thing = asd /( ¤%&(/\" BLÖÄRP");
+		s.parseConfigLine("coord = (1, 2, 4.5)");
+		assert(s.getS32("leet") == 1337);
+		assert(s.getS16("leetleet") == 32767);
+		assert(s.getS16("leetleet_neg") == -32768);
+		// Not sure if 1.1 is an exact value as a float, but doesn't matter
+		assert(fabs(s.getFloat("floaty_thing") - 1.1) < 0.001);
+		assert(s.get("stringy_thing") == "asd /( ¤%&(/\" BLÖÄRP");
+		assert(fabs(s.getV3F("coord").X - 1.0) < 0.001);
+		assert(fabs(s.getV3F("coord").Y - 2.0) < 0.001);
+		assert(fabs(s.getV3F("coord").Z - 4.5) < 0.001);
+		// Test the setting of settings too
+		s.setFloat("floaty_thing_2", 1.2);
+		s.setV3F("coord2", v3f(1, 2, 3.3));
+		assert(s.get("floaty_thing_2").substr(0,3) == "1.2");
+		assert(fabs(s.getFloat("floaty_thing_2") - 1.2) < 0.001);
+		assert(fabs(s.getV3F("coord2").X - 1.0) < 0.001);
+		assert(fabs(s.getV3F("coord2").Y - 2.0) < 0.001);
+		assert(fabs(s.getV3F("coord2").Z - 3.3) < 0.001);
+	}
+};
 		
 struct TestCompress
 {
@@ -187,14 +219,14 @@ struct TestMapNode
 		MapNode n;
 
 		// Default values
-		assert(n.d == CONTENT_AIR);
+		assert(n.getContent() == CONTENT_AIR);
 		assert(n.getLight(LIGHTBANK_DAY) == 0);
 		assert(n.getLight(LIGHTBANK_NIGHT) == 0);
 		
 		// Transparency
-		n.d = CONTENT_AIR;
+		n.setContent(CONTENT_AIR);
 		assert(n.light_propagates() == true);
-		n.d = CONTENT_STONE;
+		n.setContent(CONTENT_STONE);
 		assert(n.light_propagates() == false);
 	}
 };
@@ -252,7 +284,7 @@ struct TestVoxelManipulator
 
 		v.print(dstream);
 
- 		assert(v.getNode(v3s16(-1,0,-1)).d == 2);
+ 		assert(v.getNode(v3s16(-1,0,-1)).getContent() == 2);
 
 		dstream<<"*** Reading from inexistent (0,0,-1) ***"<<std::endl;
 
@@ -266,7 +298,7 @@ struct TestVoxelManipulator
 		
 		v.print(dstream);
 
-		assert(v.getNode(v3s16(-1,0,-1)).d == 2);
+		assert(v.getNode(v3s16(-1,0,-1)).getContent() == 2);
 		EXCEPTION_CHECK(InvalidPositionException, v.getNode(v3s16(0,1,1)));
 
 #if 0
@@ -299,11 +331,11 @@ struct TestVoxelManipulator
 			MapNode n;
 			//n.pressure = size.Y - y;
 			if(*p == '#')
-				n.d = CONTENT_STONE;
+				n.setContent(CONTENT_STONE);
 			else if(*p == '.')
-				n.d = CONTENT_WATER;
+				n.setContent(CONTENT_WATER);
 			else if(*p == ' ')
-				n.d = CONTENT_AIR;
+				n.setContent(CONTENT_AIR);
 			else
 				assert(0);
 			v.setNode(v3s16(x,y,z), n);
@@ -437,8 +469,8 @@ struct TestMapBlock
 		for(u16 y=0; y<MAP_BLOCKSIZE; y++)
 		for(u16 x=0; x<MAP_BLOCKSIZE; x++)
 		{
-			//assert(b.getNode(v3s16(x,y,z)).d == CONTENT_AIR);
-			assert(b.getNode(v3s16(x,y,z)).d == CONTENT_IGNORE);
+			//assert(b.getNode(v3s16(x,y,z)).getContent() == CONTENT_AIR);
+			assert(b.getNode(v3s16(x,y,z)).getContent() == CONTENT_IGNORE);
 			assert(b.getNode(v3s16(x,y,z)).getLight(LIGHTBANK_DAY) == 0);
 			assert(b.getNode(v3s16(x,y,z)).getLight(LIGHTBANK_NIGHT) == 0);
 		}
@@ -457,7 +489,7 @@ struct TestMapBlock
 			Parent fetch functions
 		*/
 		parent.position_valid = false;
-		parent.node.d = 5;
+		parent.node.setContent(5);
 
 		MapNode n;
 		
@@ -465,7 +497,7 @@ struct TestMapBlock
 		assert(b.isValidPositionParent(v3s16(0,0,0)) == true);
 		assert(b.isValidPositionParent(v3s16(MAP_BLOCKSIZE-1,MAP_BLOCKSIZE-1,MAP_BLOCKSIZE-1)) == true);
 		n = b.getNodeParent(v3s16(0,MAP_BLOCKSIZE-1,0));
-		assert(n.d == CONTENT_AIR);
+		assert(n.getContent() == CONTENT_AIR);
 
 		// ...but outside the block they should be invalid
 		assert(b.isValidPositionParent(v3s16(-121,2341,0)) == false);
@@ -491,15 +523,15 @@ struct TestMapBlock
 		assert(b.isValidPositionParent(v3s16(-1,0,0)) == true);
 		assert(b.isValidPositionParent(v3s16(MAP_BLOCKSIZE-1,MAP_BLOCKSIZE-1,MAP_BLOCKSIZE)) == true);
 		n = b.getNodeParent(v3s16(0,0,MAP_BLOCKSIZE));
-		assert(n.d == 5);
+		assert(n.getContent() == 5);
 
 		/*
 			Set a node
 		*/
 		v3s16 p(1,2,0);
-		n.d = 4;
+		n.setContent(4);
 		b.setNode(p, n);
-		assert(b.getNode(p).d == 4);
+		assert(b.getNode(p).getContent() == 4);
 		//TODO: Update to new system
 		/*assert(b.getNodeTile(p) == 4);
 		assert(b.getNodeTile(v3s16(-1,-1,0)) == 5);*/
@@ -524,7 +556,7 @@ struct TestMapBlock
 			*/
 			parent.position_valid = true;
 			b.setIsUnderground(false);
-			parent.node.d = CONTENT_AIR;
+			parent.node.setContent(CONTENT_AIR);
 			parent.node.setLight(LIGHTBANK_DAY, LIGHT_SUN);
 			parent.node.setLight(LIGHTBANK_NIGHT, 0);
 			core::map<v3s16, bool> light_sources;
@@ -579,7 +611,7 @@ struct TestMapBlock
 				for(u16 y=0; y<MAP_BLOCKSIZE; y++){
 					for(u16 x=0; x<MAP_BLOCKSIZE; x++){
 						MapNode n;
-						n.d = CONTENT_AIR;
+						n.setContent(CONTENT_AIR);
 						n.setLight(LIGHTBANK_DAY, 0);
 						b.setNode(v3s16(x,y,z), n);
 					}
@@ -1033,6 +1065,7 @@ void run_tests()
 	DSTACK(__FUNCTION_NAME);
 	dstream<<"run_tests() started"<<std::endl;
 	TEST(TestUtilities);
+	TEST(TestSettings);
 	TEST(TestCompress);
 	TEST(TestMapNode);
 	TEST(TestVoxelManipulator);

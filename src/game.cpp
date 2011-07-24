@@ -417,7 +417,7 @@ void getPointedNode(Client *client, v3f player_position,
 		try
 		{
 			n = client->getNode(v3s16(x,y,z));
-			if(content_pointable(n.d) == false)
+			if(content_pointable(n.getContent()) == false)
 				continue;
 		}
 		catch(InvalidPositionException &e)
@@ -442,9 +442,9 @@ void getPointedNode(Client *client, v3f player_position,
 		/*
 			Meta-objects
 		*/
-		if(n.d == CONTENT_TORCH)
+		if(n.getContent() == CONTENT_TORCH)
 		{
-			v3s16 dir = unpackDir(n.dir);
+			v3s16 dir = unpackDir(n.param2);
 			v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
 			dir_f *= BS/2 - BS/6 - BS/20;
 			v3f cpf = npf + dir_f;
@@ -489,9 +489,9 @@ void getPointedNode(Client *client, v3f player_position,
 				}
 			}
 		}
-		else if(n.d == CONTENT_SIGN_WALL)
+		else if(n.getContent() == CONTENT_SIGN_WALL)
 		{
-			v3s16 dir = unpackDir(n.dir);
+			v3s16 dir = unpackDir(n.param2);
 			v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
 			dir_f *= BS/2 - BS/6 - BS/20;
 			v3f cpf = npf + dir_f;
@@ -518,6 +518,43 @@ void getPointedNode(Client *client, v3f player_position,
 				if(dir == v3s16(0,1,0))
 					vertices[i].rotateXYBy(90);
 
+				vertices[i] += npf;
+			}
+
+			core::aabbox3d<f32> box;
+
+			box = core::aabbox3d<f32>(vertices[0]);
+			box.addInternalPoint(vertices[1]);
+
+			if(distance < mindistance)
+			{
+				if(box.intersectsWithLine(shootline))
+				{
+					nodefound = true;
+					nodepos = np;
+					neighbourpos = np;
+					mindistance = distance;
+					nodehilightbox = box;
+				}
+			}
+		}
+		else if(n.getContent() == CONTENT_RAIL)
+		{
+			v3s16 dir = unpackDir(n.param0);
+			v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
+			dir_f *= BS/2 - BS/6 - BS/20;
+			v3f cpf = npf + dir_f;
+			f32 distance = (cpf - camera_position).getLength();
+
+			float d = (float)BS/16;
+			v3f vertices[4] =
+			{
+				v3f(BS/2, -BS/2+d, -BS/2),
+				v3f(-BS/2, -BS/2, BS/2),
+			};
+
+			for(s32 i=0; i<2; i++)
+			{
 				vertices[i] += npf;
 			}
 
@@ -1001,9 +1038,9 @@ void the_game(
 		//bool screensize_changed = screensize != last_screensize;
 
 		// Resize hotbar
-		if(screensize.Y <= 600)
+		if(screensize.Y <= 800)
 			hotbar_imagesize = 32;
-		else if(screensize.Y <= 1024)
+		else if(screensize.Y <= 1280)
 			hotbar_imagesize = 48;
 		else
 			hotbar_imagesize = 64;
@@ -1722,7 +1759,7 @@ void the_game(
 					}
 
 					// Get digging properties for material and tool
-					u8 material = n.d;
+					content_t material = n.getContent();
 					DiggingProperties prop =
 							getDiggingProperties(material, toolname);
 					
@@ -1915,15 +1952,9 @@ void the_game(
 		*/
 		if(farmesh)
 		{
-			farmesh_range = draw_control.wanted_range * 10;
-			if(draw_control.range_all && farmesh_range < 500)
-				farmesh_range = 500;
-			if(farmesh_range > 1000)
-				farmesh_range = 1000;
-
 			farmesh->step(dtime);
 			farmesh->update(v2f(player_position.X, player_position.Z),
-					0.05+brightness*0.95, farmesh_range);
+					0.05+brightness*0.95);
 		}
 		
 		// Store brightness value
@@ -1990,7 +2021,7 @@ void the_game(
 			endscenetime_avg = endscenetime_avg * 0.95 + (float)endscenetime*0.05;
 			
 			char temptext[300];
-			snprintf(temptext, 300, "Minetest-c55 %s ("
+			snprintf(temptext, 300, "Minetest-delta %s ("
 					"R: range_all=%i"
 					")"
 					" drawtime=%.0f, beginscenetime=%.0f"

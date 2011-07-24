@@ -31,6 +31,65 @@ void setStoneLikeDiggingProperties(DiggingPropertiesList &list, float toughness)
 void setDirtLikeDiggingProperties(DiggingPropertiesList &list, float toughness);
 void setWoodLikeDiggingProperties(DiggingPropertiesList &list, float toughness);
 
+content_t trans_table_19[][2] = {
+	{CONTENT_GRASS, 1},
+	{CONTENT_TREE, 4},
+	{CONTENT_LEAVES, 5},
+	{CONTENT_GRASS_FOOTSTEPS, 6},
+	{CONTENT_MESE, 7},
+	{CONTENT_MUD, 8},
+	{CONTENT_CLOUD, 10},
+	{CONTENT_COALSTONE, 11},
+	{CONTENT_WOOD, 12},
+	{CONTENT_SAND, 13},
+	{CONTENT_COBBLE, 18},
+	{CONTENT_STEEL, 19},
+	{CONTENT_GLASS, 20},
+	{CONTENT_MOSSYCOBBLE, 22},
+	{CONTENT_GRAVEL, 23},
+	{CONTENT_SANDSTONE, 24},
+	{CONTENT_CACTUS, 25},
+	{CONTENT_BRICK, 26},
+	{CONTENT_CLAY, 27},
+	{CONTENT_PAPYRUS, 28},
+	{CONTENT_BOOKSHELF, 29},
+};
+
+MapNode mapnode_translate_from_internal(MapNode n_from, u8 version)
+{
+	MapNode result = n_from;
+	if(version <= 19)
+	{
+		content_t c_from = n_from.getContent();
+		for(u32 i=0; i<sizeof(trans_table_19)/sizeof(trans_table_19[0]); i++)
+		{
+			if(trans_table_19[i][0] == c_from)
+			{
+				result.setContent(trans_table_19[i][1]);
+				break;
+			}
+		}
+	}
+	return result;
+}
+MapNode mapnode_translate_to_internal(MapNode n_from, u8 version)
+{
+	MapNode result = n_from;
+	if(version <= 19)
+	{
+		content_t c_from = n_from.getContent();
+		for(u32 i=0; i<sizeof(trans_table_19)/sizeof(trans_table_19[0]); i++)
+		{
+			if(trans_table_19[i][1] == c_from)
+			{
+				result.setContent(trans_table_19[i][0]);
+				break;
+			}
+		}
+	}
+	return result;
+}
+
 void content_mapnode_init()
 {
 	// Read some settings
@@ -38,7 +97,7 @@ void content_mapnode_init()
 	bool new_style_leaves = g_settings.getBool("new_style_leaves");
 	bool invisible_stone = g_settings.getBool("invisible_stone");
 
-	u8 i;
+	content_t i;
 	ContentFeatures *f = NULL;
 
 	i = CONTENT_STONE;
@@ -99,6 +158,33 @@ void content_mapnode_init()
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
 	setDirtLikeDiggingProperties(f->digging_properties, 1.75);
 	
+	i = CONTENT_SANDSTONE;
+	f = &content_features(i);
+	f->setAllTextures("sandstone.png");
+	f->setInventoryTextureCube("sandstone.png", "sandstone.png", "sandstone.png");
+	f->param_type = CPT_MINERAL;
+	f->is_ground_content = true;
+	f->dug_item = std::string("MaterialItem ")+itos(CONTENT_SAND)+" 1";
+	setDirtLikeDiggingProperties(f->digging_properties, 1.0);
+
+	i = CONTENT_CLAY;
+	f = &content_features(i);
+	f->setAllTextures("clay.png");
+	f->setInventoryTextureCube("clay.png", "clay.png", "clay.png");
+	f->param_type = CPT_MINERAL;
+	f->is_ground_content = true;
+	f->dug_item = std::string("CraftItem lump_of_clay 4");
+	setDirtLikeDiggingProperties(f->digging_properties, 1.0);
+
+	i = CONTENT_BRICK;
+	f = &content_features(i);
+	f->setAllTextures("brick.png");
+	f->setInventoryTextureCube("brick.png", "brick.png", "brick.png");
+	f->param_type = CPT_MINERAL;
+	f->is_ground_content = true;
+	f->dug_item = std::string("CraftItem clay_brick 4");
+	setStoneLikeDiggingProperties(f->digging_properties, 1.0);
+
 	i = CONTENT_TREE;
 	f = &content_features(i);
 	f->setAllTextures("tree.png");
@@ -109,12 +195,34 @@ void content_mapnode_init()
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
 	setWoodLikeDiggingProperties(f->digging_properties, 1.0);
 	
+	i = CONTENT_JUNGLETREE;
+	f = &content_features(i);
+	f->setAllTextures("jungletree.png");
+	f->setTexture(0, "jungletree_top.png");
+	f->setTexture(1, "jungletree_top.png");
+	f->param_type = CPT_MINERAL;
+	//f->is_ground_content = true;
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	setWoodLikeDiggingProperties(f->digging_properties, 1.0);
+	
+	i = CONTENT_JUNGLEGRASS;
+	f = &content_features(i);
+	f->setInventoryTexture("junglegrass.png");
+	f->light_propagates = true;
+	f->param_type = CPT_LIGHT;
+	//f->is_ground_content = true;
+	f->air_equivalent = false; // grass grows underneath
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	f->solidness = 0; // drawn separately, makes no faces
+	f->walkable = false;
+	setWoodLikeDiggingProperties(f->digging_properties, 0.10);
+
 	i = CONTENT_LEAVES;
 	f = &content_features(i);
 	f->light_propagates = true;
 	//f->param_type = CPT_MINERAL;
 	f->param_type = CPT_LIGHT;
-	f->is_ground_content = true;
+	//f->is_ground_content = true;
 	if(new_style_leaves)
 	{
 		f->solidness = 0; // drawn separately, makes no faces
@@ -127,9 +235,44 @@ void content_mapnode_init()
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
 	setWoodLikeDiggingProperties(f->digging_properties, 0.15);
 
+	i = CONTENT_CACTUS;
+	f = &content_features(i);
+	f->setAllTextures("cactus_side.png");
+	f->setTexture(0, "cactus_top.png");
+	f->setTexture(1, "cactus_top.png");
+	f->setInventoryTextureCube("cactus_top.png", "cactus_side.png", "cactus_side.png");
+	f->param_type = CPT_MINERAL;
+	f->is_ground_content = true;
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	setWoodLikeDiggingProperties(f->digging_properties, 0.75);
+
+	i = CONTENT_PAPYRUS;
+	f = &content_features(i);
+	f->setInventoryTexture("papyrus.png");
+	f->light_propagates = true;
+	f->param_type = CPT_LIGHT;
+	f->is_ground_content = true;
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	f->solidness = 0; // drawn separately, makes no faces
+	f->walkable = false;
+	setWoodLikeDiggingProperties(f->digging_properties, 0.25);
+
+	i = CONTENT_BOOKSHELF;
+	f = &content_features(i);
+	f->setAllTextures("bookshelf.png");
+	f->setTexture(0, "wood.png");
+	f->setTexture(1, "wood.png");
+	// FIXME: setInventoryTextureCube() only cares for the first texture
+	f->setInventoryTextureCube("bookshelf.png", "bookshelf.png", "bookshelf.png");
+	//f->setInventoryTextureCube("wood.png", "bookshelf.png", "bookshelf.png");
+	f->param_type = CPT_MINERAL;
+	f->is_ground_content = true;
+	setWoodLikeDiggingProperties(f->digging_properties, 0.75);
+
 	i = CONTENT_GLASS;
 	f = &content_features(i);
 	f->light_propagates = true;
+	f->sunlight_propagates = true;
 	f->param_type = CPT_LIGHT;
 	f->is_ground_content = true;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
@@ -147,6 +290,18 @@ void content_mapnode_init()
 	f->air_equivalent = true; // grass grows underneath
 	f->setInventoryTexture("item_fence.png");
 	setWoodLikeDiggingProperties(f->digging_properties, 0.75);
+
+	i = CONTENT_RAIL;
+	f = &content_features(i);
+	f->setInventoryTexture("rail.png");
+	f->light_propagates = true;
+	f->param_type = CPT_LIGHT;
+	f->is_ground_content = true;
+	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
+	f->solidness = 0; // drawn separately, makes no faces
+	f->air_equivalent = true; // grass grows underneath
+	f->walkable = false;
+	setDirtLikeDiggingProperties(f->digging_properties, 0.75);
 
 	// Deprecated
 	i = CONTENT_COALSTONE;
@@ -202,6 +357,7 @@ void content_mapnode_init()
 	f->buildable_to = true;
 	f->liquid_type = LIQUID_FLOWING;
 	f->liquid_alternative_flowing = CONTENT_WATER;
+	f->liquid_alternative_source = CONTENT_WATERSOURCE;
 	
 	i = CONTENT_WATERSOURCE;
 	f = &content_features(i);
@@ -233,6 +389,7 @@ void content_mapnode_init()
 	f->liquid_type = LIQUID_SOURCE;
 	f->dug_item = std::string("MaterialItem ")+itos(i)+" 1";
 	f->liquid_alternative_flowing = CONTENT_WATER;
+	f->liquid_alternative_source = CONTENT_WATERSOURCE;
 	
 	i = CONTENT_TORCH;
 	f = &content_features(i);
