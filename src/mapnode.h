@@ -131,6 +131,8 @@ struct ContentFeatures
 	bool pointable;
 	// Player can dig these
 	bool diggable;
+        // Player can climb these
+        bool climbable;
 	// Player can build on these
 	bool buildable_to;
 	// Whether the node has no liquid, source liquid or flowing liquid
@@ -175,6 +177,7 @@ struct ContentFeatures
 		walkable = true;
 		pointable = true;
 		diggable = true;
+		climbable = false;
 		buildable_to = false;
 		liquid_type = LIQUID_NONE;
 		wall_mounted = false;
