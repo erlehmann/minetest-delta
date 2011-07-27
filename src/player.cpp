@@ -476,7 +476,7 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
 		Player is allowed to jump when this is true.
 	*/
 	touching_ground = false;
-	
+
 	/*std::cout<<"Checking collisions for ("
 			<<oldpos_i.X<<","<<oldpos_i.Y<<","<<oldpos_i.Z
 			<<") -> ("
