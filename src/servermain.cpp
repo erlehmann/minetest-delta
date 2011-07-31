@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
 	BEGIN_DEBUG_EXCEPTION_HANDLER
 
 	// Print startup message
-	dstream<<DTIME<<"minetest-c55"
+	dstream<<DTIME<<PROJECT_NAME <<
 			" with SER_FMT_VER_HIGHEST="<<(int)SER_FMT_VER_HIGHEST
 			<<", "<<BUILD_INFO
 			<<std::endl;
@@ -323,7 +323,7 @@ int main(int argc, char *argv[])
 		map_dir = g_settings.get("map-dir");
 	
 	// Create server
-	Server server(map_dir.c_str());
+	Server server(map_dir.c_str(), configpath);
 	server.start(port);
 
 	// Run server

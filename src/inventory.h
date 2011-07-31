@@ -30,13 +30,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "common_irrlicht.h"
 #include "debug.h"
 #include "mapblockobject.h"
-// For g_materials
-#include "main.h"
+#include "main.h" // For g_materials
+#include "mapnode.h" // For content_t
 
 #define QUANTITY_ITEM_MAX_COUNT 99
 
 class ServerActiveObject;
 class ServerEnvironment;
+class Player;
 
 class InventoryItem
 {
@@ -99,12 +100,19 @@ public:
 	/*
 		Other properties
 	*/
+
 	// Whether it can be cooked
 	virtual bool isCookable(){return false;}
 	// Time of cooking
 	virtual float getCookTime(){return 3.0;}
-	// Result of cooking
+	// Result of cooking (can randomize)
 	virtual InventoryItem *createCookResult(){return NULL;}
+	
+	// Eat, press, activate, whatever.
+	// Called when item is right-clicked when lying on ground.
+	// If returns true, item shall be deleted.
+	virtual bool use(ServerEnvironment *env,
+			Player *player){return false;}
 
 protected:
 	u16 m_count;
@@ -113,7 +121,7 @@ protected:
 class MaterialItem : public InventoryItem
 {
 public:
-	MaterialItem(u8 content, u16 count):
+	MaterialItem(content_t content, u16 count):
 		InventoryItem(count)
 	{
 		m_content = content;
@@ -175,12 +183,12 @@ public:
 	/*
 		Special methods
 	*/
-	u8 getMaterial()
+	content_t getMaterial()
 	{
 		return m_content;
 	}
 private:
-	u8 m_content;
+	content_t m_content;
 };
 
 //TODO: Remove
@@ -298,11 +306,16 @@ public:
 			return 0;
 		return QUANTITY_ITEM_MAX_COUNT - m_count;
 	}
+
 	/*
 		Other properties
 	*/
+
 	bool isCookable();
 	InventoryItem *createCookResult();
+
+	bool use(ServerEnvironment *env, Player *player);
+	
 	/*
 		Special methods
 	*/

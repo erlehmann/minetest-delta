@@ -417,7 +417,7 @@ void getPointedNode(Client *client, v3f player_position,
 		try
 		{
 			n = client->getNode(v3s16(x,y,z));
-			if(content_pointable(n.d) == false)
+			if(content_pointable(n.getContent()) == false)
 				continue;
 		}
 		catch(InvalidPositionException &e)
@@ -442,9 +442,9 @@ void getPointedNode(Client *client, v3f player_position,
 		/*
 			Meta-objects
 		*/
-		if(n.d == CONTENT_TORCH)
+		if(n.getContent() == CONTENT_TORCH)
 		{
-			v3s16 dir = unpackDir(n.dir);
+			v3s16 dir = unpackDir(n.param2);
 			v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
 			dir_f *= BS/2 - BS/6 - BS/20;
 			v3f cpf = npf + dir_f;
@@ -489,9 +489,9 @@ void getPointedNode(Client *client, v3f player_position,
 				}
 			}
 		}
-		else if(n.d == CONTENT_SIGN_WALL)
+		else if(n.getContent() == CONTENT_SIGN_WALL)
 		{
-			v3s16 dir = unpackDir(n.dir);
+			v3s16 dir = unpackDir(n.param2);
 			v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
 			dir_f *= BS/2 - BS/6 - BS/20;
 			v3f cpf = npf + dir_f;
@@ -538,9 +538,9 @@ void getPointedNode(Client *client, v3f player_position,
 				}
 			}
 		}
-		else if(n.d == CONTENT_RAIL)
+		else if(n.getContent() == CONTENT_RAIL)
 		{
-			v3s16 dir = unpackDir(n.dir);
+			v3s16 dir = unpackDir(n.param0);
 			v3f dir_f = v3f(dir.X, dir.Y, dir.Z);
 			dir_f *= BS/2 - BS/6 - BS/20;
 			v3f cpf = npf + dir_f;
@@ -715,7 +715,8 @@ void the_game(
 	std::string password,
 	std::string address,
 	u16 port,
-	std::wstring &error_message
+	std::wstring &error_message,
+    std::string configpath
 )
 {
 	video::IVideoDriver* driver = device->getVideoDriver();
@@ -755,7 +756,7 @@ void the_game(
 	if(address == ""){
 		draw_load_screen(L"Creating server...", driver, font);
 		std::cout<<DTIME<<"Creating server"<<std::endl;
-		server = new Server(map_dir);
+		server = new Server(map_dir, configpath);
 		server->start(port);
 	}
 	
@@ -1038,9 +1039,9 @@ void the_game(
 		//bool screensize_changed = screensize != last_screensize;
 
 		// Resize hotbar
-		if(screensize.Y <= 600)
+		if(screensize.Y <= 800)
 			hotbar_imagesize = 32;
-		else if(screensize.Y <= 1024)
+		else if(screensize.Y <= 1280)
 			hotbar_imagesize = 48;
 		else
 			hotbar_imagesize = 64;
@@ -1656,6 +1657,8 @@ void the_game(
 			else if(input->getRightClicked())
 			{
 				std::cout<<DTIME<<"Right-clicked object"<<std::endl;
+				client.clickActiveObject(1,
+						selected_active_object->getId(), g_selected_item);
 			}
 		}
 		else // selected_object == NULL
@@ -1759,7 +1762,7 @@ void the_game(
 					}
 
 					// Get digging properties for material and tool
-					u8 material = n.d;
+					content_t material = n.getContent();
 					DiggingProperties prop =
 							getDiggingProperties(material, toolname);
 					
@@ -2021,7 +2024,7 @@ void the_game(
 			endscenetime_avg = endscenetime_avg * 0.95 + (float)endscenetime*0.05;
 			
 			char temptext[300];
-			snprintf(temptext, 300, "Minetest-delta %s ("
+			snprintf(temptext, 300, "Minetest-c55 %s ("
 					"R: range_all=%i"
 					")"
 					" drawtime=%.0f, beginscenetime=%.0f"

@@ -103,6 +103,7 @@ void GUIPauseMenu::regenerateGui(v2u32 screensize)
 	const s32 btn_gap = 20;
 	const s32 btn_num = 4;
 	s32 btn_y = size.Y/2-((btn_num*btn_height+(btn_num-1)*btn_gap))/2;
+	changeCtype("");
 	{
 		core::rect<s32> rect(0, 0, 140, btn_height);
 		rect = rect + v2s32(size.X/2-140/2, btn_y);
@@ -135,10 +136,10 @@ void GUIPauseMenu::regenerateGui(v2u32 screensize)
 		core::rect<s32> rect(0, 0, 180, 240);
 		rect = rect + v2s32(size.X/2 + 90, size.Y/2-rect.getHeight()/2);
 		Environment->addStaticText(chartowchar_t(gettext(
-		"Keys:\n"
+		"Default Controls:\n"
 		"- WASD: Walk\n"
-		"- Mouse left: dig blocks\n"
-		"- Mouse right: place blocks\n"
+		"- Mouse left: dig/hit\n"
+		"- Mouse right: place/use\n"
 		"- Mouse wheel: select item\n"
 		"- 0...9: select item\n"
 		"- Shift: sneak\n"
@@ -180,6 +181,7 @@ void GUIPauseMenu::regenerateGui(v2u32 screensize)
 	
 		Environment->addStaticText(narrow_to_wide(os.str()).c_str(), rect, false, true, this, 259);
 	}
+	changeCtype("C");
 }
 
 void GUIPauseMenu::drawMenu()
