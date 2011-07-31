@@ -375,8 +375,8 @@ void LocalPlayer::move(f32 dtime, Map &map, f32 pos_max_d,
 	try {
 	        v3s16 pp = floatToInt(position + v3f(0,0.5*BS,0), BS);
 		v3s16 pp2 = floatToInt(position + v3f(0,-0.2*BS,0), BS);
-		is_climbing = (content_features(map.getNode(pp).getContent()).climbable ||
-			       content_features(map.getNode(pp2).getContent()).climbable);
+		is_climbing = ((content_features(map.getNode(pp).getContent()).climbable ||
+				content_features(map.getNode(pp2).getContent()).climbable) && !free_move);
 	}
 	catch(InvalidPositionException &e)
 	{
@@ -731,7 +731,7 @@ void LocalPlayer::applyControl(float dtime)
 	bool fast_move = g_settings.getBool("fast_move");
 	bool continuous_forward = g_settings.getBool("continuous_forward");
 
-	if(free_move)
+	if(free_move || is_climbing)
 	{
 		v3f speed = getSpeed();
 		speed.Y = 0;
@@ -756,6 +756,12 @@ void LocalPlayer::applyControl(float dtime)
 				speed.Y = -20*BS;
 			else
 				speed.Y = -walkspeed_max;
+			setSpeed(speed);
+		}
+		else if(is_climbing)
+		{
+		        v3f speed = getSpeed();
+			speed.Y = -3*BS;
 			setSpeed(speed);
 		}
 		else
@@ -820,17 +826,10 @@ void LocalPlayer::applyControl(float dtime)
 			setSpeed(speed);
 			swimming_up = true;
 		}
-	}
-
-	if (is_climbing) {
-	        if (control.up || control.left || control.right || control.down) {
-		        v3f speed = getSpeed();
-			speed.Y = 2.5*BS;
-			setSpeed(speed);
-		}
-		else {
-		        v3f speed = getSpeed();
-			speed.Y = -2*BS;
+		else if(is_climbing)
+		{
+	                v3f speed = getSpeed();
+			speed.Y = 3*BS;
 			setSpeed(speed);
 		}
 	}
