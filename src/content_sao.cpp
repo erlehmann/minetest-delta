@@ -534,9 +534,9 @@ void Oerkki1SAO::step(float dtime, bool send_recommended)
 
 	if(!player_is_close)
 	{
-		target_speed = v3f(0,0,0);
+		target_speed = v3f(0,m_speed_f.Y - dtime * 9.81 * BS, 0);
 	}
-	else
+    else
 	{
 		// Move around
 
