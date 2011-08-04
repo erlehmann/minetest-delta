@@ -1026,7 +1026,7 @@ void ServerEnvironment::step(float dtime)
 
 	if(m_night_spawn_timer < 0 && getDayNightRatio()  == 350)
 	{
-		m_night_spawn_timer += 2.0;
+		m_night_spawn_timer += 5.0;
 
         core::list<Player*> players = getPlayers(true);
 
