@@ -1039,17 +1039,53 @@ void ServerEnvironment::step(float dtime)
 			pos = player->getPosition();
 		    // Enforce minimum distance
 		    pos += v3f(
-			    (myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS,
+			    (myrand_range(0,1)==1 ? myrand_range(-12,-6) : myrand_range(6, 12))*BS,
 			    0,
-	    		(myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS
+	    		(myrand_range(0,1)==1 ? myrand_range(-12,-6) : myrand_range(6, 12))*BS
 		    );
+		    // Check if the position is floating in air
+		    // also check lighting for block ???
+		    // lightBlend < 5 is totally arbitrary
+		    v3s16 p = floatToInt(pos,BS);
+		    MapNode n1 = m_map->getNodeNoEx(p);
+		    MapNode n1b = m_map->getNodeNoEx(p+v3s16(0,-1,0));
+		    if(n1b.getContent() != CONTENT_AIR &&
+		    	n1b.getContent() != CONTENT_IGNORE &&
+		    	n1.getContent() == CONTENT_AIR && 
+		    	n1.getLightBlend(getDayNightRatio()) < 6)
+		    {
+		    	    /*
+		    	    	Position is on ground
+				Create a ServerActiveObject
+			    */
+		    	    ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
+		    	    addActiveObject(obj);
+		    }
+		    else
+		    {
+		    	    // move the spawn on y axis until on ground
+		    	    // Check if the position is floating in air
+		    	    // also check lighting for block ???
+		    	    // lightBlend < 5 is totally arbitrary
+		    	    for (int k = 12; k >= -12; --k)
+		    	    {
+				    v3s16 p1 = p + v3s16(0, k, 0);
+				    MapNode n2 = m_map->getNodeNoEx(p1);
+				    MapNode n2b = m_map->getNodeNoEx(p1+v3s16(0,-1,0));
+				    if(n2b.getContent() != CONTENT_AIR &&
+					n2b.getContent() != CONTENT_IGNORE &&
+					n2.getContent() == CONTENT_AIR && 
+					n2.getLightBlend(getDayNightRatio()) < 6)
+				    {
+				    	    v3f pos2 = intToFloat(p1, BS);
+				    	    ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos2);
+				    	    addActiveObject(obj);
+				    	    break;
+				    }
+			    }
+			    // if no valid ground found don't spawn monster
+		    }
 
-		    /*
-			    Create a ServerActiveObject
-		    */
-
-		    ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
-		    addActiveObject(obj);
         }
     }
 }
