@@ -1045,14 +1045,14 @@ void ServerEnvironment::step(float dtime)
 		    );
 		    // Check if the position is floating in air
 		    // also check lighting for block ???
-		    // lightBlend >= 8 is totally arbitrary
+		    // lightBlend < 8 is totally arbitrary
 		    v3s16 p = floatToInt(pos,BS);
 		    MapNode n1 = m_map->getNodeNoEx(p);
 		    MapNode n1b = m_map->getNodeNoEx(p+v3s16(0,-1,0));
 		    if(n1b.getContent() != CONTENT_AIR &&
 		    	n1b.getContent() != CONTENT_IGNORE &&
 		    	n1.getContent() == CONTENT_AIR && 
-		    	n1.getLightBlend(getDayNightRatio()) >= 8)
+		    	n1.getLightBlend(getDayNightRatio()) < 8)
 		    {
 		    	    /*
 		    	    	Position is on ground
@@ -1066,7 +1066,7 @@ void ServerEnvironment::step(float dtime)
 		    	    // move the spawn on y axis until on ground
 		    	    // Check if the position is floating in air
 		    	    // also check lighting for block ???
-		    	    // lightBlend >= 8 is totally arbitrary
+		    	    // lightBlend < 8 is totally arbitrary
 		    	    for (int k=-12;k<=12;k++)
 		    	    {
 				    v3s16 p1 = p + v3s16(0, k, 0);
@@ -1075,7 +1075,7 @@ void ServerEnvironment::step(float dtime)
 				    if(n2b.getContent() != CONTENT_AIR &&
 					n2b.getContent() != CONTENT_IGNORE &&
 					n2.getContent() == CONTENT_AIR && 
-					n2.getLightBlend(getDayNightRatio()) >= 8)
+					n2.getLightBlend(getDayNightRatio()) < 8)
 				    {
 				    	    v3f pos2 = intToFloat(p1, BS);
 				    	    ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos2);
