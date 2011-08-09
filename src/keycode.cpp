@@ -168,7 +168,7 @@ irr::EKEY_CODE keyname_to_keycode(const char *name)
 	CHECKKEY(KEY_PA1)
 	CHECKKEY(KEY_OEM_CLEAR)
 
-	return irr::KEY_KEY_CODES_COUNT;
+    return KEY_OEM_CLEAR;
 }
 
 static const char *KeyNames[] =
