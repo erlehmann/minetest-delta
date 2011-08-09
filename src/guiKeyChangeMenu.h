@@ -47,7 +47,7 @@ static const char *KeyNames[] =
 			"F9", "F10", "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18",
 			"F19", "F20", "F21", "F22", "F23", "F24", "-", "-", "-", "-", "-", "-",
 			"-", "-", gettext("Num Lock"), gettext("Scroll Lock"), "-", "-", "-", "-", "-", "-", "-",
-			"-", "-", "-", "-", "-", "-", "-", gettext("Left Shift"), gettext("Right Shight"),
+			"-", "-", "-", "-", "-", "-", "-", gettext("Left Shift"), gettext("Right Shift"),
 			gettext("Left Control"), gettext("Right Control"), gettext("Left Menu"), gettext("Right Menu"), "-", "-",
 			"-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-",
 			"-", "-", "-", "-", "-", gettext("Plus"), gettext("Comma"), gettext("Minus"), gettext("Period"), "-", "-",
