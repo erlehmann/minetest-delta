@@ -1052,7 +1052,7 @@ void ServerEnvironment::step(float dtime)
 		    if(n1b.getContent() != CONTENT_AIR &&
 		    	n1b.getContent() != CONTENT_IGNORE &&
 		    	n1.getContent() == CONTENT_AIR && 
-		    	n1.getLightBlend(getDayNightRatio()) < 5)
+		    	n1.getLightBlend(getDayNightRatio()) < 6)
 		    {
 		    	    /*
 		    	    	Position is on ground
@@ -1075,7 +1075,7 @@ void ServerEnvironment::step(float dtime)
 				    if(n2b.getContent() != CONTENT_AIR &&
 					n2b.getContent() != CONTENT_IGNORE &&
 					n2.getContent() == CONTENT_AIR && 
-					n2.getLightBlend(getDayNightRatio()) < 5)
+					n2.getLightBlend(getDayNightRatio()) < 6)
 				    {
 				    	    v3f pos2 = intToFloat(p1, BS);
 				    	    ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos2);
