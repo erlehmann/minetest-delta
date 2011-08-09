@@ -1067,7 +1067,7 @@ void ServerEnvironment::step(float dtime)
 		    	    // Check if the position is floating in air
 		    	    // also check lighting for block ???
 		    	    // lightBlend < 5 is totally arbitrary
-		    	    for (int k=-12;k<=12;k++)
+		    	    for (int k = 12; k >= -12; --k)
 		    	    {
 				    v3s16 p1 = p + v3s16(0, k, 0);
 				    MapNode n2 = m_map->getNodeNoEx(p1);
