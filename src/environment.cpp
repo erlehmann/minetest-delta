@@ -1039,9 +1039,9 @@ void ServerEnvironment::step(float dtime)
 			pos = player->getPosition();
 		    // Enforce minimum distance
 		    pos += v3f(
-			    (myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS,
+			    (myrand_range(0,1)==1 ? myrand_range(-12,-6) : myrand_range(6, 12))*BS,
 			    0,
-	    		(myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS
+	    		(myrand_range(0,1)==1 ? myrand_range(-12,-6) : myrand_range(6, 12))*BS
 		    );
 		    //Check if the position is floating in air
 		    v3s16 p = floatToInt(pos,BS);
@@ -1060,7 +1060,7 @@ void ServerEnvironment::step(float dtime)
 		    else
 		    {
 		    	    // move the spawn on y axis until on ground
-		    	    for (int k=-10;k<=10;k++)
+		    	    for (int k=-12;k<=12;k++)
 		    	    {
 				    v3s16 p1 = p + v3s16(0, k, 0);
 				    MapNode n2 = m_map->getNodeNoEx(p1);
