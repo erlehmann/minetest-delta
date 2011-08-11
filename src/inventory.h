@@ -49,7 +49,7 @@ public:
 	
 	virtual const char* getName() const = 0;
 	// Shall write the name and the parameters
-	virtual void serialize(std::ostream &os) = 0;
+	virtual void serialize(std::ostream &os) const = 0;
 	// Shall make an exact clone of the item
 	virtual InventoryItem* clone() = 0;
 #ifndef SERVER
@@ -61,19 +61,19 @@ public:
 	// Creates an object from the item, to be placed in the world.
 	virtual ServerActiveObject* createSAO(ServerEnvironment *env, u16 id, v3f pos);
 	// Gets amount of items that dropping one SAO will decrement
-	virtual u16 getDropCount(){ return getCount(); }
+	virtual u16 getDropCount() const { return getCount(); }
 
 	/*
 		Quantity methods
 	*/
 
 	// Shall return true if the item can be add()ed to the other
-	virtual bool addableTo(InventoryItem *other)
+	virtual bool addableTo(const InventoryItem *other) const
 	{
 		return false;
 	}
 	
-	u16 getCount()
+	u16 getCount() const
 	{
 		return m_count;
 	}
@@ -82,7 +82,7 @@ public:
 		m_count = count;
 	}
 	// This should return something else for stackable items
-	virtual u16 freeSpace()
+	virtual u16 freeSpace() const
 	{
 		return 0;
 	}
@@ -102,11 +102,11 @@ public:
 	*/
 
 	// Whether it can be cooked
-	virtual bool isCookable(){return false;}
+	virtual bool isCookable() const {return false;}
 	// Time of cooking
 	virtual float getCookTime(){return 3.0;}
 	// Result of cooking (can randomize)
-	virtual InventoryItem *createCookResult(){return NULL;}
+	virtual InventoryItem *createCookResult() const {return NULL;}
 	
 	// Eat, press, activate, whatever.
 	// Called when item is right-clicked when lying on ground.
@@ -133,7 +133,7 @@ public:
 	{
 		return "MaterialItem";
 	}
-	virtual void serialize(std::ostream &os)
+	virtual void serialize(std::ostream &os) const
 	{
 		//os.imbue(std::locale("C"));
 		os<<"MaterialItem2";
@@ -160,7 +160,7 @@ public:
 		return os.str();
 	}
 
-	virtual bool addableTo(InventoryItem *other)
+	virtual bool addableTo(const InventoryItem *other) const
 	{
 		if(std::string(other->getName()) != "MaterialItem")
 			return false;
@@ -169,7 +169,7 @@ public:
 			return false;
 		return true;
 	}
-	u16 freeSpace()
+	u16 freeSpace() const
 	{
 		if(m_count > QUANTITY_ITEM_MAX_COUNT)
 			return 0;
@@ -178,8 +178,8 @@ public:
 	/*
 		Other properties
 	*/
-	bool isCookable();
-	InventoryItem *createCookResult();
+	bool isCookable() const;
+	InventoryItem *createCookResult() const;
 	/*
 		Special methods
 	*/
@@ -208,18 +208,13 @@ public:
 	{
 		return "MBOItem";
 	}
-	virtual void serialize(std::ostream &os)
+	virtual void serialize(std::ostream &os) const
 	{
-		for(;;)
-		{
-			size_t t = m_inventorystring.find('|');
-			if(t == std::string::npos)
-				break;
-			m_inventorystring[t] = '?';
-		}
+		std::string sane_string(m_inventorystring);
+		str_replace_char(sane_string, '|', '?');
 		os<<getName();
 		os<<" ";
-		os<<m_inventorystring;
+		os<<sane_string;
 		os<<"|";
 	}
 	virtual InventoryItem* clone()
@@ -266,7 +261,7 @@ public:
 	{
 		return "CraftItem";
 	}
-	virtual void serialize(std::ostream &os)
+	virtual void serialize(std::ostream &os) const
 	{
 		os<<getName();
 		os<<" ";
@@ -289,9 +284,9 @@ public:
 	}
 
 	ServerActiveObject* createSAO(ServerEnvironment *env, u16 id, v3f pos);
-	u16 getDropCount();
+	u16 getDropCount() const;
 
-	virtual bool addableTo(InventoryItem *other)
+	virtual bool addableTo(const InventoryItem *other) const
 	{
 		if(std::string(other->getName()) != "CraftItem")
 			return false;
@@ -300,7 +295,7 @@ public:
 			return false;
 		return true;
 	}
-	u16 freeSpace()
+	u16 freeSpace() const
 	{
 		if(m_count > QUANTITY_ITEM_MAX_COUNT)
 			return 0;
@@ -311,8 +306,8 @@ public:
 		Other properties
 	*/
 
-	bool isCookable();
-	InventoryItem *createCookResult();
+	bool isCookable() const;
+	InventoryItem *createCookResult() const;
 
 	bool use(ServerEnvironment *env, Player *player);
 	
@@ -343,7 +338,7 @@ public:
 	{
 		return "ToolItem";
 	}
-	virtual void serialize(std::ostream &os)
+	virtual void serialize(std::ostream &os) const
 	{
 		os<<getName();
 		os<<" ";
@@ -461,13 +456,13 @@ public:
 	InventoryList(std::string name, u32 size);
 	~InventoryList();
 	void clearItems();
-	void serialize(std::ostream &os);
+	void serialize(std::ostream &os) const;
 	void deSerialize(std::istream &is);
 
 	InventoryList(const InventoryList &other);
 	InventoryList & operator = (const InventoryList &other);
 
-	std::string getName();
+	const std::string &getName() const;
 	u32 getSize();
 	// Count used slots
 	u32 getUsedSlots();
@@ -477,6 +472,7 @@ public:
 	void setDirty(bool dirty=true){ m_dirty = dirty; }*/
 	
 	// Get pointer to item
+	const InventoryItem * getItem(u32 i) const;
 	InventoryItem * getItem(u32 i);
 	// Returns old item (or NULL). Parameter can be NULL.
 	InventoryItem * changeItem(u32 i, InventoryItem *newitem);
@@ -524,11 +520,12 @@ public:
 	Inventory(const Inventory &other);
 	Inventory & operator = (const Inventory &other);
 	
-	void serialize(std::ostream &os);
+	void serialize(std::ostream &os) const;
 	void deSerialize(std::istream &is);
 
 	InventoryList * addList(const std::string &name, u32 size);
 	InventoryList * getList(const std::string &name);
+	const InventoryList * getList(const std::string &name) const;
 	bool deleteList(const std::string &name);
 	// A shorthand for adding items.
 	// Returns NULL if the item was fully added, leftover otherwise.
@@ -542,7 +539,7 @@ public:
 	
 private:
 	// -1 if not found
-	s32 getListIndex(const std::string &name);
+	const s32 getListIndex(const std::string &name) const;
 
 	core::array<InventoryList*> m_lists;
 };
@@ -589,7 +586,7 @@ struct InventoryAction
 	static InventoryAction * deSerialize(std::istream &is);
 	
 	virtual u16 getType() const = 0;
-	virtual void serialize(std::ostream &os) = 0;
+	virtual void serialize(std::ostream &os) const = 0;
 	virtual void apply(InventoryContext *c, InventoryManager *mgr) = 0;
 };
 
@@ -637,7 +634,7 @@ struct IMoveAction : public InventoryAction
 		return IACTION_MOVE;
 	}
 
-	void serialize(std::ostream &os)
+	void serialize(std::ostream &os) const
 	{
 		os<<"Move ";
 		os<<count<<" ";
@@ -689,14 +686,14 @@ struct ItemSpec
 	{
 	}
 
-	bool checkItem(InventoryItem *item);
+	bool checkItem(const InventoryItem *item) const;
 };
 
 /*
 	items: a pointer to an array of 9 pointers to items
 	specs: a pointer to an array of 9 ItemSpecs
 */
-bool checkItemCombination(InventoryItem **items, ItemSpec *specs);
+bool checkItemCombination(const InventoryItem * const*items, const ItemSpec *specs);
 
 #endif
 

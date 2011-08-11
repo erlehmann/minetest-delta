@@ -1549,6 +1549,47 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 sender_peer_id)
 		// get damage from falling on ground
 		m_ignore_damage_timer = 3.0;
 	}
+	else if(command == TOCLIENT_PLAYERITEM)
+	{
+		std::string datastring((char*)&data[2], datasize-2);
+		std::istringstream is(datastring, std::ios_base::binary);
+
+		u16 count = readU16(is);
+
+		for (u16 i = 0; i < count; ++i) {
+			u16 peer_id = readU16(is);
+			Player *player = m_env.getPlayer(peer_id);
+
+			if (player == NULL)
+			{
+				dout_client<<DTIME<<"Client: ignoring player item "
+					<< deSerializeString(is)
+					<< " for non-existing peer id " << peer_id
+					<< std::endl;
+				continue;
+			} else if (player->isLocal()) {
+				dout_client<<DTIME<<"Client: ignoring player item "
+					<< deSerializeString(is)
+					<< " for local player" << std::endl;
+				continue;
+			} else {
+				InventoryList *inv = player->inventory.getList("main");
+				std::string itemstring(deSerializeString(is));
+				if (itemstring.empty()) {
+					inv->deleteItem(0);
+					dout_client<<DTIME
+						<<"Client: empty player item for peer "
+						<< peer_id << std::endl;
+				} else {
+					std::istringstream iss(itemstring);
+					delete inv->changeItem(0, InventoryItem::deSerialize(iss));
+					dout_client<<DTIME<<"Client: player item for peer " << peer_id << ": ";
+					player->getWieldItem()->serialize(dout_client);
+					dout_client<<std::endl;
+				}
+			}
+		}
+	}
 	else
 	{
 		dout_client<<DTIME<<"WARNING: Client: Ignoring unknown command "
@@ -1864,6 +1905,28 @@ void Client::sendPlayerPos()
 	Send(0, data, false);
 }
 
+void Client::sendPlayerItem(u16 item)
+{
+	Player *myplayer = m_env.getLocalPlayer();
+	if(myplayer == NULL)
+		return;
+
+	u16 our_peer_id = m_con.GetPeerID();
+
+	// Set peer id if not set already
+	if(myplayer->peer_id == PEER_ID_INEXISTENT)
+		myplayer->peer_id = our_peer_id;
+	// Check that an existing peer_id is the same as the connection's
+	assert(myplayer->peer_id == our_peer_id);
+
+	SharedBuffer<u8> data(2+2);
+	writeU16(&data[0], TOSERVER_PLAYERITEM);
+	writeU16(&data[2], item);
+
+	// Send as reliable
+	Send(0, data, true);
+}
+
 void Client::removeNode(v3s16 p)
 {
 	//JMutexAutoLock envlock(m_env_mutex); //bulk comment-out
@@ -1935,11 +1998,13 @@ NodeMetadata* Client::getNodeMetadata(v3s16 p)
 	return m_env.getMap().getNodeMetadata(p);
 }
 
-v3f Client::getPlayerPosition()
+v3f Client::getPlayerPosition(v3f *eye_position)
 {
 	//JMutexAutoLock envlock(m_env_mutex); //bulk comment-out
 	LocalPlayer *player = m_env.getLocalPlayer();
 	assert(player != NULL);
+	if (eye_position)
+		*eye_position = player->getEyePosition();
 	return player->getPosition();
 }
 
@@ -1949,6 +2014,16 @@ void Client::setPlayerControl(PlayerControl &control)
 	LocalPlayer *player = m_env.getLocalPlayer();
 	assert(player != NULL);
 	player->control = control;
+}
+
+void Client::selectPlayerItem(u16 item)
+{
+	LocalPlayer *player = m_env.getLocalPlayer();
+	assert(player != NULL);
+
+	player->wieldItem(item);
+
+	sendPlayerItem(item);
 }
 
 // Returns true if the inventory of the local player has been

@@ -380,8 +380,7 @@ void RemoteClient::GetNextBlocks(Server *server, float dtime,
 	v3s16 center = getNodeBlockPos(center_nodepos);
 	
 	// Camera position and direction
-	v3f camera_pos =
-			playerpos + v3f(0, BS+BS/2, 0);
+	v3f camera_pos = player->getEyePosition();
 	v3f camera_dir = v3f(0,0,1);
 	camera_dir.rotateYZBy(player->getPitch());
 	camera_dir.rotateXZBy(player->getYaw());
@@ -2158,6 +2157,9 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 		UpdateCrafting(peer->id);
 		SendInventory(peer->id);
 
+		// Send player items to all players
+		SendPlayerItems();
+
 		// Send HP
 		{
 			Player *player = m_env.getPlayer(peer_id);
@@ -3382,6 +3384,15 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 				<<std::endl;
 		SendChatMessage(peer_id, L"Password change successful");
 	}
+	else if (command == TOSERVER_PLAYERITEM)
+	{
+		if (datasize < 2+2)
+			return;
+
+		u16 item = readU16(&data[2]);
+		player->wieldItem(item);
+		SendWieldedItem(player);
+	}
 	else
 	{
 		derr_server<<"WARNING: Server::ProcessData(): Ignoring "
@@ -3664,6 +3675,60 @@ void Server::SendInventory(u16 peer_id)
 	
 	// Send as reliable
 	m_con.Send(peer_id, 0, data, true);
+}
+
+std::string getWieldedItemString(const Player *player)
+{
+	const InventoryItem *item = player->getWieldItem();
+	if (item == NULL)
+		return std::string("");
+	std::ostringstream os(std::ios_base::binary);
+	item->serialize(os);
+	return os.str();
+}
+
+void Server::SendWieldedItem(const Player* player)
+{
+	DSTACK(__FUNCTION_NAME);
+
+	assert(player);
+
+	std::ostringstream os(std::ios_base::binary);
+
+	writeU16(os, TOCLIENT_PLAYERITEM);
+	writeU16(os, 1);
+	writeU16(os, player->peer_id);
+	os<<serializeString(getWieldedItemString(player));
+
+	// Make data buffer
+	std::string s = os.str();
+	SharedBuffer<u8> data((u8*)s.c_str(), s.size());
+
+	m_con.SendToAll(0, data, true);
+}
+
+void Server::SendPlayerItems()
+{
+	DSTACK(__FUNCTION_NAME);
+
+	std::ostringstream os(std::ios_base::binary);
+	core::list<Player *> players = m_env.getPlayers(true);
+
+	writeU16(os, TOCLIENT_PLAYERITEM);
+	writeU16(os, players.size());
+	core::list<Player *>::Iterator i;
+	for(i = players.begin(); i != players.end(); ++i)
+	{
+		Player *p = *i;
+		writeU16(os, p->peer_id);
+		os<<serializeString(getWieldedItemString(p));
+	}
+
+	// Make data buffer
+	std::string s = os.str();
+	SharedBuffer<u8> data((u8*)s.c_str(), s.size());
+
+	m_con.SendToAll(0, data, true);
 }
 
 void Server::SendChatMessage(u16 peer_id, const std::wstring &message)

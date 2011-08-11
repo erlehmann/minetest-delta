@@ -62,6 +62,19 @@ public:
 		return m_position;
 	}
 
+	v3s16 getLightPosition() const
+	{
+		return floatToInt(m_position + v3f(0,BS+BS/2,0), BS);
+	}
+
+	v3f getEyePosition()
+	{
+		// This is at the height of the eyes of the current figure
+		// return m_position + v3f(0, BS+BS/2, 0);
+		// This is more like in minecraft
+		return m_position + v3f(0,BS+(5*BS)/8,0);
+	}
+
 	virtual void setPosition(const v3f &position)
 	{
 		m_position = position;
@@ -90,6 +103,15 @@ public:
 	virtual void updateName(const char *name)
 	{
 		snprintf(m_name, PLAYERNAME_SIZE, "%s", name);
+	}
+
+	virtual void wieldItem(u16 item);
+	virtual const InventoryItem *getWieldItem() const
+	{
+		const InventoryList *list = inventory.getList("main");
+		if (list)
+			return list->getItem(m_selected_item);
+		return NULL;
 	}
 
 	const char * getName()
@@ -133,6 +155,7 @@ public:
 
 protected:
 	char m_name[PLAYERNAME_SIZE];
+	u16 m_selected_item;
 	f32 m_pitch;
 	f32 m_yaw;
 	v3f m_speed;

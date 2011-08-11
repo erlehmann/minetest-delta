@@ -206,10 +206,14 @@ public:
 	// Wrapper to Map
 	NodeMetadata* getNodeMetadata(v3s16 p);
 
-	v3f getPlayerPosition();
+	// Get the player position, and optionally put the
+	// eye position in *eye_position
+	v3f getPlayerPosition(v3f *eye_position=NULL);
 
 	void setPlayerControl(PlayerControl &control);
-	
+
+	void selectPlayerItem(u16 item);
+
 	// Returns true if the inventory of the local player has been
 	// updated from the server. If it is true, it is set to false.
 	bool getLocalInventoryUpdated();
@@ -314,6 +318,8 @@ private:
 	void sendPlayerPos();
 	// This sends the player's current name etc to the server
 	void sendPlayerInfo();
+	// Send the item number 'item' as player item to the server
+	void sendPlayerItem(u16 item);
 	
 	float m_packetcounter_timer;
 	float m_connection_reinit_timer;
