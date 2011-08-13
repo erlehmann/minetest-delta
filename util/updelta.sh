@@ -15,13 +15,6 @@ update_remotes() {
 	test -n "$update_remotes_opt"
 }
 
-# an auxiliary function to abort processing with an optional error
-# message
-abort() {
-	test -n "$1" && echo >&2 "$1"
-	exit 1
-}
-
 # an auxiliary function stolen from git-sh-setup
 require_clean_work_tree () {
 	git rev-parse --verify HEAD >/dev/null || exit 1
@@ -52,7 +45,6 @@ require_clean_work_tree () {
 	fi
 }
 
-
 # an auxiliary function to test if a given remote exists already
 remote_exists() {
 	remote="$1"
@@ -78,6 +70,14 @@ mark_reflog() {
 
 unmark_reflog() {
 	unset GIT_REFLOG_ACTION
+}
+
+# an auxiliary function to abort processing with an optional error
+# message
+abort() {
+	test -n "$1" && echo >&2 "$1"
+	unmark_reflog
+	exit 1
 }
 
 # First things first: check that we have a clean work-tree
@@ -154,9 +154,9 @@ git checkout delta
 
 for fork in $forks; do
 	mark_reflog "merge $fork"
-	git merge "$fork" || abort "Failed!"
-	echo "Build-testing"
-	make || abort "Failed!"
+	git merge "$fork" || abort "($GIT_REFLOG_ACTION) Failed!"
+	mark_reflog "build-test $fork merge"
+	make || abort "($GIT_REFLOG_ACTION) Failed!"
 done
 
 unmark_reflog
