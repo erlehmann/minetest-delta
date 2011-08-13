@@ -183,6 +183,50 @@ void cmd_teleport(std::wostringstream &os,
 	os<< L"-!- Teleported.";
 }
 
+void cmd_banunban(std::wostringstream &os, ServerCommandContext *ctx)
+{
+	if((ctx->privs & PRIV_BAN) == 0)
+	{
+		os<<L"-!- You don't have permission to do that";
+		return;
+	}
+
+	if(ctx->parms.size() < 2)
+	{
+		std::string desc = ctx->server->getBanDescription("");
+		os<<L"-!- Ban list: "<<narrow_to_wide(desc);
+		return;
+	}
+	if(ctx->parms[0] == L"ban")
+	{
+		Player *player = ctx->env->getPlayer(wide_to_narrow(ctx->parms[1]).c_str());
+
+		if(player == NULL)
+		{
+			os<<L"-!- No such player";
+			return;
+		}
+
+		con::Peer *peer = ctx->server->getPeerNoEx(player->peer_id);
+		if(peer == NULL)
+		{
+			dstream<<__FUNCTION_NAME<<": peer was not found"<<std::endl;
+			return;
+		}
+		std::string ip_string = peer->address.serializeString();
+		ctx->server->setIpBanned(ip_string, player->getName());
+		os<<L"-!- Banned "<<narrow_to_wide(ip_string)<<L"|"
+				<<narrow_to_wide(player->getName());
+	}
+	else
+	{
+		std::string ip_or_name = wide_to_narrow(ctx->parms[1]);
+		std::string desc = ctx->server->getBanDescription(ip_or_name);
+		ctx->server->unsetIpBanned(ip_or_name);
+		os<<L"-!- Unbanned "<<narrow_to_wide(desc);
+	}
+}
+
 
 std::wstring processServerCommand(ServerCommandContext *ctx)
 {
@@ -204,6 +248,8 @@ std::wstring processServerCommand(ServerCommandContext *ctx)
 			os<<L" teleport";
 		if(privs & PRIV_PRIVS)
 			os<<L" grant revoke";
+		if(privs & PRIV_BAN)
+			os<<L" ban unban";
 	}
 	else if(ctx->parms[0] == L"status")
 	{
@@ -232,6 +278,10 @@ std::wstring processServerCommand(ServerCommandContext *ctx)
 	else if(ctx->parms[0] == L"teleport")
 	{
 		cmd_teleport(os, ctx);
+	}
+	else if(ctx->parms[0] == L"ban" || ctx->parms[0] == L"unban")
+	{
+		cmd_banunban(os, ctx);
 	}
 	else
 	{
