@@ -156,6 +156,7 @@ for fork in $forks; do
 	mark_reflog "merge $fork"
 	git merge "$fork" || abort "($GIT_REFLOG_ACTION) Failed!"
 	mark_reflog "build-test $fork merge"
+	make clean
 	make || abort "($GIT_REFLOG_ACTION) Failed!"
 done
 
