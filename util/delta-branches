@@ -1,4 +1,2 @@
 celeron55	git://github.com/celeron55/minetest.git		master
-oblomov		git://github.com/Oblomov/minetest.git		master
 oblomov		git://github.com/Oblomov/minetest.git		const
-speedprog	git://github.com/SpeedProg/minetest-delta.git	fixedNotFindingData
