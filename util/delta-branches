@@ -1,2 +1,5 @@
-celeron55	git://github.com/celeron55/minetest.git		master
-oblomov		git://github.com/Oblomov/minetest.git		const
+celeron55	git://github.com/celeron55/minetest.git	master
+oblomov	git://github.com/Oblomov/minetest.git wield-torches-light
+oblomov	git://github.com/Oblomov/minetest.git new_input
+oblomov	git://github.com/Oblomov/minetest.git me_cmd
+oblomov	git://github.com/Oblomov/minetest.git const

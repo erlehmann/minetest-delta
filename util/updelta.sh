@@ -124,6 +124,7 @@ branchfile="$scriptisin/delta-branches"
 
 if update_branchlist ; then
 	mark_reflog "automatic branchfile update"
+	git checkout master
 	"$scriptisin/proposed-patchsets.sh" > "$branchfile"
 	git commit -m "Automatic branchfile update" "$branchfile"
 fi
