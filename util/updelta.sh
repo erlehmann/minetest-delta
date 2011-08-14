@@ -2,19 +2,6 @@
 
 # Update/create minetest-delta delta branch
 
-# Options
-verbose_opt=
-
-verbose() {
-	test -n "$verbose_opt"
-}
-
-update_remotes_opt=
-
-update_remotes() {
-	test -n "$update_remotes_opt"
-}
-
 # an auxiliary function stolen from git-sh-setup
 require_clean_work_tree () {
 	git rev-parse --verify HEAD >/dev/null || exit 1
@@ -80,6 +67,52 @@ abort() {
 	exit 1
 }
 
+## usage
+usage() {
+	echo "$0: update minetest-delta"
+	echo ""
+	echo "Options:"
+	echo "	--update[-remotes|-branchlist], -u[rb]	update remotes/branchlist"
+	echo "	--verbose, -v	verbose output"
+	echo "	--help, -h, -?	usage"
+}
+
+# Options
+verbose_opt=
+
+verbose() {
+	test -n "$verbose_opt"
+}
+
+update_remotes_opt=
+
+update_remotes() {
+	test -n "$update_remotes_opt"
+}
+
+update_branchlist_opt=
+
+update_branchlist() {
+	test -n "$update_branchlist_opt"
+}
+
+# Read options
+
+while [ $# -gt 0 ] ; do
+	arg="$1"
+	shift
+	case "$arg" in
+	--verbose|-v) verbose_opt=t ;;
+	--update-remotes|-ur) update_remotes_opt=t ;;
+	--update-branchlist|-ub) update_branchlist_opt=t ;;
+	--update|-urb|-ubr|-u)
+		update_remotes_opt=t
+		update_branchlist_opt=t
+		;;
+	--help|-h|-?) usage ; exit 0;;
+	esac
+done
+
 # First things first: check that we have a clean work-tree
 require_clean_work_tree "rebuild delta"
 
@@ -89,8 +122,14 @@ scriptisin="$(dirname "$(which "$0")")"
 
 branchfile="$scriptisin/delta-branches"
 
-test -e "$branchfile" || abort "Branch file '$branchfile' not found!"
-test -r "$branchfile" || abort "Branch file '$branchfile' cannot be read!"
+if update_branchlist ; then
+	mark_reflog "automatic branchfile update"
+	"$scriptisin/proposed-patchsets.sh" > "$branchfile"
+	git commit -m "Automatic branchfile update" "$branchfile"
+fi
+
+test -e "$branchfile" || abort "Branchfile '$branchfile' not found!"
+test -r "$branchfile" || abort "Branchfile '$branchfile' cannot be read!"
 
 # The branch file has a rather simple syntax, with three whitespace-separated
 # fields: a remote name, a remote url and a branch name.
