@@ -72,6 +72,23 @@ warn() {
 	echo >&2 "WARNING: $1!"
 }
 
+run_verbose() {
+	"$@"
+}
+
+run_silent() {
+	"$@" > /dev/null
+}
+
+# run silently or verbose
+run_sv() {
+	if verbose ; then
+		run_verbose "$@"
+	else
+		run_silent "$@"
+	fi
+}
+
 ## usage
 usage() {
 	echo "$0: update minetest-delta"
@@ -220,7 +237,7 @@ for fork in $forks; do
 	fi
 	mark_reflog "build-test $fork merge"
 	make clean
-	make || abort "($GIT_REFLOG_ACTION) Failed!"
+	run_sv make || abort "($GIT_REFLOG_ACTION) Failed!"
 done
 
 unmark_reflog
