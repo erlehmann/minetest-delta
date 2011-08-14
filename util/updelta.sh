@@ -187,10 +187,15 @@ if test "$missing" -gt 0 ; then
 fi
 
 mark_reflog "reset delta branch"
-git branch --no-track -l -f delta master
 
-mark_reflog "switch to delta branch"
-git checkout delta
+if [ "$(git symbolic-ref HEAD)" = refs/heads/delta ] ; then
+	git reset --hard master
+else
+	git branch --no-track -l -f delta master
+
+	mark_reflog "switch to delta branch"
+	git checkout delta
+fi
 
 for fork in $forks; do
 	mark_reflog "merge $fork"
