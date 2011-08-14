@@ -67,6 +67,11 @@ abort() {
 	exit 1
 }
 
+# warn about something
+warn() {
+	echo >&2 "WARNING: $1!"
+}
+
 ## usage
 usage() {
 	echo "$0: update minetest-delta"
@@ -183,7 +188,7 @@ fi
 missing="$(git rev-list master..celeron55/master | wc -l)"
 
 if test "$missing" -gt 0 ; then
-	echo "WARNING: your master is behind celeron55's by $missing commits!"
+	warn "your master is behind celeron55's by $missing commits"
 fi
 
 mark_reflog "reset delta branch"
@@ -197,9 +202,22 @@ else
 	git checkout delta
 fi
 
+mergemsg_path="$(git rev-parse --git-dir)/MERGE_MSG"
+
 for fork in $forks; do
 	mark_reflog "merge $fork"
-	git merge "$fork" || abort "($GIT_REFLOG_ACTION) Failed!"
+	git merge "$fork"
+	if [ $? -gt 0 ] ; then
+		# the merge failed but maybe rerere fixed it
+		if [ "$(git ls-files -u | wc -l)" -gt 0 ] ; then
+			# there are unmerged files, abort
+			abort "($GIT_REFLOG_ACTION) Failed!"
+		else
+			# all merges were fine, roll it
+			warn "a merge conflict was autoresolved"
+			git commit -F "$mergemsg_path" || abort "($GIT_REFLOG_ACTION) commit failed!"
+		fi
+	fi
 	mark_reflog "build-test $fork merge"
 	make clean
 	make || abort "($GIT_REFLOG_ACTION) Failed!"
