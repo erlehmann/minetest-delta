@@ -1,4 +1,5 @@
 celeron55	git://github.com/celeron55/minetest.git	master
+celeron55	git://github.com/celeron55/minetest.git lava
 oblomov	git://github.com/Oblomov/minetest.git wield-torches-light
 oblomov	git://github.com/Oblomov/minetest.git new_input
 oblomov	git://github.com/Oblomov/minetest.git me_cmd
