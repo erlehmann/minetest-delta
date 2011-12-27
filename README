@@ -1,14 +1,7 @@
-Minetest Δ (“Minetest Delta”) is a fork of Minetest-c55 <http://celeron.55.lt/~celeron55/minetest/>, incorporating experimental features that are not (yet) included in Minetest-c55.
-Currently it is considered the unstable development branch of Minetest-c55, which means almost everything is merged upstream from Minetest Δ.
+Minetest Δ (“Minetest Delta”) is a fork of Minetest-c55 <http://celeron.55.lt/~celeron55/minetest/>, which incorporated experimental features that were not included in Minetest-c55.
+Development of Minetest Δ has ceased on August 04, 2011. As every feature of Minetest Δ was merged upstream, it is now considered obsolete.
 
-New features:
-* refactored liquids (should not affect gameplay)
-* translation support (including german, french, italian)
-
-New blocks:
-* ladders (crafted from 7 sticks in a H form)
-
-Alternate graphics:
+Minetest Δ still contains graphics different from Minetest-c55:
 * Player
 * Omsk birds (instead of Oerkki ghosts)
 * Rat
