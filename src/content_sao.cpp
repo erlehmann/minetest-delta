@@ -475,6 +475,16 @@ void Oerkki1SAO::step(float dtime, bool send_recommended)
 {
 	assert(m_env);
 
+    // Prevent piling up during the nights
+	m_age += dtime;
+	if(m_age > 120)
+	{
+		// Die
+		m_removed = true;
+		return;
+	}
+
+
 	if(m_is_active == false)
 	{
 		if(m_inactive_interval.step(dtime, 0.5)==false)
@@ -484,14 +494,6 @@ void Oerkki1SAO::step(float dtime, bool send_recommended)
 	/*
 		The AI
 	*/
-
-	m_age += dtime;
-	if(m_age > 120)
-	{
-		// Die
-		m_removed = true;
-		return;
-	}
 
 	m_after_jump_timer -= dtime;
 
@@ -534,9 +536,9 @@ void Oerkki1SAO::step(float dtime, bool send_recommended)
 
 	if(!player_is_close)
 	{
-		target_speed = v3f(0,0,0);
+		target_speed = v3f(0,m_speed_f.Y - dtime * 9.81 * BS, 0);
 	}
-	else
+    else
 	{
 		// Move around
 

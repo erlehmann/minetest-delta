@@ -265,6 +265,7 @@ ServerEnvironment::ServerEnvironment(ServerMap *map, Server *server):
 	m_map(map),
 	m_server(server),
 	m_random_spawn_timer(3),
+    m_night_spawn_timer(3),
 	m_send_recommended_timer(0),
 	m_game_time(0),
 	m_game_time_fraction_counter(0)
@@ -972,52 +973,121 @@ void ServerEnvironment::step(float dtime)
 		removeRemovedObjects();
 	}
 
+        
 	if(g_settings.getBool("enable_experimental"))
 	{
 
 	/*
 		TEST CODE
 	*/
-#if 1
-	m_random_spawn_timer -= dtime;
-	if(m_random_spawn_timer < 0)
-	{
-		//m_random_spawn_timer += myrand_range(2.0, 20.0);
-		//m_random_spawn_timer += 2.0;
-		m_random_spawn_timer += 200.0;
+    #if 1
+	    m_random_spawn_timer -= dtime;
+	    if(m_random_spawn_timer < 0)
+    	{
+		    //m_random_spawn_timer += myrand_range(2.0, 20.0);
+	    	//m_random_spawn_timer += 2.0;
+	    	m_random_spawn_timer += 200.0;
 
-		/*
-			Find some position
-		*/
+		    /*
+		    	Find some position
+		    */
 
-		/*v2s16 p2d(myrand_range(-5,5), myrand_range(-5,5));
-		s16 y = 1 + getServerMap().findGroundLevel(p2d);
-		v3f pos(p2d.X*BS,y*BS,p2d.Y*BS);*/
+		    /*v2s16 p2d(myrand_range(-5,5), myrand_range(-5,5));
+		    s16 y = 1 + getServerMap().findGroundLevel(p2d);
+		    v3f pos(p2d.X*BS,y*BS,p2d.Y*BS);*/
 		
-		Player *player = getRandomConnectedPlayer();
-		v3f pos(0,0,0);
-		if(player)
-			pos = player->getPosition();
-		pos += v3f(
-			myrand_range(-3,3)*BS,
-			0,
-			myrand_range(-3,3)*BS
-		);
+		    Player *player = getRandomConnectedPlayer();
+		    v3f pos(0,0,0);
+		    if(player)  
+    		    pos += v3f(
+			        myrand_range(-3,3)*BS,
+			        0,
+			        myrand_range(-3,3)*BS
+		        );
 
-		/*
-			Create a ServerActiveObject
-		*/
+		    /*
+		    	Create a ServerActiveObject
+	    	*/
 
-		//TestSAO *obj = new TestSAO(this, 0, pos);
-		//ServerActiveObject *obj = new ItemSAO(this, 0, pos, "CraftItem Stick 1");
-		//ServerActiveObject *obj = new RatSAO(this, 0, pos);
-		//ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
-		ServerActiveObject *obj = new FireflySAO(this, 0, pos);
-		addActiveObject(obj);
-	}
-#endif
+	    	//TestSAO *obj = new TestSAO(this, 0, pos);
+	    	//ServerActiveObject *obj = new ItemSAO(this, 0, pos, "CraftItem Stick 1");
+	    	//ServerActiveObject *obj = new RatSAO(this, 0, pos);
+	    	//ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
+	    	ServerActiveObject *obj = new FireflySAO(this, 0, pos);
+	    	addActiveObject(obj);
+    	}
+    #endif
 
 	} // enable_experimental
+
+
+    if (getDayNightRatio() == 350)
+        m_night_spawn_timer -= dtime;
+
+	if(m_night_spawn_timer < 0 && getDayNightRatio()  == 350)
+	{
+		m_night_spawn_timer += 5.0;
+
+        core::list<Player*> players = getPlayers(true);
+
+        for (core::list<Player*>::Iterator i = players.begin();
+                i != players.end(); i++)
+        {
+            Player *player = *i;
+            
+		    v3f pos(0,0,0);
+			pos = player->getPosition();
+		    // Enforce minimum distance
+		    pos += v3f(
+			    (myrand_range(0,1)==1 ? myrand_range(-12,-6) : myrand_range(6, 12))*BS,
+			    0,
+	    		(myrand_range(0,1)==1 ? myrand_range(-12,-6) : myrand_range(6, 12))*BS
+		    );
+		    // Check if the position is floating in air
+		    // also check lighting for block ???
+		    // lightBlend < 5 is totally arbitrary
+		    v3s16 p = floatToInt(pos,BS);
+		    MapNode n1 = m_map->getNodeNoEx(p);
+		    MapNode n1b = m_map->getNodeNoEx(p+v3s16(0,-1,0));
+		    if(n1b.getContent() != CONTENT_AIR &&
+		    	n1b.getContent() != CONTENT_IGNORE &&
+		    	n1.getContent() == CONTENT_AIR && 
+		    	n1.getLightBlend(getDayNightRatio()) < 6)
+		    {
+		    	    /*
+		    	    	Position is on ground
+				Create a ServerActiveObject
+			    */
+		    	    ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
+		    	    addActiveObject(obj);
+		    }
+		    else
+		    {
+		    	    // move the spawn on y axis until on ground
+		    	    // Check if the position is floating in air
+		    	    // also check lighting for block ???
+		    	    // lightBlend < 5 is totally arbitrary
+		    	    for (int k = 12; k >= -12; --k)
+		    	    {
+				    v3s16 p1 = p + v3s16(0, k, 0);
+				    MapNode n2 = m_map->getNodeNoEx(p1);
+				    MapNode n2b = m_map->getNodeNoEx(p1+v3s16(0,-1,0));
+				    if(n2b.getContent() != CONTENT_AIR &&
+					n2b.getContent() != CONTENT_IGNORE &&
+					n2.getContent() == CONTENT_AIR && 
+					n2.getLightBlend(getDayNightRatio()) < 6)
+				    {
+				    	    v3f pos2 = intToFloat(p1, BS);
+				    	    ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos2);
+				    	    addActiveObject(obj);
+				    	    break;
+				    }
+			    }
+			    // if no valid ground found don't spawn monster
+		    }
+
+        }
+    }
 }
 
 ServerActiveObject* ServerEnvironment::getActiveObject(u16 id)
