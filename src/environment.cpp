@@ -265,6 +265,7 @@ ServerEnvironment::ServerEnvironment(ServerMap *map, Server *server):
 	m_map(map),
 	m_server(server),
 	m_random_spawn_timer(3),
+    m_night_spawn_timer(3),
 	m_send_recommended_timer(0),
 	m_game_time(0),
 	m_game_time_fraction_counter(0)
@@ -972,52 +973,85 @@ void ServerEnvironment::step(float dtime)
 		removeRemovedObjects();
 	}
 
+        
 	if(g_settings.getBool("enable_experimental"))
 	{
 
 	/*
 		TEST CODE
 	*/
-#if 1
-	m_random_spawn_timer -= dtime;
-	if(m_random_spawn_timer < 0)
-	{
-		//m_random_spawn_timer += myrand_range(2.0, 20.0);
-		//m_random_spawn_timer += 2.0;
-		m_random_spawn_timer += 200.0;
+    #if 1
+	    m_random_spawn_timer -= dtime;
+	    if(m_random_spawn_timer < 0)
+    	{
+		    //m_random_spawn_timer += myrand_range(2.0, 20.0);
+	    	//m_random_spawn_timer += 2.0;
+	    	m_random_spawn_timer += 200.0;
 
-		/*
-			Find some position
-		*/
+		    /*
+		    	Find some position
+		    */
 
-		/*v2s16 p2d(myrand_range(-5,5), myrand_range(-5,5));
-		s16 y = 1 + getServerMap().findGroundLevel(p2d);
-		v3f pos(p2d.X*BS,y*BS,p2d.Y*BS);*/
+		    /*v2s16 p2d(myrand_range(-5,5), myrand_range(-5,5));
+		    s16 y = 1 + getServerMap().findGroundLevel(p2d);
+		    v3f pos(p2d.X*BS,y*BS,p2d.Y*BS);*/
 		
-		Player *player = getRandomConnectedPlayer();
-		v3f pos(0,0,0);
-		if(player)
-			pos = player->getPosition();
-		pos += v3f(
-			myrand_range(-3,3)*BS,
-			0,
-			myrand_range(-3,3)*BS
-		);
+		    Player *player = getRandomConnectedPlayer();
+		    v3f pos(0,0,0);
+		    if(player)  
+    		    pos += v3f(
+			        myrand_range(-3,3)*BS,
+			        0,
+			        myrand_range(-3,3)*BS
+		        );
 
-		/*
-			Create a ServerActiveObject
-		*/
+		    /*
+		    	Create a ServerActiveObject
+	    	*/
 
-		//TestSAO *obj = new TestSAO(this, 0, pos);
-		//ServerActiveObject *obj = new ItemSAO(this, 0, pos, "CraftItem Stick 1");
-		//ServerActiveObject *obj = new RatSAO(this, 0, pos);
-		//ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
-		ServerActiveObject *obj = new FireflySAO(this, 0, pos);
-		addActiveObject(obj);
-	}
-#endif
+	    	//TestSAO *obj = new TestSAO(this, 0, pos);
+	    	//ServerActiveObject *obj = new ItemSAO(this, 0, pos, "CraftItem Stick 1");
+	    	//ServerActiveObject *obj = new RatSAO(this, 0, pos);
+	    	//ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
+	    	ServerActiveObject *obj = new FireflySAO(this, 0, pos);
+	    	addActiveObject(obj);
+    	}
+    #endif
 
 	} // enable_experimental
+
+
+    if (getDayNightRatio() == 350)
+        m_night_spawn_timer -= dtime;
+
+	if(m_night_spawn_timer < 0 && getDayNightRatio()  == 350)
+	{
+		m_night_spawn_timer += 5.0;
+
+        core::list<Player*> players = getPlayers(true);
+
+        for (core::list<Player*>::Iterator i = players.begin();
+                i != players.end(); i++)
+        {
+            Player *player = *i;
+            
+		    v3f pos(0,0,0);
+			pos = player->getPosition();
+		    // Enforce minimum distance
+		    pos += v3f(
+			    (myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS,
+			    0,
+	    		(myrand_range(0,1) ? myrand_range(-12,-5) : myrand_range(5, 12))*BS
+		    );
+
+		    /*
+			    Create a ServerActiveObject
+		    */
+
+		    ServerActiveObject *obj = new Oerkki1SAO(this, 0, pos);
+		    addActiveObject(obj);
+        }
+    }
 }
 
 ServerActiveObject* ServerEnvironment::getActiveObject(u16 id)
