@@ -1,0 +1,242 @@
+This is a brief crafting guide for minetest-delta. It is best viewed in GNU Emacs' Org-Mode.
+
+* Materials
+Some recipes will require you to have more refined materials at hand.
+
+** Plank
+You get 4 planks from this recipe.
+
+T = Tree
+ -----------
+|   |   |   |
+ -----------
+|   | T |   |
+ -----------
+|   |   |   |
+ -----------
+
+** Stick
+You get 4 sticks from this recipe.
+
+P = Plank
+ -----------
+|   |   |   |
+ -----------
+|   | P |   |
+ -----------
+|   |   |   |
+ -----------
+
+** Paper
+This is used in books.
+
+P = Papyrus
+ -----------
+|   |   |   |
+ -----------
+| P | P | P |
+ -----------
+|   |   |   |
+ -----------
+
+** Book
+This is used in bookshelves.
+
+P = Paper
+ -----------
+|   | P |   |
+ -----------
+|   | P |   |
+ -----------
+|   | P |   |
+ -----------
+* Blocks
+Some materials can be crafted into blocks for storage or construction purposes.
+
+** Iron Blocks
+Used mostly for storage.
+
+I = Iron
+ -----------
+| I | I | I |
+ -----------
+| I | I | I |
+ -----------
+| I | I | I |
+ -----------
+
+** Sandstone, Clay Block, and Brick
+These three have the same recipe, roughly.
+
+M = Sand, clay, or clay brick
+ -----------
+|   |   |   |
+ -----------
+| M | M |   |
+ -----------
+| M | M |   |
+ -----------
+
+* Tools
+In order to advance yourself in this game, you'll need some tools.
+
+A note about tools: You can make tools with several different materials. In order of strength:
+Wood, Stone, Iron, MESE
+
+** Pickaxe
+Used to mine stone and stonelike things
+
+M = Wood, Stone, Iron, or MESE
+S = Stick
+ -----------
+| M | M | M |
+ -----------
+|   | S |   |
+ -----------
+|   | S |   |
+ -----------
+
+** Shovel
+Used to excavate dirt, mud, and sand.
+
+M = Wood, Stone, or Iron
+S = Stick
+ -----------
+|   | M |   |
+ -----------
+|   | S |   |
+ -----------
+|   | S |   |
+ -----------
+
+** Axe
+Used to chop wood and leaves.
+
+M = Wood, Stone, or Iron
+S = Stick
+ -----------
+| M | M |   |
+ -----------
+| M | S |   |
+ -----------
+|   | S |   |
+ -----------
+
+** Sword...
+For those times when you just have to kill something.
+
+M = Wood, Stone, or Iron
+S = Stick
+ -----------
+|   | M |   |
+ -----------
+|   | M |   |
+ -----------
+|   | S |   |
+ -----------
+
+* Furniture
+This is sort of a limited category, but we have a few useful things to put around your house.
+
+** Chest
+You can put things in here!
+
+P = Plank
+ -----------
+| P | P | P |
+ -----------
+| P |   | P |
+ -----------
+| P | P | P |
+ -----------
+
+** Furnace
+This is used to smelt things.
+
+C = Cobblestone
+ -----------
+| C | C | C |
+ -----------
+| C |   | C |
+ -----------
+| C | C | C |
+ -----------
+
+** Torch
+One of the most useful things in the game--also one of the easiest to craft!
+
+S = Stick
+C = Coal
+ -----------
+|   |   |   |
+ -----------
+|   | C |   |
+ -----------
+|   | S |   |
+ -----------
+
+** Bookshelf
+A shelf full of books!
+
+B = Book
+P = Plank
+ -----------
+| P | P | P |
+ -----------
+| B | B | B |
+ -----------
+| P | P | P |
+ -----------
+
+* Useful Blocks
+This is the place to find really useful blocks (namely those you place outside).
+
+** Rail
+This has no real use at the moment, but will be used for railcars in the future.
+
+I = Iron
+S = Stick
+ -----------
+| I | S | I |
+ -----------
+| I | S | I |
+ -----------
+| I | S | I |
+ -----------
+
+** Ladder
+This is for going up and down walls.
+
+S = Stick
+ -----------
+| S |   | S |
+ -----------
+| S | S | S |
+ -----------
+| S |   | S |
+ -----------
+
+** Sign
+This will store a small message for you, and display it on-screen when you point at it.
+
+S = Stick
+P = Plank
+ -----------
+| P | P | P |
+ -----------
+| P | P | P |
+ -----------
+|   | S |   |
+ -----------
+
+** Fence
+This is a slightly-higher block meant to keep people out. Or in!
+
+S = Stick
+ -----------
+|   |   |   |
+ -----------
+| S | S | S |
+ -----------
+| S | S | S |
+ -----------
